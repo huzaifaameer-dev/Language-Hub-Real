@@ -22,11 +22,35 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
+const baseUrl =
+  (process.env.NEXTAUTH_URL || process.env.AUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+
+const title = "Language Hub | Hub of Language Excellence";
+const description =
+  "Language Hub helps learners develop English fluency, confidence, communication skills and creative expression through practical and interactive learning.";
+
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  name: "Language Hub",
+  alternateName: "Language Hub Academy",
+  description,
+  url: baseUrl,
+  logo: `${baseUrl}/opengraph-image`,
+  image: `${baseUrl}/opengraph-image`,
+  founder: { "@type": "Person", name: "Javeria Malik" },
+  email: process.env.ACADEMY_EMAIL ?? undefined,
+  knowsAbout: ["Spoken English", "IELTS preparation", "PTE preparation", "Duolingo English Test"],
+};
+
 export const metadata: Metadata = {
-  title: "Language Hub | Hub of Language Excellence",
-  description:
-    "Language Hub helps learners develop English fluency, confidence, communication skills and creative expression through practical and interactive learning.",
+  title,
+  description,
+  metadataBase: new URL(baseUrl),
   applicationName: "Language Hub",
+  category: "education",
+  authors: [{ name: "Javeria Malik" }],
+  creator: "Language Hub",
   keywords: [
     "Language Hub",
     "Spoken English",
@@ -37,19 +61,19 @@ export const metadata: Metadata = {
     "English communication",
     "Javeria Malik",
   ],
+  alternates: { canonical: "/" },
   openGraph: {
-    title: "Language Hub | Hub of Language Excellence",
-    description:
-      "Language Hub helps learners develop English fluency, confidence, communication skills and creative expression through practical and interactive learning.",
+    title,
+    description,
     type: "website",
+    url: baseUrl,
     locale: "en_US",
     siteName: "Language Hub",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Language Hub | Hub of Language Excellence",
-    description:
-      "Language Hub helps learners develop English fluency, confidence, communication skills and creative expression through practical and interactive learning.",
+    title,
+    description,
   },
   robots: { index: true, follow: true },
 };
@@ -69,6 +93,10 @@ export default function RootLayout({
       className={`${inter.variable} ${manrope.variable} ${playfair.variable}`}
     >
       <body className="min-h-screen bg-ivory font-sans text-ink antialiased">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
         <Providers>{children}</Providers>
       </body>
     </html>
