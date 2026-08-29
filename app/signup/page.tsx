@@ -1,0 +1,193 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { Check, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+
+import { AuthShell, Field } from "@/components/auth/AuthShell";
+import { OAuthButtons } from "@/components/auth/OAuthButtons";
+import { cn } from "@/lib/utils";
+
+interface FieldErrors {
+  name?: string[];
+  email?: string[];
+  password?: string[];
+}
+
+const PASSWORD_RULES = [
+  { label: "8+ characters", test: (p: string) => p.length >= 8 },
+  { label: "A letter", test: (p: string) => /[A-Za-z]/.test(p) },
+  { label: "A number", test: (p: string) => /[0-9]/.test(p) },
+  { label: "A special char", test: (p: string) => /[^A-Za-z0-9]/.test(p) },
+];
+
+export default function SignupPage() {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const checked = password.length > 0
+    ? PASSWORD_RULES.reduce<{ label: string; ok: boolean }[]>((acc, r) => {
+        acc.push({ label: r.label, ok: r.test(password) });
+        return acc;
+      }, [])
+    : null;
+
+  const submit = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    setErrors(null);
+    setBusy(true);
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.errors) setErrors(data.errors);
+        setFormError(data.message ?? "Could not create your account.");
+        return;
+      }
+
+      const signInRes = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl: "/dashboard",
+      });
+      if (signInRes?.error) {
+        // Account created — just take them to login.
+        router.push("/login?created=1");
+      } else {
+        router.push("/dashboard");
+      }
+      router.refresh();
+    } catch {
+      setFormError("Network error. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <AuthShell
+      kicker="Join the Hub"
+      title={
+        <>
+          Create your <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent">voice.</span>
+        </>
+      }
+      subtitle="A free account lets you apply to a course and track your application live."
+      footer={
+        <>
+          Already have an account?{" "}
+          <Link href="/login" className="font-bold text-indigo-600 underline-offset-4 hover:underline">
+            Sign in
+          </Link>
+        </>
+      }
+    >
+      <form onSubmit={submit} className="flex flex-col gap-4">
+        <Field
+          label="Full Name"
+          id="signup-name"
+          value={name}
+          onChange={setName}
+          placeholder="Your name"
+          autoComplete="name"
+          icon={<User className="h-4.5 w-4.5" strokeWidth={1.8} />}
+          error={errors?.name?.[0]}
+          required
+        />
+        <Field
+          label="Email"
+          id="signup-email"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          placeholder="you@example.com"
+          autoComplete="email"
+          icon={<Mail className="h-4.5 w-4.5" strokeWidth={1.8} />}
+          error={errors?.email?.[0]}
+          required
+        />
+
+        <div>
+          <Field
+            label="Password"
+            id="signup-password"
+            type={showPass ? "text" : "password"}
+            value={password}
+            onChange={setPassword}
+            placeholder="Create a strong password"
+            autoComplete="new-password"
+            icon={<Lock className="h-4.5 w-4.5" strokeWidth={1.8} />}
+            trailing={
+              <button
+                type="button"
+                onClick={() => setShowPass((v) => !v)}
+                aria-label={showPass ? "Hide password" : "Show password"}
+                className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              >
+                {showPass ? <EyeOff className="h-4.5 w-4.5" strokeWidth={1.8} /> : <Eye className="h-4.5 w-4.5" strokeWidth={1.8} />}
+              </button>
+            }
+            error={errors?.password?.[0]}
+            required
+          />
+          {checked ? (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {checked.map((r) => (
+                <span
+                  key={r.label}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-[0.62rem] font-bold transition-colors",
+                    r.ok
+                      ? "bg-emerald-500/12 text-emerald-600"
+                      : "bg-slate-100 text-slate-400"
+                  )}
+                >
+                  {r.ok ? <Check className="h-3 w-3" strokeWidth={3} /> : <span aria-hidden>·</span>}
+                  {r.label}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        {formError ? (
+          <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[0.85rem] font-medium text-rose-600">
+            {formError}
+          </p>
+        ) : null}
+
+        <button
+          type="submit"
+          disabled={busy}
+          className="group mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-12px_rgb(99_102_241/0.85)] hover:brightness-[1.05] disabled:opacity-60"
+        >
+          {busy ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          ) : (
+            <>
+              Create Account
+              <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+            </>
+          )}
+        </button>
+      </form>
+
+      <OAuthButtons callbackUrl="/dashboard" />
+    </AuthShell>
+  );
+}
