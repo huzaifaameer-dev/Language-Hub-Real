@@ -70,6 +70,8 @@ export async function POST(request: Request) {
   });
 
   // Fire-and-forget; sendEmail never throws and silently no-ops without SMTP.
+  void sendWelcomeEmail({ to: normalized, name, verifyToken }).catch(() => {});
+
   // In dev without SMTP, return a usable verify link so flows stay testable.
   const devVerifyLink =
     process.env.NODE_ENV !== "production" && !process.env.SMTP_HOST
