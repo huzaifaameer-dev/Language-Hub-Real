@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Check, ChevronDown, MapPin, MessageSquareQuote, UserRound, X } from "lucide-react";
+import { Check, ChevronDown, Download, MapPin, MessageSquareQuote, UserRound, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminApplication } from "./types";
-import { AvatarInitial, FilterChips, SectionTitle, StatusPill } from "./ui";
+import { AvatarInitial, FilterChips, Pager, SearchBox, SectionTitle, StatusPill, downloadCsv } from "./ui";
 
 type Filter = "ALL" | "PENDING" | "APPROVED" | "REJECTED";
 
 const ease = [0.16, 1, 0.3, 1] as const;
+const PAGE_SIZE = 15;
 
 export function AdminApplications({
   items, onDecide, freshIds,
@@ -19,11 +20,34 @@ export function AdminApplications({
   freshIds: Set<string>;
 }) {
   const [filter, setFilter] = useState<Filter>("ALL");
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
   const [replies, setReplies] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  const visible = items.filter((a) => filter === "ALL" || a.status === filter);
+  const setFilterPageReset = (f: Filter) => {
+    setFilter(f);
+    setPage(1);
+  };
+  const setQueryPageReset = (q: string) => {
+    setQuery(q);
+    setPage(1);
+  };
+
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return items.filter((a) => {
+      if (filter !== "ALL" && a.status !== filter) return false;
+      if (!q) return true;
+      const hay = `${a.name} ${a.email} ${a.place} ${a.course} ${a.bio} ${a.message ?? ""}`.toLowerCase();
+      return hay.includes(q);
+    });
+  }, [items, filter, query]);
+
+  const totalPages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
+  const pageIdx = Math.min(page, totalPages);
+  const visible = matches.slice((pageIdx - 1) * PAGE_SIZE, pageIdx * PAGE_SIZE);
 
   const decide = async (id: string, action: "APPROVE" | "REJECT") => {
     setBusy(id);
@@ -32,6 +56,25 @@ export function AdminApplications({
     } finally {
       setBusy(null);
     }
+  };
+
+  const exportCsv = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadCsv(
+      `lh-applications-${stamp}.csv`,
+      ["Name", "Email", "Place", "Course", "Bio", "Message", "Status", "Admin reply", "Created at"],
+      matches.map((a) => [
+        a.name,
+        a.email,
+        a.place,
+        a.course,
+        a.bio,
+        a.message ?? "",
+        a.status,
+        a.adminMessage ?? "",
+        new Date(a.createdAt).toISOString(),
+      ])
+    );
   };
 
   return (
@@ -46,8 +89,24 @@ export function AdminApplications({
             { key: "REJECTED", label: "REJECTED", count: items.filter((a) => a.status === "REJECTED").length },
           ]}
           value={filter}
-          onChange={setFilter}
+          onChange={setFilterPageReset}
         />
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <SearchBox
+          value={query}
+          onChange={setQueryPageReset}
+          placeholder="Search name, email, place, course, bio…"
+        />
+        <button
+          type="button"
+          onClick={exportCsv}
+          disabled={matches.length === 0}
+          className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50/80 px-4 py-2.5 font-display text-[0.72rem] font-bold text-indigo-700 transition-all hover:-translate-y-0.5 hover:bg-indigo-100 disabled:opacity-50"
+        >
+          <Download className="h-3.5 w-3.5" /> Export CSV
+        </button>
       </div>
 
       {visible.length === 0 ? (
@@ -175,6 +234,10 @@ export function AdminApplications({
           );
         })
       )}
+
+      {matches.length > 0 ? (
+        <Pager page={pageIdx} pageSize={PAGE_SIZE} total={matches.length} onPage={setPage} />
+      ) : null}
     </section>
   );
 }

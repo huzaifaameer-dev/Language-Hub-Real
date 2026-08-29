@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function CountUp({ to, duration = 800 }: { to: number; duration?: number }) {
@@ -245,4 +246,80 @@ export function GlassPanel({
       <div className="relative">{children}</div>
     </section>
   );
+}
+
+export function SearchBox({
+  value, onChange, placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="relative w-full max-w-[22rem]">
+      <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" strokeWidth={2} />
+      <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder ?? "Search…"}
+        className="h-11 w-full rounded-xl border border-slate-200 bg-white/80 pl-10 pr-4 font-display text-[0.85rem] text-slate-800 outline-none transition-all backdrop-blur-md placeholder:text-slate-400/80 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/15"
+      />
+    </div>
+  );
+}
+
+export function Pager({
+  page, pageSize, total, onPage,
+}: {
+  page: number;
+  pageSize: number;
+  total: number;
+  onPage: (n: number) => void;
+}) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const start = total === 0 ? 0 : (page - 1) * pageSize + 1;
+  const end = Math.min(total, page * pageSize);
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/70 bg-white/60 px-4 py-3 backdrop-blur-xl">
+      <p className="font-mono text-[0.64rem] font-bold uppercase tracking-widest text-slate-400">
+        {start}–{end} of <span className="text-indigo-600">{total}</span>
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={page <= 1}
+          onClick={() => onPage(page - 1)}
+          className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-3.5 py-2 font-display text-[0.7rem] font-bold text-slate-600 transition-all hover:border-indigo-300 hover:text-indigo-700 disabled:opacity-40"
+        >
+          <ChevronLeft className="h-3.5 w-3.5" /> Prev
+        </button>
+        <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5 font-mono text-[0.68rem] font-black text-indigo-700">
+          {page} / {totalPages}
+        </span>
+        <button
+          type="button"
+          disabled={page >= totalPages || total === 0}
+          onClick={() => onPage(page + 1)}
+          className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white/80 px-3.5 py-2 font-display text-[0.7rem] font-bold text-slate-600 transition-all hover:border-indigo-300 hover:text-indigo-700 disabled:opacity-40"
+        >
+          Next <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Download rows as a UTF-8 (BOM) CSV so Excel opens it correctly. */
+export function downloadCsv(filename: string, headers: string[], rows: (string | number)[][]) {
+  const esc = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
+  const body = [headers, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
+  const blob = new Blob([`\uFEFF${body}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
