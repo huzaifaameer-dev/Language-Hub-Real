@@ -1,3 +1,5 @@
+import { auth } from "@/auth";
+import { getAdminSession } from "@/lib/admin-session";
 import { subscribe } from "@/lib/realtime";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +12,13 @@ const encoder = new TextEncoder();
 // optional target userId so clients can skip unrelated work). Real data is
 // always fetched through the authenticated JSON APIs.
 export async function GET(request: Request) {
+  // Gate the stream: open it only for an authenticated learner (NextAuth
+  // session) or an authenticated admin (standalone admin cookie).
+  const [session, admin] = await Promise.all([auth(), getAdminSession()]);
+  if (!session?.user?.id && !admin?.email) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const stream = new TransformStream<Uint8Array, Uint8Array>();
   const writer = stream.writable.getWriter();
 

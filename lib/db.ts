@@ -94,56 +94,123 @@ export async function getUsersCollection() {
   return db.collection("users");
 }
 
-/**
- * Ensures indexes + the admin account exist. Idempotent; safe to call on
- * every server request that touches auth/admin data.
- */
-export async function ensureIndexesAndAdmin(): Promise<void> {
-  const db = await getDb();
-
-  await Promise.all([
-    db.collection("users").createIndex({ email: 1 }, { unique: true }),
-    db.collection("applications").createIndex({ userId: 1 }),
-    db.collection("applications").createIndex({ status: 1 }),
-    db.collection("applications").createIndex({ createdAt: -1 }),
-    db.collection("enrollments").createIndex({ userId: 1 }),
-    db.collection("enrollments").createIndex({ status: 1 }),
-    db.collection("enrollments").createIndex({ applicationId: 1 }),
-    db.collection("enrollments").createIndex({ createdAt: -1 }),
-  ]);
-
-  if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD) return;
-
-  const existing = await db
-    .collection("users")
-    .findOne({ email: process.env.ADMIN_EMAIL.toLowerCase() });
-
-  if (existing) {
-    // Re-apply the CURRENT ADMIN_PASSWORD whenever the stored doc predates
-    // the current seed format (hash drift / secret rotation). One-time per
-    // seedVersion bump; bcrypt cost stays off the hot path.
-    const version = (existing as { seedVersion?: number }).seedVersion;
-    if (version !== SEED_VERSION) {
-      const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
-      await db
-        .collection("users")
-        .updateOne(
-          { _id: existing._id },
-          { $set: { password: hash, role: "ADMIN", seedVersion: SEED_VERSION } }
-        );
-    }
-    return;
-  }
-
-  const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
-  await db.collection("users").insertOne({
-    name: "Administrator",
-    email: process.env.ADMIN_EMAIL.toLowerCase(),
-    password: hash,
-    role: "ADMIN",
-    seedVersion: SEED_VERSION,
-    emailVerified: null,
-    image: null,
-    createdAt: new Date(),
-  });
+export interface NotificationDoc {
+  _id?: unknown;
+  userId: string;
+  kind: string;
+  title: string;
+  message?: string | null;
+  href?: string | null;
+  read: boolean;
+  createdAt: Date;
 }
+
+export interface AuthTokenDoc {
+  _id?: unknown;
+  userId: string;
+  token: string;
+  purpose: "password-reset" | "email-verify";
+  expiresAt: Date;
+  createdAt: Date;
+  usedAt?: Date | null;
+}
+
+export interface SettingsDoc {
+  _id?: unknown;
+  key: string;
+  value: unknown;
+  updatedAt: Date;
+}
+
+export async function getNotificationsCollection() {
+  const db = await getDb();
+  return db.collection<NotificationDoc>("notifications");
+}
+
+export async function getAuthTokensCollection() {
+  const db = await getDb();
+  return db.collection<AuthTokenDoc>("auth_tokens");
+}
+
+export async function getSettingsCollection() {
+  const db = await getDb();
+  return db.collection<SettingsDoc>("settings");
+}
+
+/**
+ * Ensures indexes + the admin account exist.
+ *
+ * Runs once per server process (lazy singleton). Idempotent and safe to call
+ * from any request; after the first success it short-circuits so hot paths
+ * stop paying the Mongo round-trip. A failure clears the promise so the next
+ * request retries.
+ */
+let initPromise: Promise<void> | null = null;
+
+export function ensureInit(): Promise<void> {
+  if (!initPromise) {
+    initPromise = (async () => {
+      const db = await getDb();
+
+      await Promise.all([
+        db.collection("users").createIndex({ email: 1 }, { unique: true }),
+        db.collection("users").createIndex({ role: 1 }),
+        db.collection("applications").createIndex({ userId: 1 }),
+        db.collection("applications").createIndex({ status: 1 }),
+        db.collection("applications").createIndex({ createdAt: -1 }),
+        db.collection("enrollments").createIndex({ userId: 1 }),
+        db.collection("enrollments").createIndex({ status: 1 }),
+        db.collection("enrollments").createIndex({ applicationId: 1 }),
+        db.collection("enrollments").createIndex({ createdAt: -1 }),
+        db.collection("notifications").createIndex({ userId: 1 }),
+        db.collection("notifications").createIndex({ userId: 1, read: 1 }),
+        db.collection("notifications").createIndex({ userId: 1, createdAt: -1 }),
+        db.collection("auth_tokens").createIndex({ token: 1 }, { unique: true }),
+        db.collection("auth_tokens").createIndex({ token: 1, purpose: 1 }),
+        db.collection("auth_tokens").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+        db.collection("settings").createIndex({ key: 1 }, { unique: true }),
+      ]);
+
+      if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+        const existing = await db
+          .collection("users")
+          .findOne({ email: process.env.ADMIN_EMAIL.toLowerCase() });
+
+        if (existing) {
+          // Re-apply the CURRENT ADMIN_PASSWORD whenever the stored doc predates
+          // the current seed format (hash drift / secret rotation). One-time per
+          // seedVersion bump; bcrypt cost stays off the hot path.
+          const version = (existing as { seedVersion?: number }).seedVersion;
+          if (version !== SEED_VERSION) {
+            const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
+            await db
+              .collection("users")
+              .updateOne(
+                { _id: existing._id },
+                { $set: { password: hash, role: "ADMIN", seedVersion: SEED_VERSION } }
+              );
+          }
+        } else {
+          const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
+          await db.collection("users").insertOne({
+            name: "Administrator",
+            email: process.env.ADMIN_EMAIL.toLowerCase(),
+            password: hash,
+            role: "ADMIN",
+            seedVersion: SEED_VERSION,
+            emailVerified: null,
+            image: null,
+            createdAt: new Date(),
+          });
+        }
+      }
+    })().catch((err) => {
+      initPromise = null; // allow retry on the next request
+      throw err;
+    });
+  }
+  return initPromise;
+}
+
+/** Backwards-compatible alias (older modules). */
+export const ensureIndexesAndAdmin = ensureInit;

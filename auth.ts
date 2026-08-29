@@ -71,7 +71,10 @@ const credentialsProvider: Provider = Credentials({
       id: String(user._id),
       name: (user.name as string) ?? null,
       email: (user.email as string) ?? null,
-      image: (user.image as string | null) ?? null,
+      // Do NOT put the profile photo in the JWT: avatars are resized to disk
+      // (see /api/profile/avatar) and the cookie must stay small. UIs read the
+      // freshest image from /api/me or the dashboard server component.
+      image: null,
       role,
     };
   },

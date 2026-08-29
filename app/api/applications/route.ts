@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
 
-  const rl = rateLimit(clientKey(request, "apply"), 5, 60 * 60 * 1000);
+  const rl = rateLimit(clientKey(request, `apply:${session.user.id}`), 5, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many submissions. Please wait a while." },

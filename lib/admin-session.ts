@@ -10,6 +10,16 @@ function secret(): Buffer {
     process.env.NEXTAUTH_SECRET ??
     process.env.AUTH_SECRET ??
     "language-hub-dev-admin-secret";
+
+  // Fail closed: in production a missing secret must never fall back to the
+  // repo-known dev value, or anyone could forge an admin cookie.
+  if (process.env.NODE_ENV === "production") {
+    if (!process.env.NEXTAUTH_SECRET && !process.env.AUTH_SECRET) {
+      throw new Error(
+        "NEXTAUTH_SECRET/AUTH_SECRET is required in production (admin token signing)."
+      );
+    }
+  }
   return Buffer.from(value);
 }
 

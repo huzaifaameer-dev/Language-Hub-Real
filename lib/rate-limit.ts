@@ -49,9 +49,11 @@ export function rateLimit(
 
 /** Pull a stable client identifier from a Request. */
 export function clientKey(request: Request, suffix = ""): string {
+  // First entry of x-forwarded-for is the real client when behind a proxy.
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
+    request.headers.get("x-real-ip")?.trim() ??
+    request.headers.get("cf-connecting-ip")?.trim() ??
     "unknown";
   return `${ip}:${suffix}`;
 }

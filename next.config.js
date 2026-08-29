@@ -14,6 +14,10 @@ const cspHeader = `
 
 module.exports = {
   poweredByHeader: false,
+  // The driver stays external: webpack must not statically resolve mongodb's
+  // optional native deps (client-side-encryption, kerberos, aws…) or the
+  // bundle breaks at runtime with "Can't resolve 'mongodb-client-encryption'".
+  serverExternalPackages: ["mongodb"],
   allowedDevOrigins: ["192.168.100.7"],
   async headers() {
     return [
