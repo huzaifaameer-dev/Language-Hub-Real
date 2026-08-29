@@ -22,7 +22,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { useLiveSync } from "@/lib/use-live";
-import type { AdminApplication, AdminEnrollment, AdminStats } from "./types";
+import type { AdminApplication, AdminCounts, AdminEnrollment, AdminStats } from "./types";
+import { deriveAdminStats } from "./stats";
 import { AdminApplications } from "./AdminApplications";
 import { AdminEnrollments } from "./AdminEnrollments";
 import { AdminCourses } from "./AdminCourses";
@@ -48,15 +49,14 @@ interface Toast {
 let toastSeq = 0;
 
 export function AdminPanel({
-  adminEmail, stats, applications, enrollments,
+  adminEmail, counts, applications, enrollments,
 }: {
   adminEmail: string;
-  stats: AdminStats;
+  counts: AdminCounts;
   applications: AdminApplication[];
   enrollments: AdminEnrollment[];
 }) {
   const [tab, setTab] = useState<Tab>("overview");
-  const [stat, setStat] = useState(stats);
   const [appList, setAppList] = useState(applications);
   const [enrList, setEnrList] = useState(enrollments);
   const [syncing, setSyncing] = useState(false);
@@ -64,6 +64,11 @@ export function AdminPanel({
   const [freshEnrs, setFreshEnrs] = useState<Set<string>>(new Set());
   const [toasts, setToasts] = useState<Toast[]>([]);
   const router = useRouter();
+
+  const stat = useMemo(
+    () => deriveAdminStats(appList, enrList, counts),
+    [appList, enrList, counts]
+  );
 
   const knownIds = useRef({ apps: new Set(applications.map((a) => a.id)), enrs: new Set(enrollments.map((e) => e.id)) });
   const pendingRef = useRef({
@@ -98,10 +103,9 @@ export function AdminPanel({
     async (silent = false) => {
       if (!silent) setSyncing(true);
       try {
-        const [sa, se, st] = await Promise.all([
+        const [sa, se] = await Promise.all([
           fetch("/api/admin/applications").then((r) => (r.ok ? r.json() : null)),
           fetch("/api/admin/enrollments").then((r) => (r.ok ? r.json() : null)),
-          fetch("/api/admin/stats").then((r) => (r.ok ? r.json() : null)),
         ]);
 
         const apps = (sa?.applications ?? null) as AdminApplication[] | null;
@@ -135,19 +139,6 @@ export function AdminPanel({
           pendingRef.current.enrs = nextPending;
           enrs.forEach((e) => knownIds.current.enrs.add(e.id));
           setEnrList(enrs);
-        }
-
-        if (st) {
-          setStat((s) =>
-            enrs
-              ? {
-                  ...st,
-                  enrPending: enrs.filter((e) => e.status === "PENDING").length,
-                  enrEnrolled: enrs.filter((e) => e.status === "ENROLLED").length,
-                  enrRejected: enrs.filter((e) => e.status === "REJECTED").length,
-                }
-              : { ...st, enrPending: s.enrPending, enrEnrolled: s.enrEnrolled, enrRejected: s.enrRejected }
-          );
         }
       } finally {
         if (!silent) setSyncing(false);

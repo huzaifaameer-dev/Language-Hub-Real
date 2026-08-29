@@ -22,12 +22,28 @@ import { destroyLenis, initLenis } from "@/lib/lenis";
 import { initScrollSystem } from "@/lib/scroll";
 
 export function Site() {
+  const [ready, setReady] = useState(false);
   const [introDone, setIntroDone] = useState(false);
   useBodyScrollLock(!introDone);
 
   const handleComplete = useCallback(() => {
+    try {
+      window.localStorage.setItem("lh:intro-seen", "1");
+    } catch {}
     setIntroDone(true);
     window.dispatchEvent(new Event("lh:intro-done"));
+  }, []);
+
+  useEffect(() => {
+    const raf = window.requestAnimationFrame(() => {
+      let seen = false;
+      try {
+        seen = window.localStorage.getItem("lh:intro-seen") === "1";
+      } catch {}
+      if (seen) setIntroDone(true);
+      setReady(true);
+    });
+    return () => window.cancelAnimationFrame(raf);
   }, []);
 
   useEffect(() => {
@@ -48,7 +64,7 @@ export function Site() {
         Skip to content
       </a>
 
-      {!introDone && <KineticIntro onComplete={handleComplete} />}
+      {ready && !introDone && <KineticIntro onComplete={handleComplete} />}
 
       <Cursor />
       <Navbar />

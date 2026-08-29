@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useDocumentVisible } from "@/lib/hooks";
 
 function isOpenNow(): boolean {
   const h = new Date().getHours();
@@ -13,6 +14,8 @@ export function Hours() {
   const minuteRef = useRef<SVGGElement>(null);
   const secondRef = useRef<SVGGElement>(null);
   const sectRef = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(false);
+  const visible = useDocumentVisible();
   const { scrollYProgress } = useScroll({
     target: sectRef,
     offset: ["start end", "end start"],
@@ -29,6 +32,21 @@ export function Hours() {
   );
 
   useEffect(() => {
+    const el = sectRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => setInView(entry.isIntersecting),
+      { rootMargin: "120px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!inView || !visible) return;
     let raf = 0;
 
     const tick = () => {
@@ -46,7 +64,7 @@ export function Hours() {
 
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, []);
+  }, [inView, visible]);
 
   const open = isOpenNow();
   const ticks = Array.from({ length: 12 }, (_, i) => (360 / 12) * i - 90);

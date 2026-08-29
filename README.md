@@ -29,11 +29,11 @@ npm run dev      # http://localhost:3000
 ## Scripts
 
 ```bash
-npm run build    # production build (webpack + typecheck)
-npm run start    # serve the production build
-npm run lint     # eslint
-node scripts/smoke.js   # headless browser smoke test (needs Chrome)
-node scripts/audit.js   # layout audit for the pinned horizontal galleries
+npm run build     # production build (webpack + typecheck)
+npm run start     # serve the production build
+npm run lint      # eslint
+npm run typecheck # tsc --noEmit
+npm test          # vitest unit suite (tests/)
 ```
 
 ## Notes

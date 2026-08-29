@@ -204,6 +204,8 @@ export function KineticIntro({ onComplete }: KineticIntroProps) {
       role="status"
       aria-label="Language Hub opening animation"
     >
+      <h1 className="sr-only">Language Hub — Hub of Language Excellence</h1>
+
       <div className="aurora-blob left-[-15%] top-[-20%] h-[55vh] w-[55vh] bg-brand/25" />
       <div className="aurora-blob bottom-[-25%] right-[-10%] h-[60vh] w-[60vh] bg-brand-magenta/20" />
       <div className="pointer-events-none absolute inset-0 grain" />
@@ -218,7 +220,7 @@ export function KineticIntro({ onComplete }: KineticIntroProps) {
           />
         </div>
 
-        <h1 className="font-display font-extrabold leading-none tracking-[-0.03em]">
+        <div aria-hidden="true" className="font-display font-extrabold leading-none tracking-[-0.03em]">
           <span
             data-intro="word-a"
             className="flex justify-center text-[clamp(2.6rem,9vw,6.5rem)]"
@@ -242,16 +244,18 @@ export function KineticIntro({ onComplete }: KineticIntroProps) {
             <span className="mx-[0.35em] flex opacity-60">{letterSpans("HUB", 0)}</span>
             <span className="flex">{letterSpans("REAL", 3)}</span>
           </span>
-        </h1>
+        </div>
 
         <p
           data-intro="tag-a"
+          aria-hidden="true"
           className="mt-6 font-display text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-gold-light opacity-0 sm:tracking-[0.5em]"
         >
           Hub of Language Excellence
         </p>
         <p
           data-intro="tag-c"
+          aria-hidden="true"
           className="mt-6 font-display text-[0.7rem] font-semibold uppercase tracking-[0.32em] text-gold-light opacity-0 sm:tracking-[0.5em]"
         >
           Hub of Language Excellence

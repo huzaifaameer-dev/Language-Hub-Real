@@ -40,6 +40,14 @@ export interface AdminStats {
   approvalRate: number;
 }
 
+/** Counts that cannot be derived from the 200-item lists: full-table totals
+ *  read once at page load instead of doubled up on the refresh path. */
+export interface AdminCounts {
+  users: number;
+  courses: number;
+  notifications: number;
+}
+
 export interface AdminBatch {
   name: string;
   time: string;
