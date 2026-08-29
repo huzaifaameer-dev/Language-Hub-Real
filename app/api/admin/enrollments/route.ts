@@ -5,6 +5,7 @@ import { requireAdmin, isValidObjectId } from "@/lib/admin-guard";
 import { ensureIndexesAndAdmin, getEnrollmentsCollection } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
 import { notify } from "@/lib/notifications";
+import { sendDecisionEmail } from "@/lib/email";
 import { z } from "zod";
 
 const PatchSchema = z.object({
@@ -78,7 +79,7 @@ export async function PATCH(request: Request) {
 
   const target = await enrollments.findOne(
     { _id: new ObjectId(id) },
-    { projection: { userId: 1 } }
+    { projection: { userId: 1, email: 1, name: 1 } }
   );
 
   const status = action === "ENROLL" ? "ENROLLED" : "REJECTED";
@@ -108,6 +109,21 @@ export async function PATCH(request: Request) {
           : "Your enrollment request was declined."),
       href: "/dashboard",
     });
+  }
+
+  if (target?.email) {
+    void sendDecisionEmail({
+      to: target.email,
+      name: target.name,
+      kind: "enrollment",
+      approved: status === "ENROLLED",
+      subject:
+        status === "ENROLLED"
+          ? "Your enrollment is confirmed"
+          : "Your enrollment request was declined",
+      message,
+      href: "/dashboard",
+    }).catch(() => {});
   }
 
   return NextResponse.json({ ok: true, status });

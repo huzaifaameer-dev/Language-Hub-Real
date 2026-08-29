@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
-import { getDb, ensureIndexesAndAdmin } from "@/lib/db";
+import { getDb, getAuthTokensCollection, ensureIndexesAndAdmin } from "@/lib/db";
 import { RegisterSchema, fieldErrors } from "@/lib/validate";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { sendWelcomeEmail } from "@/lib/email";
+import { generateToken, hashToken } from "@/lib/tokens";
 
 export async function POST(request: Request) {
   const rl = rateLimit(clientKey(request, "register"), 10, 15 * 60 * 1000);
@@ -55,8 +57,27 @@ export async function POST(request: Request) {
     createdAt: new Date(),
   });
 
+  // Email-verification token (24h TTL). Verification is optional: it updates
+  // emailVerified but does not gate sign-in.
+  const verifyToken = generateToken();
+  await (await getAuthTokensCollection()).insertOne({
+    userId: String(result.insertedId),
+    token: hashToken(verifyToken),
+    purpose: "email-verify",
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    createdAt: new Date(),
+    usedAt: null,
+  });
+
+  // Fire-and-forget; sendEmail never throws and silently no-ops without SMTP.
+  // In dev without SMTP, return a usable verify link so flows stay testable.
+  const devVerifyLink =
+    process.env.NODE_ENV !== "production" && !process.env.SMTP_HOST
+      ? `/verify-email?token=${verifyToken}`
+      : null;
+
   return NextResponse.json(
-    { id: String(result.insertedId), ok: true },
+    { id: String(result.insertedId), ok: true, devVerifyLink },
     { status: 201 }
   );
 }

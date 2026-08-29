@@ -197,6 +197,7 @@ export function Field({
   placeholder,
   autoComplete,
   error,
+  hint,
   required,
   icon,
   trailing,
@@ -209,6 +210,7 @@ export function Field({
   placeholder?: string;
   autoComplete?: string;
   error?: string;
+  hint?: string;
   required?: boolean;
   icon?: React.ReactNode;
   trailing?: React.ReactNode;
@@ -252,6 +254,10 @@ export function Field({
       {error ? (
         <p className="mt-1.5 flex items-center gap-1 font-sans text-[0.78rem] font-medium text-rose-600">
           {error}
+        </p>
+      ) : hint ? (
+        <p className="mt-1.5 font-sans text-[0.78rem] font-medium text-slate-500">
+          {hint}
         </p>
       ) : null}
     </div>

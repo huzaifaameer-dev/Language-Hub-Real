@@ -5,6 +5,7 @@ import { requireAdmin, isValidObjectId } from "@/lib/admin-guard";
 import { ensureIndexesAndAdmin, getApplicationsCollection } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
 import { notify } from "@/lib/notifications";
+import { sendDecisionEmail } from "@/lib/email";
 import { z } from "zod";
 
 const PatchSchema = z.object({
@@ -78,7 +79,7 @@ export async function PATCH(request: Request) {
 
   const target = await applications.findOne(
     { _id: new ObjectId(id) },
-    { projection: { userId: 1 } }
+    { projection: { userId: 1, email: 1, name: 1 } }
   );
 
   const status = action === "APPROVE" ? "APPROVED" : "REJECTED";
@@ -114,6 +115,21 @@ export async function PATCH(request: Request) {
           : "Your application was not selected this time."),
       href: "/dashboard",
     });
+  }
+
+  if (target?.email) {
+    void sendDecisionEmail({
+      to: target.email,
+      name: target.name,
+      kind: "application",
+      approved: status === "APPROVED",
+      subject:
+        status === "APPROVED"
+          ? "Your application was approved"
+          : "Update on your application",
+      message,
+      href: "/dashboard",
+    }).catch(() => {});
   }
 
   return NextResponse.json({ ok: true, status });

@@ -113,6 +113,13 @@ export default function LoginPage() {
             </>
           )}
         </button>
+
+        <Link
+          href="/reset-password"
+          className="-mt-1 self-center text-sm font-semibold text-slate-500 transition-colors hover:text-indigo-600"
+        >
+          Forgot your password?
+        </Link>
       </form>
 
       <OAuthButtons callbackUrl="/dashboard" />
