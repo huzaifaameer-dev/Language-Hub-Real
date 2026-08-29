@@ -11,7 +11,7 @@ import {
   AccountDeleteSchema,
   fieldErrors,
 } from "@/lib/validate";
-import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 
 function uploadsDir(): string {
   return path.join(process.cwd(), "public", "uploads", "avatars");
@@ -56,7 +56,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: "Invalid session." }, { status: 400 });
   }
 
-  const rl = rateLimit(clientKey(request, `profile:${session.user.id}`), 20, 60 * 60 * 1000);
+  const rl = await rateLimitDb(clientKey(request, `profile:${session.user.id}`), 20, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many updates. Please try again later." },
@@ -113,7 +113,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ message: "Invalid session." }, { status: 400 });
   }
 
-  const rl = rateLimit(clientKey(request, `delete:${session.user.id}`), 3, 60 * 60 * 1000);
+  const rl = await rateLimitDb(clientKey(request, `delete:${session.user.id}`), 3, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many attempts. Please try again later." },

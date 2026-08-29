@@ -5,14 +5,14 @@ import { z } from "zod";
 import { getDb, getAuthTokensCollection, ensureIndexesAndAdmin } from "@/lib/db";
 import { hashToken } from "@/lib/tokens";
 import { notify } from "@/lib/notifications";
-import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 
 const VerifySchema = z.object({
   token: z.string().min(1),
 });
 
 export async function POST(request: Request) {
-  const rl = rateLimit(clientKey(request, "verify"), 10, 60 * 60 * 1000);
+  const rl = await rateLimitDb(clientKey(request, "verify"), 10, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many attempts. Please try again later." },

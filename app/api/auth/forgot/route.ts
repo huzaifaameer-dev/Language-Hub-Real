@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getDb, ensureIndexesAndAdmin, getAuthTokensCollection } from "@/lib/db";
 import { sendResetEmail, emailConfigured } from "@/lib/email";
 import { generateToken, hashToken } from "@/lib/tokens";
-import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 
 const RESET_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   const email = parsed.data.email.toLowerCase();
-  const rl = rateLimit(clientKey(request, `forgot:${email}`), 5, 60 * 60 * 1000);
+  const rl = await rateLimitDb(clientKey(request, `forgot:${email}`), 5, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many requests. Try again in about an hour." },

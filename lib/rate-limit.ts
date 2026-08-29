@@ -3,6 +3,12 @@ interface Bucket {
   resetAt: number;
 }
 
+interface RateLimitDoc {
+  _id: string;
+  count: number;
+  resetAt: Date;
+}
+
 const store = new Map<string, Bucket>();
 
 function prune(now: number): void {
@@ -18,8 +24,8 @@ export interface RateLimitResult {
 }
 
 /**
- * Simple in-memory sliding-window rate limiter keyed by string.
- * Good enough for a self-hosted app at this scale.
+ * In-memory sliding-window rate limiter keyed by string. Kept as the fast path
+ * and the fallback when the database is unreachable.
  */
 export function rateLimit(
   key: string,
@@ -45,6 +51,81 @@ export function rateLimit(
   }
 
   return { ok: true, remaining: limit - bucket.count };
+}
+
+let ttlIndexReady: Promise<void> | null = null;
+
+/** Loads the Mongo layer lazily so the in-memory path has no DB import. */
+async function getRateLimitDb() {
+  const { getDb } = await import("@/lib/db");
+  return getDb();
+}
+
+/** Creates the TTL index once per process so old windows get purged by Mongo. */
+function createTtlIndex(): Promise<void> {
+  return getRateLimitDb().then(async (db) => {
+    await db
+      .collection<RateLimitDoc>("ratelimits")
+      .createIndex({ resetAt: 1 }, { expireAfterSeconds: 1 });
+  });
+}
+
+function ensureTtlIndex(): Promise<void> {
+  const current = ttlIndexReady;
+  if (current) return current;
+  const created = createTtlIndex().catch((err: unknown) => {
+    ttlIndexReady = null; // allow retry on the next call
+    throw err;
+  });
+  ttlIndexReady = created;
+  return created;
+}
+
+/**
+ * Database-backed rate limiter. State survives restarts and is shared across
+ * processes/instances so bursts cannot be replayed by cycling the server.
+ * Atomic via `findOneAndUpdate` on the found bucket; falls back to the
+ * in-memory limiter if the DB is unreachable so the API never hard-fails.
+ */
+export async function rateLimitDb(
+  key: string,
+  limit: number,
+  windowMs: number
+): Promise<RateLimitResult> {
+  try {
+    await ensureTtlIndex();
+    const db = await getRateLimitDb();
+    const col = db.collection<RateLimitDoc>("ratelimits");
+
+    const now = Date.now();
+    const doc = await col.findOne({ _id: key });
+
+    if (!doc || doc.resetAt.getTime() <= now) {
+      await col.updateOne(
+        { _id: key },
+        { $set: { count: 1, resetAt: new Date(now + windowMs) } },
+        { upsert: true }
+      );
+      return { ok: true, remaining: limit - 1 };
+    }
+
+    const updated = await col.findOneAndUpdate(
+      { _id: key, resetAt: doc.resetAt },
+      { $inc: { count: 1 } },
+      { returnDocument: "after" }
+    );
+    const count = updated ? updated.count : doc.count;
+    if (count > limit) {
+      return {
+        ok: false,
+        remaining: 0,
+        retryAfter: Math.ceil((doc.resetAt.getTime() - now) / 1000),
+      };
+    }
+    return { ok: true, remaining: Math.max(0, limit - count) };
+  } catch {
+    return rateLimit(key, limit, windowMs);
+  }
 }
 
 /** Pull a stable client identifier from a Request. */

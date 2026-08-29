@@ -6,7 +6,7 @@ import sharp, { type Metadata } from "sharp";
 
 import { auth } from "@/auth";
 import { getDb } from "@/lib/db";
-import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const AvatarSchema = z.object({
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid session." }, { status: 400 });
   }
 
-  const rl = rateLimit(clientKey(request, `avatar:${session.user.id}`), 10, 60 * 60 * 1000);
+  const rl = await rateLimitDb(clientKey(request, `avatar:${session.user.id}`), 10, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json({ message: "Too many uploads. Wait a bit." }, { status: 429 });
   }

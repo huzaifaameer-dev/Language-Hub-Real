@@ -46,5 +46,7 @@ dev.log
 public/uploads/*.jpg
 public/uploads/*.png
 public/uploads/*.webp
+# avatar uploads (resized webp on disk, never committed)
+public/uploads/avatars/
 # keep the uploads folder itself
 !public/uploads/.gitkeep

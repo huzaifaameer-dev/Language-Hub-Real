@@ -9,7 +9,7 @@ import {
 } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
 import { EnrollmentSchema, fieldErrors } from "@/lib/validate";
-import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { notifyAdmins } from "@/lib/notifications";
 
 export async function POST(request: Request) {
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
 
-  const rl = rateLimit(clientKey(request, `enroll:${session.user.id}`), 5, 60 * 60 * 1000);
+  const rl = await rateLimitDb(clientKey(request, `enroll:${session.user.id}`), 5, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many submissions. Please try again later." },

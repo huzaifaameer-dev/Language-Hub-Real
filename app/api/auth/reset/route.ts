@@ -5,13 +5,13 @@ import { z } from "zod";
 
 import { getDb, getAuthTokensCollection, ensureIndexesAndAdmin } from "@/lib/db";
 import { PasswordSchema } from "@/lib/validate";
-import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { hashToken } from "@/lib/tokens";
 
 const BCRYPT_COST = 12;
 
 export async function POST(request: Request) {
-  const rl = rateLimit(clientKey(request, "reset"), 10, 60 * 60 * 1000);
+  const rl = await rateLimitDb(clientKey(request, "reset"), 10, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many attempts. Please try again later." },

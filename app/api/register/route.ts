@@ -3,12 +3,12 @@ import bcrypt from "bcryptjs";
 
 import { getDb, getAuthTokensCollection, ensureIndexesAndAdmin } from "@/lib/db";
 import { RegisterSchema, fieldErrors } from "@/lib/validate";
-import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { sendWelcomeEmail } from "@/lib/email";
 import { generateToken, hashToken } from "@/lib/tokens";
 
 export async function POST(request: Request) {
-  const rl = rateLimit(clientKey(request, "register"), 10, 15 * 60 * 1000);
+  const rl = await rateLimitDb(clientKey(request, "register"), 10, 15 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: `Too many attempts. Try again in ${rl.retryAfter}s.` },
