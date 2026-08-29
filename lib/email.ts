@@ -15,9 +15,9 @@ export function emailConfigured(): boolean {
 
 export function appBaseUrl(): string {
   return (
-    process.env.NEXTAUTH_URL ??
-    process.env.AUTH_URL ??
-    process.env.BASE_URL ??
+    process.env.NEXTAUTH_URL ||
+    process.env.AUTH_URL ||
+    process.env.BASE_URL ||
     "http://localhost:3000"
   ).replace(/\/$/, "");
 }
