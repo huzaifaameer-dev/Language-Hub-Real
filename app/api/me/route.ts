@@ -22,13 +22,26 @@ export async function GET() {
     return NextResponse.json({ message: "Session expired. Sign in again." }, { status: 401 });
   }
 
+  // Academy contact for the dashboard "get in touch" tile.
+  const adminRow = await users.findOne(
+    { role: "ADMIN" },
+    { projection: { email: 1 } }
+  );
+
   return NextResponse.json({
     user: {
       name: user.name,
       email: user.email,
+      whatsapp: user.whatsapp ?? "",
       role: user.role ?? "USER",
       image: user.image ?? null,
       createdAt: user.createdAt?.toISOString?.() ?? null,
+    },
+    support: {
+      email: adminRow?.email ?? null,
+      // Optional studio WhatsApp, e.g. "923001234567". Cleared by default;
+      // set ACADEMY_WHATSAPP in the environment to surface a wa.me button.
+      whatsapp: process.env.ACADEMY_WHATSAPP?.replace(/[^\d]/g, "") || null,
     },
   });
 }

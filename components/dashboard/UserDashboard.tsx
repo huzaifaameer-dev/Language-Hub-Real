@@ -16,6 +16,7 @@ import {
   LogOut,
   Mail,
   MapPin,
+  MessageCircle,
   MessageSquare,
   Send,
   Settings,
@@ -109,6 +110,10 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [whatsapp, setWhatsapp] = useState("");
+  const [supportEmail, setSupportEmail] = useState<string | null>(null);
+  const [supportWhatsapp, setSupportWhatsapp] = useState<string | null>(null);
+
   const [form, setForm] = useState({ name: name ?? "", place: "", bio: "", course: COURSES[0], message: "" });
   const [formErrors, setFormErrors] = useState<Record<string, string[]> | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -152,6 +157,9 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
       .then((d) => {
         setJoined(d?.user?.createdAt ?? null);
         if (d?.user && d.user.image !== undefined) setAvatar(d.user.image);
+        if (d?.user && d.user.whatsapp !== undefined) setWhatsapp(d.user.whatsapp ?? "");
+        setSupportEmail(d?.support?.email ?? null);
+        setSupportWhatsapp(d?.support?.whatsapp ?? null);
       });
   }, []);
 
@@ -564,6 +572,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
           </section>
 
           {/* Right column — status list */}
+          <section className="flex flex-col gap-8">
           <Rise delay={0.12}>
             <section className="glass-dash relative flex flex-col overflow-hidden rounded-[2rem] p-6 sm:p-8">
               <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-52 w-52 rounded-full bg-fuchsia-400/15 blur-3xl" />
@@ -642,6 +651,16 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
               </div>
             </section>
           </Rise>
+
+          {/* Contact tile */}
+          <Rise delay={0.16}>
+            <ContactCard
+              myWhatsapp={whatsapp}
+              supportEmail={supportEmail}
+              supportWhatsapp={supportWhatsapp}
+            />
+          </Rise>
+          </section>
         </div>
       </main>
 
@@ -994,6 +1013,69 @@ function Bookshelf({ subjects }: { subjects: string[] }) {
             </div>
           </motion.article>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function ContactCard({
+  myWhatsapp,
+  supportEmail,
+  supportWhatsapp,
+}: {
+  myWhatsapp?: string;
+  supportEmail?: string | null;
+  supportWhatsapp?: string | null;
+}) {
+  const hasStudioWa = !!supportWhatsapp;
+  const hasEmail = !!supportEmail;
+  const hasMyWa = !!myWhatsapp;
+  if (!hasStudioWa && !hasEmail && !hasMyWa) return null;
+
+  return (
+    <section className="glass-dash relative overflow-hidden rounded-[2rem] border-sky-200/60 p-6 sm:p-8">
+      <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-52 w-52 rounded-full bg-sky-400/20 blur-3xl" />
+      <div className="relative flex items-center justify-between gap-3">
+        <p className="flex items-center gap-3 font-display text-[0.6rem] font-bold uppercase tracking-[0.36em] text-sky-700">
+          <span aria-hidden className="h-px w-7 bg-sky-500/40" /> Get in touch
+        </p>
+      </div>
+      <h2 className="relative mt-2 font-display text-[1.5rem] font-extrabold tracking-[-0.02em]">
+        NEED A <span className="bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent">HAND?</span>
+      </h2>
+      <p className="relative mt-1.5 text-[0.9rem] text-slate-500">
+        Questions about batches, books or your schedule? We reply fast.
+      </p>
+
+      <div className="relative mt-5 flex flex-col gap-3">
+        {hasStudioWa ? (
+          <a
+            href={`https://wa.me/${supportWhatsapp}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-500 font-display text-[0.85rem] font-bold text-white shadow-[0_12px_26px_-12px_rgb(16_185_129/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-600"
+          >
+            <MessageCircle className="h-4.5 w-4.5" strokeWidth={2} />
+            Chat on WhatsApp
+          </a>
+        ) : null}
+        {hasEmail ? (
+          <a
+            href={`mailto:${supportEmail}`}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-sky-200 bg-white/80 font-display text-[0.82rem] font-bold text-sky-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50"
+          >
+            <Mail className="h-4.5 w-4.5" strokeWidth={2} />
+            Email the studio
+          </a>
+        ) : null}
+        {hasMyWa ? (
+          <p className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white/60 px-4 py-3 font-mono text-[0.72rem] text-slate-500 backdrop-blur-sm">
+            <MessageCircle className="h-3.5 w-3.5 shrink-0 text-emerald-500" strokeWidth={2} />
+            <span className="truncate">
+              Your WhatsApp · <span className="font-bold text-slate-700">{myWhatsapp}</span> — the studio may reach you here.
+            </span>
+          </p>
+        ) : null}
       </div>
     </section>
   );
