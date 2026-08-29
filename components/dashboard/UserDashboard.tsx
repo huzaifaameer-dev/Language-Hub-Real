@@ -18,6 +18,7 @@ import {
   MapPin,
   MessageSquare,
   Send,
+  Settings,
   Sparkles,
   User,
   X,
@@ -27,6 +28,7 @@ import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
 import { booksFor } from "@/lib/books";
 import { useLiveSync } from "@/lib/use-live";
+import { SettingsModal } from "@/components/dashboard/SettingsModal";
 
 type AppStatus = "PENDING" | "APPROVED" | "REJECTED";
 type EnrStatus = "PENDING" | "ENROLLED" | "REJECTED";
@@ -55,7 +57,7 @@ interface Enr {
 }
 
 const COURSES = ["Spoken English", "IELTS Preparation", "PTE Preparation", "Duolingo English Test"];
-const BATHS = ["Morning", "Afternoon", "Evening", "Weekend"];
+const BATCHES = ["Morning", "Afternoon", "Evening", "Weekend"];
 
 const APP_META: Record<AppStatus, { cls: string; dot: string; label: string }> = {
   PENDING: { cls: "border-amber-300 bg-amber-50 text-amber-700", dot: "bg-amber-500", label: "In review" },
@@ -94,6 +96,8 @@ function Rise({
 }
 
 export function UserDashboard({ name, email, image, userId }: { name: string; email: string; image?: string | null; userId?: string }) {
+  const [displayName, setDisplayName] = useState(name);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [joined, setJoined] = useState<string | null>(null);
   const [apps, setApps] = useState<App[]>([]);
   const [enrs, setEnrs] = useState<Enr[]>([]);
@@ -255,7 +259,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
         setAvatarError(d.message ?? "Could not update your photo.");
         return;
       }
-      setAvatar(dataUrl);
+      setAvatar(typeof d.image === "string" ? d.image : dataUrl);
     } catch {
       setAvatarError("Could not read that image.");
     } finally {
@@ -295,7 +299,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
             </Link>
             <div className="leading-tight">
               <p className="font-display text-[0.58rem] font-bold uppercase tracking-[0.32em] text-indigo-600">My Account</p>
-              <p className="truncate font-display text-[0.95rem] font-extrabold tracking-[-0.01em]">{name}</p>
+              <p className="truncate font-display text-[0.95rem] font-extrabold tracking-[-0.01em]">{displayName}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -306,6 +310,13 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
               <Home className="h-3.5 w-3.5" strokeWidth={2} />
               Home
             </Link>
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/60 px-4 py-2 font-display text-[0.75rem] font-bold text-slate-600 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/80 hover:text-indigo-600"
+            >
+              <Settings className="h-3.5 w-3.5" strokeWidth={2} />
+              <span className="hidden sm:inline">Settings</span>
+            </button>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
               className="inline-flex items-center gap-2 rounded-full border border-rose-200/80 bg-white/70 px-4 py-2 font-display text-[0.75rem] font-bold text-rose-600 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50"
@@ -347,7 +358,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
                     <img src={avatar} alt="Profile" className="h-full w-full object-cover" />
                   ) : (
                     <span className="grid h-full w-full place-items-center font-display text-3xl font-black text-white">
-                      {(name || "L").slice(0, 1).toUpperCase()}
+                      {(displayName || name || "L").slice(0, 1).toUpperCase()}
                     </span>
                   )}
                 </span>
@@ -363,7 +374,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
                 <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
               </div>
               <div className="min-w-0">
-                <h1 className="truncate font-display text-2xl font-extrabold tracking-[-0.02em] sm:text-[1.7rem]">{name}</h1>
+                <h1 className="truncate font-display text-2xl font-extrabold tracking-[-0.02em] sm:text-[1.7rem]">{displayName}</h1>
                 <p className="mt-1 flex items-center gap-1.5 truncate font-mono text-[0.82rem] text-slate-500">
                   <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
                   {email}
@@ -671,6 +682,16 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
 
       {celebrated ? <ApplicationCelebration /> : null}
       {enrolledCelebrated ? <EnrolledCelebration name={name} subjects={activeEnr?.subjects ?? []} onDone={() => setEnrolledCelebrated(false)} /> : null}
+
+      {settingsOpen ? (
+        <SettingsModal
+          name={displayName}
+          email={email}
+          open={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          onSaved={(n) => setDisplayName(n)}
+        />
+      ) : null}
     </div>
   );
 }
@@ -1067,7 +1088,7 @@ function EnrollmentModal({
             Batch
           </label>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {BATHS.map((b) => (
+            {BATCHES.map((b) => (
               <button
                 key={b}
                 type="button"
