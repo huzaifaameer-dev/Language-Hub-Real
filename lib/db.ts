@@ -1,6 +1,8 @@
 import { MongoClient } from "mongodb";
 import type { Db } from "mongodb";
 import bcrypt from "bcryptjs";
+import type { CourseInfo } from "@/lib/course-data";
+import { FALLBACK_COURSES } from "@/lib/course-data";
 
 const uri = process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017";
 const dbName = process.env.MONGODB_DB ?? "languagehub";
@@ -60,7 +62,7 @@ export const COURSE_LIST = [
   "Duolingo English Test",
 ] as const;
 
-export type Course = (typeof COURSE_LIST)[number];
+export type Course = string;
 
 export type EnrollmentStatus = "PENDING" | "ENROLLED" | "REJECTED";
 
@@ -92,6 +94,17 @@ export async function getEnrollmentsCollection() {
 export async function getUsersCollection() {
   const db = await getDb();
   return db.collection("users");
+}
+
+export interface CourseDoc extends CourseInfo {
+  _id?: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export async function getCoursesCollection() {
+  const db = await getDb();
+  return db.collection<CourseDoc>("courses");
 }
 
 export interface NotificationDoc {
@@ -168,8 +181,29 @@ export function ensureInit(): Promise<void> {
         db.collection("auth_tokens").createIndex({ token: 1 }, { unique: true }),
         db.collection("auth_tokens").createIndex({ token: 1, purpose: 1 }),
         db.collection("auth_tokens").createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+        db.collection("courses").createIndex({ name: 1 }, { unique: true }),
+        db.collection("courses").createIndex({ active: 1, order: 1 }),
         db.collection("settings").createIndex({ key: 1 }, { unique: true }),
       ]);
+
+      // Seed the course catalog (idempotent per course name).
+      const courses = db.collection<CourseDoc>("courses");
+      const now = new Date();
+      await Promise.all(
+        FALLBACK_COURSES.map((c) =>
+          courses.updateOne(
+            { name: c.name },
+            {
+              $setOnInsert: {
+                ...c,
+                createdAt: now,
+                updatedAt: now,
+              },
+            },
+            { upsert: true }
+          )
+        )
+      );
 
       if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
         const existing = await db

@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 
 import { requireAdmin } from "@/lib/admin-guard";
-import { ensureIndexesAndAdmin, getApplicationsCollection } from "@/lib/db";
+import {
+  ensureIndexesAndAdmin,
+  getApplicationsCollection,
+  getEnrollmentsCollection,
+  getUsersCollection,
+  getCoursesCollection,
+  getNotificationsCollection,
+} from "@/lib/db";
 
 export async function GET() {
   const admin = await requireAdmin();
@@ -10,18 +17,43 @@ export async function GET() {
   }
 
   await ensureIndexesAndAdmin();
-  const applications = await getApplicationsCollection();
+  const [applications, enrollments, users, courses, notifications] = await Promise.all([
+    getApplicationsCollection(),
+    getEnrollmentsCollection(),
+    getUsersCollection(),
+    getCoursesCollection(),
+    getNotificationsCollection(),
+  ]);
 
-  const [total, pending, approved, rejected, today, thisWeek, thisMonth] =
-    await Promise.all([
-      applications.countDocuments({}),
-      applications.countDocuments({ status: "PENDING" }),
-      applications.countDocuments({ status: "APPROVED" }),
-      applications.countDocuments({ status: "REJECTED" }),
-      applications.countDocuments({ createdAt: { $gte: startOfDay(new Date()) } }),
-      applications.countDocuments({ createdAt: { $gte: startOfWeek(new Date()) } }),
-      applications.countDocuments({ createdAt: { $gte: startOfMonth(new Date()) } }),
-    ]);
+  const [
+    total,
+    pending,
+    approved,
+    rejected,
+    today,
+    thisWeek,
+    thisMonth,
+    enrPending,
+    enrEnrolled,
+    enrRejected,
+    userCount,
+    courseCount,
+    notificationCount,
+  ] = await Promise.all([
+    applications.countDocuments({}),
+    applications.countDocuments({ status: "PENDING" }),
+    applications.countDocuments({ status: "APPROVED" }),
+    applications.countDocuments({ status: "REJECTED" }),
+    applications.countDocuments({ createdAt: { $gte: startOfDay(new Date()) } }),
+    applications.countDocuments({ createdAt: { $gte: startOfWeek(new Date()) } }),
+    applications.countDocuments({ createdAt: { $gte: startOfMonth(new Date()) } }),
+    enrollments.countDocuments({ status: "PENDING" }),
+    enrollments.countDocuments({ status: "ENROLLED" }),
+    enrollments.countDocuments({ status: "REJECTED" }),
+    users.countDocuments({ role: { $ne: "ADMIN" } }),
+    courses.countDocuments({ active: true }),
+    notifications.countDocuments({}),
+  ]);
 
   const approvalRate = total > 0 ? Math.round((approved / total) * 100) : 0;
 
@@ -33,6 +65,12 @@ export async function GET() {
     today,
     thisWeek,
     thisMonth,
+    enrPending,
+    enrEnrolled,
+    enrRejected,
+    users: userCount,
+    courses: courseCount,
+    notifications: notificationCount,
     approvalRate,
   });
 }

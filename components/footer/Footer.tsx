@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Logo } from "@/components/ui/Logo";
 import { scrollToId } from "@/lib/lenis";
+import { useLang } from "@/lib/i18n";
 
 const LINKS = [
   { id: "journey", label: "The Journey" },
@@ -15,6 +16,7 @@ const LINKS = [
 
 export function Footer() {
   const year = new Date().getFullYear();
+  const { t } = useLang();
 
   return (
     <footer className="relative overflow-hidden bg-[#14111d] text-ivory" aria-label="Footer">
@@ -37,7 +39,7 @@ export function Footer() {
                 LANGUAGE<span className="gold-text"> HUB</span>
               </p>
               <p className="mt-0.5 font-display text-[0.6rem] font-bold uppercase tracking-[0.34em] text-ivory/50">
-                Hub of Language Excellence
+                {t("tagline")}
               </p>
             </div>
           </div>
@@ -111,7 +113,7 @@ export function Footer() {
             © {year} Language Hub. All rights reserved.
           </p>
           <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.3em] text-ivory/35">
-            Hub of Language Excellence
+            {t("tagline")}
           </p>
         </div>
       </div>

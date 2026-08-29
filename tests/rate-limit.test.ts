@@ -35,8 +35,14 @@ describe("clientKey", () => {
     expect(clientKey(req, "login")).toBe("1.2.3.4:login");
   });
 
-  it("falls back to unknown", () => {
-    const req = new Request("http://localhost/api/x");
-    expect(clientKey(req)).toBe("unknown:");
+  it("falls back to a user-agent bucket when no client headers exist", () => {
+    const req = new Request("http://localhost/api/x", {
+      headers: { "user-agent": "Mozilla/5.0 (superbot v9)" },
+    });
+    expect(clientKey(req)).toMatch(/^ua:[0-9a-f]+:$/);
+    const other = new Request("http://localhost/api/x", {
+      headers: { "user-agent": "curl/8.0" },
+    });
+    expect(clientKey(other)).not.toBe(clientKey(req));
   });
 });

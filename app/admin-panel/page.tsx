@@ -5,6 +5,9 @@ import {
   ensureIndexesAndAdmin,
   getApplicationsCollection,
   getEnrollmentsCollection,
+  getUsersCollection,
+  getCoursesCollection,
+  getNotificationsCollection,
 } from "@/lib/db";
 import { AdminGate } from "@/components/admin-panel/AdminGate";
 import { AdminPanel } from "@/components/admin-panel/AdminPanel";
@@ -28,6 +31,17 @@ export default async function AdminPanelPage() {
   const [appDocs, enrDocs] = await Promise.all([
     applications.find({}).sort({ createdAt: -1 }).limit(200).toArray(),
     enrollments.find({}).sort({ createdAt: -1 }).limit(200).toArray(),
+  ]);
+
+  const [usersCol, coursesCol, notificationsCol] = await Promise.all([
+    getUsersCollection(),
+    getCoursesCollection(),
+    getNotificationsCollection(),
+  ]);
+  const [userCount, courseCount, notificationCount] = await Promise.all([
+    usersCol.countDocuments({ role: { $ne: "ADMIN" } }),
+    coursesCol.countDocuments({ active: true }),
+    notificationsCol.countDocuments({}),
   ]);
 
   const now = new Date();
@@ -77,6 +91,9 @@ export default async function AdminPanelPage() {
     today,
     thisWeek,
     thisMonth,
+    users: userCount,
+    courses: courseCount,
+    notifications: notificationCount,
     approvalRate: total > 0 ? Math.round((approved / total) * 100) : 0,
   };
 

@@ -53,7 +53,12 @@ export function clientKey(request: Request, suffix = ""): string {
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     request.headers.get("x-real-ip")?.trim() ??
-    request.headers.get("cf-connecting-ip")?.trim() ??
-    "unknown";
-  return `${ip}:${suffix}`;
+    request.headers.get("cf-connecting-ip")?.trim();
+  if (ip) return `${ip}:${suffix}`;
+  // No identity headers (plain dev/self-hosts): bound by user-agent family so
+  // a flood from one client does not lock out every anonymous user on the box.
+  const ua = request.headers.get("user-agent") ?? "";
+  let h = 0;
+  for (let i = 0; i < ua.length; i += 1) h = (h * 31 + ua.charCodeAt(i)) | 0;
+  return `ua:${h.toString(16)}:${suffix}`;
 }

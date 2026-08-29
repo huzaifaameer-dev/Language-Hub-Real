@@ -8,15 +8,16 @@ import { AuthNavButtons } from "@/components/navigation/AuthNavButtons";
 import { scrollToId } from "@/lib/lenis";
 import { cn } from "@/lib/utils";
 import { useBodyScrollLock } from "@/lib/hooks";
+import { LangSwitch, useLang } from "@/lib/i18n";
 
 const SECTIONS = [
-  { id: "home", label: "Home" },
-  { id: "journey", label: "Journey" },
-  { id: "about", label: "About" },
-  { id: "courses", label: "Courses" },
-  { id: "resources", label: "Resources" },
-  { id: "voice", label: "Voice" },
-  { id: "hub", label: "Hub" },
+  { id: "home", label: "navHome" },
+  { id: "journey", label: "navJourney" },
+  { id: "about", label: "navAbout" },
+  { id: "courses", label: "navCourses" },
+  { id: "resources", label: "navResources" },
+  { id: "voice", label: "navVoice" },
+  { id: "hub", label: "navHub" },
 ];
 
 const number = (i: number) => String(i + 1).padStart(2, "0");
@@ -25,6 +26,7 @@ export function Navbar() {
   const [active, setActive] = useState("home");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { t } = useLang();
 
   useBodyScrollLock(menuOpen);
 
@@ -101,7 +103,7 @@ export function Navbar() {
                     {number(i)}
                   </span>
                   <span className="relative">
-                    {section.label}
+                    {t(section.label)}
                     <span
                       aria-hidden="true"
                       className={cn(
@@ -117,6 +119,7 @@ export function Navbar() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <AuthNavButtons />
+            <LangSwitch />
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
@@ -181,7 +184,7 @@ export function Navbar() {
                       {number(i)}
                     </span>
                     <span className="text-[clamp(2rem,8vw,3rem)] leading-none">
-                      {section.label}
+                      {t(section.label)}
                     </span>
                     {active === section.id && (
                       <span className="h-2 w-2 rounded-full bg-gold" />
@@ -192,7 +195,7 @@ export function Navbar() {
             </ul>
 
             <p className="relative pb-10 text-center font-display text-[0.62rem] font-semibold uppercase tracking-[0.4em] text-ivory/50">
-              Hub of Language Excellence
+              {t("tagline")}
             </p>
             <div className="relative flex justify-center gap-3 px-8 pb-8">
               <AuthNavButtons variant="dark" />

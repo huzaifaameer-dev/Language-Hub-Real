@@ -31,6 +31,8 @@ import { booksFor } from "@/lib/books";
 import { useLiveSync } from "@/lib/use-live";
 import { SettingsModal } from "@/components/dashboard/SettingsModal";
 import { NotificationsBell } from "@/components/dashboard/NotificationsBell";
+import type { CourseInfo } from "@/lib/course-data";
+import { FALLBACK_COURSES } from "@/lib/course-data";
 
 type AppStatus = "PENDING" | "APPROVED" | "REJECTED";
 type EnrStatus = "PENDING" | "ENROLLED" | "REJECTED";
@@ -58,8 +60,7 @@ interface Enr {
   createdAt: string;
 }
 
-const COURSES = ["Spoken English", "IELTS Preparation", "PTE Preparation", "Duolingo English Test"];
-const BATCHES = ["Morning", "Afternoon", "Evening", "Weekend"];
+const COURSES = FALLBACK_COURSES.map((c) => c.name);
 
 const APP_META: Record<AppStatus, { cls: string; dot: string; label: string }> = {
   PENDING: { cls: "border-amber-300 bg-amber-50 text-amber-700", dot: "bg-amber-500", label: "In review" },
@@ -114,6 +115,8 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
   const [supportEmail, setSupportEmail] = useState<string | null>(null);
   const [supportWhatsapp, setSupportWhatsapp] = useState<string | null>(null);
 
+  const [catalog, setCatalog] = useState<CourseInfo[]>(FALLBACK_COURSES);
+
   const [form, setForm] = useState({ name: name ?? "", place: "", bio: "", course: COURSES[0], message: "" });
   const [formErrors, setFormErrors] = useState<Record<string, string[]> | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -160,6 +163,19 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
         if (d?.user && d.user.whatsapp !== undefined) setWhatsapp(d.user.whatsapp ?? "");
         setSupportEmail(d?.support?.email ?? null);
         setSupportWhatsapp(d?.support?.whatsapp ?? null);
+      });
+    fetch("/api/courses")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { courses?: Array<CourseInfo & { id: string }> } | null) => {
+        const courses = d?.courses;
+        if (!courses?.length) return;
+        setCatalog(courses);
+        setEnrBatch((prev) => {
+          const names = new Set(
+            courses.flatMap((c) => c.batches.map((b) => b.name))
+          );
+          return names.has(prev) ? prev : (courses[0].batches[0]?.name ?? prev);
+        });
       });
   }, []);
 
@@ -525,9 +541,9 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
                         onChange={(e) => setForm({ ...form, course: e.target.value })}
                         className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-[0.95rem] text-slate-900 shadow-[0_1px_2px_rgb(15_23_42/0.04)] outline-none transition-all duration-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/12"
                       >
-                        {COURSES.map((c) => (
-                          <option key={c} value={c}>
-                            {c}
+                        {catalog.map((c) => (
+                          <option key={c.name} value={c.name}>
+                            {c.name}
                           </option>
                         ))}
                       </select>
@@ -666,6 +682,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
 
       {enrOpen ? (
         <EnrollmentModal
+          catalog={catalog}
           selected={enrSubjects}
           batch={enrBatch}
           plan={enrPlan}
@@ -1084,8 +1101,9 @@ function ContactCard({
 /* ------------------------------ modals ------------------------------ */
 
 function EnrollmentModal({
-  selected, batch, plan, errors, error, busy, onToggle, onBatch, onPlan, onClose, onSubmit,
+  catalog, selected, batch, plan, errors, error, busy, onToggle, onBatch, onPlan, onClose, onSubmit,
 }: {
+  catalog: CourseInfo[];
   selected: string[];
   batch: string;
   plan: string;
@@ -1098,6 +1116,27 @@ function EnrollmentModal({
   onClose: () => void;
   onSubmit: () => void;
 }) {
+  const batchOptions = Array.from(new Set(catalog.flatMap((c) => c.batches.map((b) => b.name))));
+  const soloCourse = selected.length === 1 ? catalog.find((c) => c.name === selected[0]) : undefined;
+  const seatsKnown = !!soloCourse && soloCourse.batches.some((b) => b.seatsLeft !== undefined);
+  const soloBatchMeta = new Map<string, { time: string; total: number; left: number; full: boolean }>();
+  if (seatsKnown && soloCourse) {
+    for (const b of soloCourse.batches) {
+      soloBatchMeta.set(b.name, {
+        time: b.time,
+        total: b.seatsTotal ?? 1,
+        left: b.seatsLeft ?? 0,
+        full: !!b.full || (b.seatsLeft ?? 0) <= 0,
+      });
+    }
+  }
+  const soloSeats = seatsKnown && soloCourse
+    ? {
+        total: soloCourse.batches.reduce((n, b) => n + (b.seatsTotal ?? 0), 0),
+        left: soloCourse.batches.reduce((n, b) => n + (b.seatsLeft ?? 0), 0),
+      }
+    : undefined;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -1136,30 +1175,37 @@ function EnrollmentModal({
             <span className="font-mono text-[0.62rem] text-slate-400">{selected.length}/4</span>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {COURSES.map((c) => {
-              const on = selected.includes(c);
+            {catalog.map((c) => {
+              const on = selected.includes(c.name);
               const full = selected.length >= 4 && !on;
               return (
                 <button
-                  key={c}
+                  key={c.name}
                   type="button"
-                  onClick={() => onToggle(c)}
+                  onClick={() => onToggle(c.name)}
                   disabled={full}
                   className={cn(
-                    "flex items-center gap-2.5 rounded-xl border px-3.5 py-3 text-left font-display text-[0.82rem] font-bold transition-all duration-200",
+                    "flex items-center justify-between gap-2.5 rounded-xl border px-3.5 py-3 text-left font-display text-[0.82rem] font-bold transition-all duration-200",
                     on
                       ? "border-indigo-500 bg-indigo-500/10 text-indigo-700 shadow-[0_8px_20px_-8px_rgb(99_102_241/0.5)]"
                       : "border-slate-200 bg-white text-slate-600 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-slate-900",
                     full && "cursor-not-allowed opacity-40"
                   )}
                 >
-                  <span className={cn(
-                    "grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-colors",
-                    on ? "border-indigo-500 bg-indigo-600 text-white" : "border-slate-300"
-                  )}>
-                    {on ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
+                  <span className="flex items-center gap-2.5">
+                    <span className={cn(
+                      "grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-colors",
+                      on ? "border-indigo-500 bg-indigo-600 text-white" : "border-slate-300"
+                    )}>
+                      {on ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
+                    </span>
+                    {c.name}
                   </span>
-                  {c}
+                  {c.fee ? (
+                    <span className="shrink-0 font-mono text-[0.62rem] font-bold text-slate-400">
+                      {c.fee.toLocaleString("en-PK")}
+                    </span>
+                  ) : null}
                 </button>
               );
             })}
@@ -1168,26 +1214,58 @@ function EnrollmentModal({
         </div>
 
         <div className="mt-5">
-          <label className="mb-1.5 block font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">
-            Batch
-          </label>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {BATCHES.map((b) => (
-              <button
-                key={b}
-                type="button"
-                onClick={() => onBatch(b)}
-                className={cn(
-                  "rounded-xl border px-3 py-2.5 font-mono text-[0.72rem] font-bold tracking-widest transition-all duration-200",
-                  batch === b
-                    ? "border-indigo-600 bg-indigo-600 text-white shadow-[0_10px_24px_-10px_rgb(99_102_241/0.7)]"
-                    : "border-slate-200 bg-white text-slate-500 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-slate-900"
-                )}
-              >
-                {b.toUpperCase()}
-              </button>
-            ))}
+          <div className="mb-1.5 flex items-center justify-between">
+            <label className="font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">
+              Batch
+            </label>
+            {soloSeats ? (
+              <span className="font-mono text-[0.62rem] font-bold text-indigo-600">
+                {soloSeats.left}/{soloSeats.total} seats free
+              </span>
+            ) : null}
           </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {batchOptions.map((b) => {
+              const meta = soloBatchMeta.get(b);
+              const full = !!meta?.full;
+              return (
+                <button
+                  key={b}
+                  type="button"
+                  onClick={() => onBatch(b)}
+                  disabled={full}
+                  className={cn(
+                    "rounded-xl border px-3.5 py-3 text-left transition-all duration-200",
+                    batch === b
+                      ? "border-indigo-600 bg-indigo-600 text-white shadow-[0_10px_24px_-10px_rgb(99_102_241/0.7)]"
+                      : "border-slate-200 bg-white text-slate-500 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-slate-900",
+                    full && "cursor-not-allowed opacity-40"
+                  )}
+                >
+                  <span className="block font-mono text-[0.72rem] font-bold tracking-widest">
+                    {b.toUpperCase()}
+                  </span>
+                  {meta ? (
+                    <span
+                      className={cn(
+                        "mt-0.5 block font-mono text-[0.58rem] font-semibold tracking-normal",
+                        batch === b
+                          ? "text-white/75"
+                          : full
+                            ? "text-rose-500"
+                            : "text-slate-400"
+                      )}
+                    >
+                      {[meta.time, full ? "FULL" : `${meta.left}/${meta.total} seats`]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+          {error ? <ErrorNote>{error}</ErrorNote> : null}
         </div>
 
         <div className="mt-5">
@@ -1206,8 +1284,6 @@ function EnrollmentModal({
           <span className="mt-1 block text-right font-mono text-[0.68rem] text-slate-400">{plan.length}/800</span>
           {errors?.plan ? <p className="text-[0.78rem] font-medium text-rose-600">{errors.plan[0]}</p> : null}
         </div>
-
-        {error ? <ErrorNote>{error}</ErrorNote> : null}
 
         <button
           type="button"

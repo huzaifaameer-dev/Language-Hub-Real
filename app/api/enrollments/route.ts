@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import {
   getApplicationsCollection,
   getEnrollmentsCollection,
+  getCoursesCollection,
   ensureIndexesAndAdmin,
 } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
@@ -70,12 +71,42 @@ export async function POST(request: Request) {
     );
   }
 
-  const data = parsed.data;
+const data = parsed.data;
   const now = new Date();
-  const applicationId = String(approved[0]._id);
+
+  // Seat gate: reject when any chosen subject's batch is already full in the
+  // live catalog, so admin never over-subscribes a running batch.
+  await ensureIndexesAndAdmin();
+  const coursesCol = await getCoursesCollection();
+  const [courseDocs, enrolledDocs] = await Promise.all([
+    coursesCol.find({ active: true, name: { $in: data.subjects } }).toArray(),
+    enrollments
+      .find({ status: "ENROLLED" })
+      .project({ batch: 1 })
+      .toArray(),
+  ]);
+  const batchCount = new Map<string, number>();
+  for (const e of enrolledDocs) batchCount.set(e.batch, (batchCount.get(e.batch) ?? 0) + 1);
+  const full: string[] = [];
+  for (const c of courseDocs) {
+    const batch = (c.batches ?? []).find((b) => b.name === data.batch);
+    if (batch && (batchCount.get(batch.name) ?? 0) >= batch.seatsTotal) {
+      full.push(`${c.name} · ${batch.name}`);
+    }
+  }
+  if (full.length > 0) {
+    return NextResponse.json(
+      {
+        message: `That batch is full. Try another batch: ${full.join(", ")}`,
+        code: "BATCH_FULL",
+      },
+      { status: 409 }
+    );
+  }
+
   const result = await enrollments.insertOne({
     userId: session.user.id,
-    applicationId,
+    applicationId: String(approved[0]._id),
     name: (approved[0].name as string) ?? session.user.name ?? "Learner",
     email: (session.user.email ?? "").trim(),
     subjects: data.subjects,

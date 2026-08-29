@@ -34,5 +34,35 @@ export interface AdminStats {
   today: number;
   thisWeek: number;
   thisMonth: number;
+  users: number;
+  courses: number;
+  notifications: number;
   approvalRate: number;
+}
+
+export interface AdminBatch {
+  name: string;
+  time: string;
+  seatsTotal: number;
+  seatsUsed?: number;
+  seatsLeft?: number;
+  full?: boolean;
+}
+
+export interface AdminCourse {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  fee: number;
+  currency: string;
+  duration: string;
+  teacher: string;
+  schedule: string;
+  order: number;
+  active: boolean;
+  batches: AdminBatch[];
+  seatsTotal?: number;
+  seatsUsed?: number;
+  seatsLeft?: number;
 }

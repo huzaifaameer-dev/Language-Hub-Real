@@ -1,5 +1,5 @@
 export type LiveEvent = {
-  table: "applications" | "enrollments" | "notifications" | "poll";
+  table: "applications" | "enrollments" | "notifications" | "courses" | "poll";
   userId?: string;
   at: number;
 };

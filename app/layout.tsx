@@ -1,7 +1,12 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Manrope, Playfair_Display } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+
+const analyticsUrl =
+  (process.env.ANALYTICS_SCRIPT_URL ?? "").trim() ||
+  (process.env.NEXT_PUBLIC_ANALYTICS_SCRIPT_URL ?? "").trim();
 
 const inter = Inter({
   variable: "--font-inter",
@@ -98,6 +103,13 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         <Providers>{children}</Providers>
+        {analyticsUrl ? (
+          <Script
+            src={analyticsUrl}
+            strategy="afterInteractive"
+            data-domain={process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN ?? undefined}
+          />
+        ) : null}
       </body>
     </html>
   );

@@ -17,6 +17,7 @@ import { DuolingoScene } from "@/components/courses/DuolingoScene";
 import { useMediaQuery, usePrefersReducedMotion } from "@/lib/hooks";
 import { scrollToId } from "@/lib/lenis";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/lib/i18n";
 
 interface SceneProps {
   progress: MotionValue<number> | null;
@@ -76,6 +77,7 @@ export function Courses() {
   const pinned = desktop && !reduced;
   const [maxX, setMaxX] = useState(0);
   const [dot, setDot] = useState(0);
+  const { t } = useLang();
 
   useEffect(() => {
     if (!pinned) return;
@@ -133,17 +135,16 @@ export function Courses() {
       >
         <p className="mb-6 flex items-center gap-4 font-display text-[0.66rem] font-bold uppercase tracking-[0.42em] text-gold-deep">
           <span aria-hidden="true" className="h-px w-10 bg-gold/60" />
-          Course Destinations
+          {t("coursesEyebrow")}
           <span aria-hidden="true" className="h-px w-10 bg-gold/60" />
         </p>
         <h2 className="font-display text-[clamp(2.4rem,7vw,5.6rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink">
-          FOUR WAYS
+          {t("coursesTitleA")}
           <br />
-          <span className="brand-text">TO MOVE FORWARD.</span>
+          <span className="brand-text">{t("coursesTitleB")}</span>
         </h2>
         <p className="mt-7 max-w-lg text-balance text-[1.02rem] leading-relaxed text-ink-2">
-          Every course is a destination. Scroll — the gallery moves with you —
-          and let each one introduce itself.
+          {t("coursesIntro")}
         </p>
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           {DOTS.slice(1).map((d) => (
@@ -161,7 +162,7 @@ export function Courses() {
           onClick={() => scrollToId("resources")}
           className="mt-10 inline-flex h-[3.1rem] items-center gap-3 rounded-full bg-ink px-8 font-display text-[0.92rem] font-bold text-ivory transition-all duration-500 hover:bg-brand-deep"
         >
-          See the Reading Room
+          {t("coursesCta")}
           <span className="inline-block transition-transform duration-500 group-hover:translate-y-0.5">↓</span>
         </button>
       </motion.div>

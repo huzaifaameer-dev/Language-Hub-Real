@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   BadgeCheck,
+  BookOpen,
   Clock,
   ExternalLink,
   FileText,
@@ -14,6 +15,7 @@ import {
   LogOut,
   Radar,
   RefreshCw,
+  UserRoundPlus,
   Users,
   XCircle,
 } from "lucide-react";
@@ -23,14 +25,16 @@ import { useLiveSync } from "@/lib/use-live";
 import type { AdminApplication, AdminEnrollment, AdminStats } from "./types";
 import { AdminApplications } from "./AdminApplications";
 import { AdminEnrollments } from "./AdminEnrollments";
+import { AdminCourses } from "./AdminCourses";
 import { AdminStatCard, GlassPanel, ProgressRing, StatusPill } from "./ui";
 
-type Tab = "overview" | "applications" | "enrollments";
+type Tab = "overview" | "applications" | "enrollments" | "courses";
 
 const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "applications", label: "Applications", icon: FileText },
   { key: "enrollments", label: "Enrollments", icon: GraduationCap },
+  { key: "courses", label: "Courses", icon: BookOpen },
 ];
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -342,6 +346,10 @@ export function AdminPanel({
           {tab === "enrollments" ? (
             <AdminEnrollments items={enrList} onDecide={decideEnr} freshIds={freshEnrs} />
           ) : null}
+
+          {tab === "courses" ? (
+            <AdminCourses />
+          ) : null}
         </main>
       </div>
 
@@ -460,10 +468,12 @@ function Overview({
       </div>
 
       {/* HUD STATS */}
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
         <AdminStatCard label="Applications" value={stats.total} accent="indigo" sub="lifetime" icon={<FileText className="h-5 w-5" />} onClick={() => onNavigate("applications")} />
         <AdminStatCard label="Pending" value={stats.pending} accent="amber" sub="needs review" icon={<Clock className="h-5 w-5" />} onClick={() => onNavigate("applications")} />
         <AdminStatCard label="Approved" value={stats.approved} accent="emerald" sub="moved to enroll" icon={<BadgeCheck className="h-5 w-5" />} onClick={() => onNavigate("applications")} />
+        <AdminStatCard label="Students" value={stats.users} accent="emerald" sub="accounts" icon={<UserRoundPlus className="h-5 w-5" />} />
+        <AdminStatCard label="Courses" value={stats.courses} accent="violet" sub="live catalog" icon={<BookOpen className="h-5 w-5" />} onClick={() => onNavigate("courses")} />
         <AdminStatCard label="Enrolling" value={stats.enrPending} accent="fuchsia" sub="waiting" icon={<GraduationCap className="h-5 w-5" />} onClick={() => onNavigate("enrollments")} />
         <AdminStatCard label="Enrolled" value={stats.enrEnrolled} accent="violet" sub="students onboard" icon={<Users className="h-5 w-5" />} onClick={() => onNavigate("enrollments")} />
         <AdminStatCard label="Rejected" value={stats.rejected + stats.enrRejected} accent="rose" sub="total" icon={<XCircle className="h-5 w-5" />} onClick={() => onNavigate("applications")} />

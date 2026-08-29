@@ -8,6 +8,7 @@ import { scrollToId } from "@/lib/lenis";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { Particles } from "@/components/ui/Particles";
 import { cn } from "@/lib/utils";
+import { useLang } from "@/lib/i18n";
 
 const WORDS = [
   { text: "SPEAK", left: "5%", top: "17%", size: "clamp(0.75rem,1.8vw,1.45rem)", tx: "19vw", ty: "-6vh", tone: "text-brand" },
@@ -45,6 +46,7 @@ export function Hero() {
   const reduced = usePrefersReducedMotion();
   const wide = useMediaQuery("(min-width: 1024px)");
   const motionActive = wide && !isTouch && !reduced;
+  const { t } = useLang();
 
   useLayoutEffect(() => {
     if (!motionActive) return;
@@ -356,7 +358,7 @@ export function Hero() {
             )}
           >
             <span aria-hidden="true" className="h-px w-10 bg-gold/60" />
-            Hub of Language Excellence
+            {t("tagline")}
             <span aria-hidden="true" className="h-px w-10 bg-gold/60" />
           </p>
 
@@ -409,7 +411,7 @@ export function Hero() {
                 onClick={() => scrollToId("journey")}
                 className="group inline-flex h-[3.2rem] items-center gap-3 rounded-full bg-ink px-8 font-display text-[0.95rem] font-bold text-ivory shadow-[0_18px_44px_-18px_rgb(34_30_43/0.6)] transition-all duration-500 hover:bg-brand-deep hover:shadow-[0_20px_50px_-18px_rgb(110_90_224/0.6)]"
               >
-                Explore the Journey
+                {t("heroCtaJourney")}
                 <span className="inline-block transition-transform duration-500 group-hover:translate-x-1.5">
                   →
                 </span>
@@ -421,7 +423,7 @@ export function Hero() {
                 onClick={() => scrollToId("courses")}
                 className="inline-flex h-[3.2rem] items-center rounded-full border border-ink/20 bg-transparent px-8 font-display text-[0.95rem] font-bold text-ink transition-all duration-500 hover:border-brand/60 hover:bg-brand/[0.04] hover:text-brand-deep"
               >
-                See the Courses
+                {t("heroCtaCourses")}
               </button>
             </Magnetic>
           </div>
@@ -435,15 +437,14 @@ export function Hero() {
           )}
         >
           <p className="font-display text-[clamp(1.5rem,4.4vw,3.4rem)] font-extrabold leading-tight tracking-[-0.02em] text-ink">
-            LANGUAGE IS{" "}
+            {t("statementTitleA")}{" "}
             <span className="font-serif italic tracking-normal text-brand-magenta">
-              more than words.
+              {t("statementTitleB")}
             </span>
           </p>
           <span aria-hidden="true" className="h-px w-24 gold-underline" />
           <p className="max-w-md font-serif text-[1.05rem] italic leading-relaxed text-ink-3">
-            Every word you learn becomes something you can say — and every
-            sentence you say becomes part of who you are.
+            {t("statementBody")}
           </p>
         </div>
 
@@ -456,7 +457,7 @@ export function Hero() {
           )}
         >
           <span className="font-display text-[0.6rem] font-bold uppercase tracking-[0.4em] text-ink-3">
-            Scroll
+            {t("heroScrollCue")}
           </span>
           <span className="relative flex h-11 w-7 items-start justify-center rounded-full border border-ink/20 p-1.5">
             <span className="h-2 w-1 rounded-full bg-brand animate-bob" />
@@ -467,7 +468,7 @@ export function Hero() {
           data-side
           className="absolute right-6 top-1/2 hidden -translate-y-1/2 rotate-90 font-display text-[0.6rem] font-bold uppercase tracking-[0.5em] text-ink/30 xl:block"
         >
-          Scroll to transform
+          {t("heroSideCue")}
         </span>
       </div>
     </section>
