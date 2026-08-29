@@ -5,6 +5,7 @@ import { getApplicationsCollection, ensureIndexesAndAdmin } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
 import { ApplicationSchema, fieldErrors } from "@/lib/validate";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { notifyAdmins } from "@/lib/notifications";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -55,9 +56,16 @@ export async function POST(request: Request) {
     updatedAt: now,
   });
 
-  publishEvent({ table: "applications", userId: session.user.id, at: Date.now() });
+publishEvent({ table: "applications", userId: session.user.id, at: Date.now() });
 
-  return NextResponse.json(
+await notifyAdmins({
+  kind: "application",
+  title: "New application",
+  message: `${data.name.trim()} applied for ${data.course}.`,
+  href: "/admin-panel",
+});
+
+return NextResponse.json(
     { id: String(result.insertedId), ok: true, status: "PENDING" },
     { status: 201 }
   );

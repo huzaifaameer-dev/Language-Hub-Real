@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { booksFor } from "@/lib/books";
 import { useLiveSync } from "@/lib/use-live";
 import { SettingsModal } from "@/components/dashboard/SettingsModal";
+import { NotificationsBell } from "@/components/dashboard/NotificationsBell";
 
 type AppStatus = "PENDING" | "APPROVED" | "REJECTED";
 type EnrStatus = "PENDING" | "ENROLLED" | "REJECTED";
@@ -310,6 +311,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
               <Home className="h-3.5 w-3.5" strokeWidth={2} />
               Home
             </Link>
+            <NotificationsBell userId={userId} />
             <button
               onClick={() => setSettingsOpen(true)}
               className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/60 px-4 py-2 font-display text-[0.75rem] font-bold text-slate-600 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/80 hover:text-indigo-600"

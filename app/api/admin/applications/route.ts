@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { requireAdmin, isValidObjectId } from "@/lib/admin-guard";
 import { ensureIndexesAndAdmin, getApplicationsCollection } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
+import { notify } from "@/lib/notifications";
 import { z } from "zod";
 
 const PatchSchema = z.object({
@@ -101,6 +102,19 @@ export async function PATCH(request: Request) {
     userId: target?.userId as string | undefined,
     at: Date.now(),
   });
+
+  if (target?.userId) {
+    await notify(String(target.userId), {
+      kind: "application",
+      title: status === "APPROVED" ? "Application approved" : "Application not selected",
+      message:
+        message ||
+        (status === "APPROVED"
+          ? "Your application was approved — you can now enroll."
+          : "Your application was not selected this time."),
+      href: "/dashboard",
+    });
+  }
 
   return NextResponse.json({ ok: true, status });
 }

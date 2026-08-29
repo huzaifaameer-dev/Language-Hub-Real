@@ -9,6 +9,7 @@ import {
 import { publishEvent } from "@/lib/realtime";
 import { EnrollmentSchema, fieldErrors } from "@/lib/validate";
 import { rateLimit, clientKey } from "@/lib/rate-limit";
+import { notifyAdmins } from "@/lib/notifications";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -87,6 +88,13 @@ export async function POST(request: Request) {
   });
 
   publishEvent({ table: "enrollments", userId: session.user.id, at: Date.now() });
+
+  await notifyAdmins({
+    kind: "enrollment",
+    title: "New enrollment request",
+    message: `${data.subjects.join(", ")} · Batch ${data.batch}`,
+    href: "/admin-panel",
+  });
 
   return NextResponse.json(
     { id: String(result.insertedId), ok: true, status: "PENDING" },

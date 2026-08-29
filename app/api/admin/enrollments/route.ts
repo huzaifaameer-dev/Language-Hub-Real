@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { requireAdmin, isValidObjectId } from "@/lib/admin-guard";
 import { ensureIndexesAndAdmin, getEnrollmentsCollection } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
+import { notify } from "@/lib/notifications";
 import { z } from "zod";
 
 const PatchSchema = z.object({
@@ -95,6 +96,19 @@ export async function PATCH(request: Request) {
     userId: target?.userId as string | undefined,
     at: Date.now(),
   });
+
+  if (target?.userId) {
+    await notify(String(target.userId), {
+      kind: "enrollment",
+      title: status === "ENROLLED" ? "Enrollment confirmed" : "Enrollment declined",
+      message:
+        message ||
+        (status === "ENROLLED"
+          ? "Your seat is locked in. Your bookshelf is ready."
+          : "Your enrollment request was declined."),
+      href: "/dashboard",
+    });
+  }
 
   return NextResponse.json({ ok: true, status });
 }
