@@ -30,6 +30,11 @@ export function createDbClient(): Promise<MongoClient> {
 export const clientPromise: Promise<MongoClient> =
   globalThis.lhMongo ?? createDbClient();
 
+// Mark the original promise handled so a transiently-unreachable database can
+// never surface as an unhandled-rejection crash (callers still see the error
+// when they await getDb).
+clientPromise.catch(() => {});
+
 if (process.env.NODE_ENV !== "production") {
   globalThis.lhMongo = clientPromise;
 }
