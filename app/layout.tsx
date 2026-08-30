@@ -36,7 +36,7 @@ const description =
 
 const organizationJsonLd = {
   "@context": "https://schema.org",
-  "@type": "EducationalOrganization",
+  "@type": ["EducationalOrganization", "LocalBusiness"],
   name: "Language Hub",
   alternateName: "Language Hub Academy",
   description,
@@ -46,6 +46,21 @@ const organizationJsonLd = {
   founder: { "@type": "Person", name: "Javeria Malik" },
   email: process.env.ACADEMY_EMAIL ?? undefined,
   knowsAbout: ["Spoken English", "IELTS preparation", "PTE preparation", "Duolingo English Test"],
+  openingHoursSpecification: [
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ],
+      opens: "10:00",
+      closes: "20:00",
+    },
+  ],
 };
 
 export const metadata: Metadata = {
