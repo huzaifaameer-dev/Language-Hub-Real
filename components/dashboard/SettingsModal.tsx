@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { FocusTrap, LiveRegion } from "@/components/ui/FocusTrap";
+import { FocusTrap, LiveRegion, useEscapeKey } from "@/components/ui/FocusTrap";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -94,6 +94,8 @@ export function SettingsModal({
   const [delPassword, setDelPassword] = useState("");
   const [delBusy, setDelBusy] = useState(false);
   const [delMsg, setDelMsg] = useState<string | null>(null);
+
+  useEscapeKey(onClose, open);
 
   useEffect(() => {
     if (!open) return;

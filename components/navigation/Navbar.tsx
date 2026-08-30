@@ -9,6 +9,7 @@ import { scrollToId } from "@/lib/lenis";
 import { cn } from "@/lib/utils";
 import { useBodyScrollLock } from "@/lib/hooks";
 import { LangSwitch, useLang } from "@/lib/i18n";
+import { FocusTrap, useEscapeKey } from "@/components/ui/FocusTrap";
 
 const SECTIONS = [
   { id: "home", label: "navHome" },
@@ -29,6 +30,7 @@ export function Navbar() {
   const { t } = useLang();
 
   useBodyScrollLock(menuOpen);
+  useEscapeKey(() => setMenuOpen(false), menuOpen);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -144,6 +146,7 @@ export function Navbar() {
             aria-modal="true"
             aria-label="Menu"
           >
+            <FocusTrap active={menuOpen} className="flex h-full flex-col">
             <div className="pointer-events-none absolute inset-0 grain" />
             <div className="aurora-blob left-[-20%] top-[-10%] h-[45vh] w-[45vh] bg-brand/25" />
 
@@ -200,6 +203,7 @@ export function Navbar() {
             <div className="relative flex justify-center gap-3 px-8 pb-8">
               <AuthNavButtons variant="dark" />
             </div>
+            </FocusTrap>
           </motion.div>
         )}
       </AnimatePresence>

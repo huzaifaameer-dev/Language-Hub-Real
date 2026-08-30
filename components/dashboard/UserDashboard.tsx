@@ -27,7 +27,7 @@ import {
 
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
-import { FocusTrap, LiveRegion } from "@/components/ui/FocusTrap";
+import { FocusTrap, LiveRegion, useEscapeKey } from "@/components/ui/FocusTrap";
 import { booksFor } from "@/lib/books";
 import { useLiveSync } from "@/lib/use-live";
 import { SettingsModal } from "@/components/dashboard/SettingsModal";
@@ -1137,6 +1137,8 @@ function EnrollmentModal({
         left: soloCourse.batches.reduce((n, b) => n + (b.seatsLeft ?? 0), 0),
       }
     : undefined;
+
+  useEscapeKey(onClose, true);
 
   return (
     <motion.div
