@@ -38,3 +38,15 @@ export async function notifyAdmins(input: NotifyInput): Promise<void> {
     .toArray();
   await Promise.all(admins.map((a) => notify(String(a._id), input)));
 }
+
+/** Email addresses of all ADMIN accounts (for alert emails). */
+export async function listAdminEmails(): Promise<string[]> {
+  const db = await getDb();
+  const admins = await db
+    .collection("users")
+    .find({ role: "ADMIN" }, { projection: { email: 1 } })
+    .toArray();
+  return admins
+    .map((a) => (a.email as unknown as string | undefined)?.trim() ?? "")
+    .filter(Boolean);
+}

@@ -100,6 +100,25 @@ If this wasn't you, you can safely ignore it.</p>
 </body></html>`;
 }
 
+/** Admin alert when a new application arrives. */
+export async function sendNewApplicationEmail(input: {
+  to: string;
+  applicant: string;
+  course: string;
+}): Promise<SendEmailResult> {
+  const link = `${appBaseUrl()}/admin-panel`;
+  return sendEmail({
+    to: input.to,
+    subject: `New application: ${input.applicant} → ${input.course}`,
+    text: `${input.applicant} applied for ${input.course}. Review it at ${link}`,
+    html: shell(
+      "New application",
+      `<p style="font-weight:600;margin:0 0 10px">${input.applicant} applied for ${input.course}.</p>
+      <p><a href="${link}" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open the admin panel</a></p>`
+    ),
+  });
+}
+
 /** Decision emails (application approved/rejected, enrollment confirmed/declined). */
 export async function sendDecisionEmail(input: {
   to: string;

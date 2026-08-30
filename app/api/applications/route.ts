@@ -5,7 +5,8 @@ import { getApplicationsCollection, ensureIndexesAndAdmin } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
 import { ApplicationSchema, fieldErrors } from "@/lib/validate";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
-import { notifyAdmins } from "@/lib/notifications";
+import { notifyAdmins, listAdminEmails } from "@/lib/notifications";
+import { sendNewApplicationEmail } from "@/lib/email";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -63,6 +64,14 @@ await notifyAdmins({
   title: "New application",
   message: `${data.name.trim()} applied for ${data.course}.`,
   href: "/admin-panel",
+});
+
+void listAdminEmails().then((emails) => {
+  void Promise.all(
+    emails.map((to) =>
+      sendNewApplicationEmail({ to, applicant: data.name.trim(), course: data.course })
+    )
+  );
 });
 
 return NextResponse.json(
