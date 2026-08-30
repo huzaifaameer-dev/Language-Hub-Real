@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { CalendarDays, Check, Download, GraduationCap, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminEnrollment } from "./types";
-import { AvatarInitial, FilterChips, Pager, QUICK_REPLIES, SearchBox, SectionTitle, StatusPill, downloadCsv } from "./ui";
+import { AvatarInitial, FilterChips, Pager, SearchBox, SectionTitle, StatusPill, downloadCsv } from "./ui";
 
 type Filter = "ALL" | "PENDING" | "ENROLLED" | "REJECTED";
 
@@ -214,19 +214,6 @@ export function AdminEnrollments({
                     >
                       {busy === e.id ? <Spin /> : <X className="h-4 w-4" />} Reject
                     </button>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="font-mono text-[0.55rem] uppercase tracking-widest text-slate-400">Quick decline</span>
-                    {QUICK_REPLIES.map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => setReply(t)}
-                        className="rounded-full border border-slate-200 bg-white/70 px-2.5 py-1 font-display text-[0.62rem] text-slate-500 transition-all hover:border-rose-300 hover:text-rose-600"
-                      >
-                        {t}
-                      </button>
-                    ))}
                   </div>
                 </div>
               ) : (

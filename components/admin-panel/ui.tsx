@@ -248,14 +248,6 @@ export function GlassPanel({
   );
 }
 
-/** One-tap canned replies for the reviewer message box (declines esp.). */
-export const QUICK_REPLIES = [
-  "This batch is currently full — we'll follow up when a new slot opens.",
-  "Thanks for applying! We'll be in touch with the next steps shortly.",
-  "Please re-submit with your preferred schedule and we'll review again.",
-  "We've picked your interest up — expect a call from our team today.",
-];
-
 export function SearchBox({
   value, onChange, placeholder,
 }: {
