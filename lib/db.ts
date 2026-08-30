@@ -189,6 +189,7 @@ export function ensureInit(): Promise<void> {
         db.collection("courses").createIndex({ name: 1 }, { unique: true }),
         db.collection("courses").createIndex({ active: 1, order: 1 }),
         db.collection("settings").createIndex({ key: 1 }, { unique: true }),
+        db.collection("errors").createIndex({ createdAt: -1 }),
         db.collection("ratelimits").createIndex({ resetAt: 1 }, { expireAfterSeconds: 1 }),
       ]);
 

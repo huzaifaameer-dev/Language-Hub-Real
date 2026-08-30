@@ -3,6 +3,7 @@ import { Inter, Manrope, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import { ErrorReporter } from "@/components/ErrorReporter";
 
 const analyticsUrl =
   (process.env.ANALYTICS_SCRIPT_URL ?? "").trim() ||
@@ -118,6 +119,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
         <Providers>{children}</Providers>
+        <ErrorReporter />
         {analyticsUrl ? (
           <Script
             src={analyticsUrl}
