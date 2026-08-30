@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { FocusTrap, LiveRegion } from "@/components/ui/FocusTrap";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -203,7 +204,8 @@ export function SettingsModal({
         transition={{ duration: 0.5, ease }}
         className="relative w-full max-w-lg rounded-[2rem] border border-white/70 bg-white/95 p-7 shadow-[0_40px_90px_-30px_rgb(15_23_42/0.55)] backdrop-blur-2xl sm:p-9"
       >
-        <button
+        <FocusTrap active={open}>
+          <button
           type="button"
           onClick={onClose}
           aria-label="Close settings"
@@ -365,6 +367,8 @@ export function SettingsModal({
             </div>
           </section>
         </div>
+        </FocusTrap>
+        <LiveRegion text={profileMsg?.text ?? pwMsg?.text ?? null} />
       </motion.div>
     </motion.div>
   );

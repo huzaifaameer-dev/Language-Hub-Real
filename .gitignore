@@ -50,3 +50,7 @@ public/uploads/*.webp
 public/uploads/avatars/
 # keep the uploads folder itself
 !public/uploads/.gitkeep
+
+test-results/
+playwright-report/
+

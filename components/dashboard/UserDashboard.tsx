@@ -27,6 +27,7 @@ import {
 
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
+import { FocusTrap, LiveRegion } from "@/components/ui/FocusTrap";
 import { booksFor } from "@/lib/books";
 import { useLiveSync } from "@/lib/use-live";
 import { SettingsModal } from "@/components/dashboard/SettingsModal";
@@ -1143,6 +1144,9 @@ function EnrollmentModal({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-900/45 px-5 py-10 backdrop-blur-md"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Enroll in courses"
     >
       <motion.div
         initial={{ opacity: 0, y: 36, scale: 0.96 }}
@@ -1150,7 +1154,8 @@ function EnrollmentModal({
         transition={{ duration: 0.5, ease }}
         className="relative w-full max-w-lg rounded-[2rem] border border-white/70 bg-white/95 p-7 shadow-[0_40px_90px_-30px_rgb(15_23_42/0.55)] backdrop-blur-2xl sm:p-9"
       >
-        <button
+        <FocusTrap active>
+          <button
           type="button"
           onClick={onClose}
           aria-label="Close"
@@ -1300,6 +1305,8 @@ function EnrollmentModal({
             </>
           )}
         </button>
+        </FocusTrap>
+        <LiveRegion text={error ?? (busy ? "Submitting enrollment…" : null)} />
       </motion.div>
     </motion.div>
   );
