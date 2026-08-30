@@ -137,18 +137,45 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
   const celebratedRef = useRef(false);
 
   const load = () => {
-    Promise.all([
-      fetch("/api/applications").then((r) => (r.ok ? r.json() : { applications: [] })),
-      fetch("/api/enrollments").then((r) => (r.ok ? r.json() : { enrollments: [] })),
-    ])
-      .then(([d1, d2]) => {
-        setApps(d1.applications ?? []);
-        setEnrs(d2.enrollments ?? []);
-        const firstEnr = (d2.enrollments ?? [])[0];
+    fetch("/api/dashboard")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const data = d as {
+          user?: { createdAt?: string | null; image?: string | null; whatsapp?: string };
+          support?: { email?: string | null; whatsapp?: string | null };
+          applications?: App[];
+          enrollments?: Enr[];
+          courses?: Array<CourseInfo & { id: string }>;
+        } | null;
+        if (!data) return;
+        if (data.user) {
+          setJoined(data.user.createdAt ?? null);
+          if (data.user.image !== undefined) setAvatar(data.user.image);
+          if (data.user.whatsapp !== undefined) setWhatsapp(data.user.whatsapp);
+        }
+        if (data.support) {
+          setSupportEmail(data.support.email ?? null);
+          setSupportWhatsapp(data.support.whatsapp ?? null);
+        }
+        const list = data.applications ?? [];
+        const enrList = data.enrollments ?? [];
+        setApps(list);
+        setEnrs(enrList);
+        const firstEnr = enrList[0];
         if (firstEnr?.status === "ENROLLED" && !celebratedRef.current) {
           celebratedRef.current = true;
           setEnrolledCelebrated(true);
           setTimeout(() => setEnrolledCelebrated(false), 5200);
+        }
+        const courses = data.courses;
+        if (courses?.length) {
+          setCatalog(courses);
+          setEnrBatch((prev) => {
+            const names = new Set(
+              courses.flatMap((c) => c.batches.map((b) => b.name))
+            );
+            return names.has(prev) ? prev : (courses[0].batches[0]?.name ?? prev);
+          });
         }
       })
       .finally(() => setLoading(false));
@@ -156,28 +183,6 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
 
   useEffect(() => {
     load();
-    fetch("/api/me")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        setJoined(d?.user?.createdAt ?? null);
-        if (d?.user && d.user.image !== undefined) setAvatar(d.user.image);
-        if (d?.user && d.user.whatsapp !== undefined) setWhatsapp(d.user.whatsapp ?? "");
-        setSupportEmail(d?.support?.email ?? null);
-        setSupportWhatsapp(d?.support?.whatsapp ?? null);
-      });
-    fetch("/api/courses")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d: { courses?: Array<CourseInfo & { id: string }> } | null) => {
-        const courses = d?.courses;
-        if (!courses?.length) return;
-        setCatalog(courses);
-        setEnrBatch((prev) => {
-          const names = new Set(
-            courses.flatMap((c) => c.batches.map((b) => b.name))
-          );
-          return names.has(prev) ? prev : (courses[0].batches[0]?.name ?? prev);
-        });
-      });
   }, []);
 
   // Live: when the admin approves/rejects our application or enrollment

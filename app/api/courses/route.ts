@@ -10,7 +10,7 @@ export async function GET() {
     { courses },
     {
       headers: {
-        "Cache-Control": "no-store",
+        "Cache-Control": "public, max-age=0, s-maxage=15, stale-while-revalidate=30",
       },
     }
   );
