@@ -7,6 +7,7 @@ import { useIsTouch, useMediaQuery, usePrefersReducedMotion } from "@/lib/hooks"
 import { scrollToId } from "@/lib/lenis";
 import { Magnetic } from "@/components/ui/Magnetic";
 import { Particles } from "@/components/ui/Particles";
+import { WhatsAppCta } from "@/components/ui/WhatsAppCta";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/i18n";
 
@@ -426,6 +427,7 @@ export function Hero() {
                 {t("heroCtaCourses")}
               </button>
             </Magnetic>
+            <WhatsAppCta />
           </div>
         </motion.div>
 

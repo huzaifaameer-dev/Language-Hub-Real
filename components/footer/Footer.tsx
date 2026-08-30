@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Logo } from "@/components/ui/Logo";
+import { WhatsAppCta } from "@/components/ui/WhatsAppCta";
 import { scrollToId } from "@/lib/lenis";
 import { useLang } from "@/lib/i18n";
 
@@ -112,6 +113,10 @@ export function Footer() {
           <p className="text-[0.78rem] text-ivory/45">
             © {year} Language Hub. All rights reserved.
           </p>
+          <div className="flex items-center gap-4">
+            <WhatsAppCta variant="footer" />
+            <span className="hidden h-3 w-px bg-ivory/20 sm:block" aria-hidden="true" />
+          </div>
           <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.3em] text-ivory/35">
             {t("tagline")}
           </p>
