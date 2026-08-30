@@ -22,19 +22,21 @@ import {
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { useLiveSync } from "@/lib/use-live";
-import type { AdminApplication, AdminCounts, AdminEnrollment, AdminStats } from "./types";
+import type { AdminApplication, AdminCounts, AdminEnrollment, AdminStats, AdminUser } from "./types";
 import { deriveAdminStats } from "./stats";
 import { AdminApplications } from "./AdminApplications";
 import { AdminEnrollments } from "./AdminEnrollments";
 import { AdminCourses } from "./AdminCourses";
+import { AdminUsers } from "./AdminUsers";
 import { AdminStatCard, GlassPanel, ProgressRing, StatusPill } from "./ui";
 
-type Tab = "overview" | "applications" | "enrollments" | "courses";
+type Tab = "overview" | "applications" | "enrollments" | "courses" | "users";
 
 const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "applications", label: "Applications", icon: FileText },
   { key: "enrollments", label: "Enrollments", icon: GraduationCap },
+  { key: "users", label: "Students", icon: Users },
   { key: "courses", label: "Courses", icon: BookOpen },
 ];
 
@@ -49,12 +51,13 @@ interface Toast {
 let toastSeq = 0;
 
 export function AdminPanel({
-  adminEmail, counts, applications, enrollments,
+  adminEmail, counts, applications, enrollments, users,
 }: {
   adminEmail: string;
   counts: AdminCounts;
   applications: AdminApplication[];
   enrollments: AdminEnrollment[];
+  users: AdminUser[];
 }) {
   const [tab, setTab] = useState<Tab>("overview");
   const [appList, setAppList] = useState(applications);
@@ -340,6 +343,10 @@ export function AdminPanel({
 
           {tab === "courses" ? (
             <AdminCourses />
+          ) : null}
+
+          {tab === "users" ? (
+            <AdminUsers items={users} />
           ) : null}
         </main>
       </div>

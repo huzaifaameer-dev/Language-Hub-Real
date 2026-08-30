@@ -48,6 +48,17 @@ export interface AdminCounts {
   notifications: number;
 }
 
+/** Lightweight student-directory entry (password never leaves the server). */
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+  emailVerified: string | null;
+  role: string;
+  createdAt: string;
+}
+
 export interface AdminBatch {
   name: string;
   time: string;

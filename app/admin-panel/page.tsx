@@ -15,6 +15,7 @@ import type {
   AdminApplication,
   AdminCounts,
   AdminEnrollment,
+  AdminUser,
 } from "@/components/admin-panel/types";
 
 export default async function AdminPanelPage() {
@@ -38,10 +39,15 @@ export default async function AdminPanelPage() {
     getCoursesCollection(),
     getNotificationsCollection(),
   ]);
-  const [userCount, courseCount, notificationCount] = await Promise.all([
+  const [userCount, courseCount, notificationCount, userDocs] = await Promise.all([
     usersCol.countDocuments({ role: { $ne: "ADMIN" } }),
     coursesCol.countDocuments({ active: true }),
     notificationsCol.countDocuments({}),
+    usersCol
+      .find({ role: { $ne: "ADMIN" } })
+      .sort({ createdAt: -1 })
+      .limit(300)
+      .toArray(),
   ]);
 
   const counts: AdminCounts = {
@@ -75,12 +81,33 @@ export default async function AdminPanelPage() {
     createdAt: d.createdAt.toISOString(),
   }));
 
+  const userList: AdminUser[] = userDocs.map((d) => {
+    const raw = d as unknown as {
+      name: string;
+      email: string;
+      image?: string | null;
+      emailVerified?: Date | null;
+      role?: string;
+      createdAt: Date;
+    };
+    return {
+      id: String(d._id),
+      name: raw.name,
+      email: raw.email,
+      image: raw.image ?? null,
+      emailVerified: raw.emailVerified ? raw.emailVerified.toISOString() : null,
+      role: raw.role ?? "USER",
+      createdAt: new Date(raw.createdAt).toISOString(),
+    };
+  });
+
   return (
     <AdminPanel
       adminEmail={admin.email ?? ""}
       counts={counts}
       applications={applicationList}
       enrollments={enrollmentList}
+      users={userList}
     />
   );
 }
