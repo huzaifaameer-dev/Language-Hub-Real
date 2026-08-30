@@ -111,10 +111,13 @@ describe("EnrollmentSchema", () => {
     ).toBe(true);
   });
 
-  it("rejects unknown batch values", () => {
+  it("accepts free-form batch names (batch catalog is admin-managed)", () => {
     expect(
       EnrollmentSchema.safeParse({ subjects: ["Spoken English"], batch: "Midnight" }).success
-    ).toBe(false);
+    ).toBe(true);
+    expect(EnrollmentSchema.safeParse({ subjects: ["Spoken English"], batch: "" }).success).toBe(
+      false
+    );
   });
 });
 

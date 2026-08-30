@@ -57,8 +57,6 @@ export const ApplicationSchema = z.object({
   message: z.string().max(600, "Message too long.").trim().optional().default(""),
 });
 
-export const BATCHES = ["Morning", "Afternoon", "Evening", "Weekend"] as const;
-
 export const EnrollmentSchema = z.object({
   subjects: z
     .array(
@@ -71,7 +69,11 @@ export const EnrollmentSchema = z.object({
     )
     .min(1, "Select at least one subject.")
     .max(4, "You can select up to four subjects."),
-  batch: z.enum(BATCHES).default("Evening"),
+  batch: z
+    .string()
+    .min(1, "Choose a batch.")
+    .max(50, "Batch name is too long.")
+    .trim(),
   plan: z.string().max(800, "Keep it under 800 characters.").trim().optional().default(""),
 });
 

@@ -75,7 +75,9 @@ const data = parsed.data;
   const now = new Date();
 
   // Seat gate: reject when any chosen subject's batch is already full in the
-  // live catalog, so admin never over-subscribes a running batch.
+  // live catalog, so admin never over-subscribes a running batch. Batch values
+  // are admin-managed per course (no hardcoded enum), so every batch is also
+  // verified against the course's own list.
   await ensureIndexesAndAdmin();
   const coursesCol = await getCoursesCollection();
   const [courseDocs, enrolledDocs] = await Promise.all([
@@ -85,6 +87,15 @@ const data = parsed.data;
       .project({ batch: 1 })
       .toArray(),
   ]);
+
+  const missing = courseDocs.find((c) => !(c.batches ?? []).some((b) => b.name === data.batch));
+  if (missing) {
+    return NextResponse.json(
+      { message: `${data.batch} is not a batch of ${missing.name}.` },
+      { status: 400 }
+    );
+  }
+
   const batchCount = new Map<string, number>();
   for (const e of enrolledDocs) batchCount.set(e.batch, (batchCount.get(e.batch) ?? 0) + 1);
   const full: string[] = [];
