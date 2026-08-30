@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { ErrorReporter } from "@/components/ErrorReporter";
+import { PwaInit } from "@/components/PwaInit";
 
 const analyticsUrl =
   (process.env.ANALYTICS_SCRIPT_URL ?? "").trim() ||
@@ -120,6 +121,7 @@ export default function RootLayout({
         />
         <Providers>{children}</Providers>
         <ErrorReporter />
+        <PwaInit enabled={process.env.NODE_ENV === "production"} />
         {analyticsUrl ? (
           <Script
             src={analyticsUrl}
