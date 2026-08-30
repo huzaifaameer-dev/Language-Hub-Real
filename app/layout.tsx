@@ -5,6 +5,7 @@ import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { ErrorReporter } from "@/components/ErrorReporter";
 import { PwaInit } from "@/components/PwaInit";
+import { SiteAnalytics } from "@/components/analytics/SiteAnalytics";
 
 const analyticsUrl =
   (process.env.ANALYTICS_SCRIPT_URL ?? "").trim() ||
@@ -122,6 +123,7 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         <ErrorReporter />
         <PwaInit enabled={process.env.NODE_ENV === "production"} />
+        <SiteAnalytics />
         {analyticsUrl ? (
           <Script
             src={analyticsUrl}
