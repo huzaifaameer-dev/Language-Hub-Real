@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { z } from "zod";
+import { revalidateTag } from "next/cache";
 import { requireAdmin, isValidObjectId } from "@/lib/admin-guard";
 import {
   ensureIndexesAndAdmin,
@@ -83,6 +84,7 @@ export async function PATCH(
   );
 
   await publishEvent({ table: "courses", at: Date.now() });
+  revalidateTag("catalog", { expire: 0 });
 
   return NextResponse.json({ ok: true });
 }
@@ -121,11 +123,13 @@ export async function DELETE(
       { $set: { active: false, updatedAt: new Date() } }
     );
     await publishEvent({ table: "courses", at: Date.now() });
+    revalidateTag("catalog", { expire: 0 });
     return NextResponse.json({ ok: true, hidden: true });
   }
 
   await courses.deleteOne({ _id: existing._id });
   await publishEvent({ table: "courses", at: Date.now() });
+  revalidateTag("catalog", { expire: 0 });
 
   return NextResponse.json({ ok: true, deleted: true });
 }

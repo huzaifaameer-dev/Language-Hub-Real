@@ -1,4 +1,11 @@
+import { unstable_cache } from "next/cache";
 import type { CourseBatch } from "@/lib/course-data";
+import {
+  ensureIndexesAndAdmin,
+  getCoursesCollection,
+  getEnrollmentsCollection,
+} from "@/lib/db";
+import type { CourseDoc } from "@/lib/db";
 
 /** Count ENROLLED enrollment docs per batch name. */
 export function batchUsageMap(enrolled: Array<{ batch: string }>): Map<string, number> {
@@ -47,3 +54,62 @@ export function courseSeatSummary(views: SeatView[]): CourseSeatSummary {
     seatsLeft: Math.max(0, seatsTotal - seatsUsed),
   };
 }
+
+export interface PublicCatalogCourse {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  fee: number;
+  currency: string;
+  duration: string;
+  teacher: string;
+  schedule: string;
+  batches: SeatView[];
+  seatsTotal: number;
+  seatsUsed: number;
+  seatsLeft: number;
+}
+
+/** Read the active course catalog once per short window instead of per
+ *  dashboard load; admin mutations revalidateTag("catalog") to keep the
+ *  fetched seat counts fresh the moment a decision lands. */
+export const getPublicCatalog = unstable_cache(
+  async (): Promise<{ courses: PublicCatalogCourse[] }> => {
+    await ensureIndexesAndAdmin();
+    const [coursesCol, enrollmentsCol] = await Promise.all([
+      getCoursesCollection(),
+      getEnrollmentsCollection(),
+    ]);
+
+    const [courseDocs, enrolledDocs] = await Promise.all([
+      coursesCol.find({ active: true }).sort({ order: 1 }).toArray(),
+      enrollmentsCol.find({ status: "ENROLLED" }).project({ batch: 1 }).toArray(),
+    ] as const);
+
+    const used = batchUsageMap(enrolledDocs as { batch: string }[]);
+
+    const courses: PublicCatalogCourse[] = courseDocs.map(
+      (c: CourseDoc & { _id: unknown }) => {
+        const batches = seatViews(c.batches ?? [], used);
+        return {
+          id: String(c._id),
+          name: c.name,
+          tagline: c.tagline,
+          description: c.description,
+          fee: c.fee,
+          currency: c.currency,
+          duration: c.duration,
+          teacher: c.teacher,
+          schedule: c.schedule,
+          batches,
+          ...courseSeatSummary(batches),
+        };
+      }
+    );
+
+    return { courses };
+  },
+  ["public-catalog"],
+  { revalidate: 15, tags: ["catalog"] }
+);

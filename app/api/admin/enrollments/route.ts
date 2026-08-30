@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-
+import { revalidateTag } from "next/cache";
 import { requireAdmin, isValidObjectId } from "@/lib/admin-guard";
 import { ensureIndexesAndAdmin, getEnrollmentsCollection } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
@@ -97,6 +97,9 @@ export async function PATCH(request: Request) {
     userId: target?.userId as string | undefined,
     at: Date.now(),
   });
+
+  // A confirmed seat changes catalog availability instantly.
+  if (action === "ENROLL") revalidateTag("catalog", { expire: 0 });
 
   if (target?.userId) {
     await notify(String(target.userId), {

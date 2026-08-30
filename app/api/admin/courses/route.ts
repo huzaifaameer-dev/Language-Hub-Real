@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { revalidateTag } from "next/cache";
 import { requireAdmin } from "@/lib/admin-guard";
 import { ensureIndexesAndAdmin, getCoursesCollection } from "@/lib/db";
 import type { CourseDoc } from "@/lib/db";
@@ -114,6 +115,7 @@ export async function POST(request: Request) {
   const { insertedId } = await courses.insertOne(doc);
 
   await publishEvent({ table: "courses", at: Date.now() });
+  revalidateTag("catalog", { expire: 0 });
 
   return NextResponse.json(
     { course: { id: String(insertedId), ...doc } },
