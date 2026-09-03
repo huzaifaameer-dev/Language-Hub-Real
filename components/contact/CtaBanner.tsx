@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { MessageCircle, Phone, Mail, Navigation } from "lucide-react";
 import { ACADEMY, CONTACT } from "@/lib/content";
 import { Reveal } from "@/components/ui/Reveal";
 import { BookDemoButton } from "@/components/contact/BookDemoButton";
+import { useLang } from "@/components/LanguageProvider";
 
 const CONTACT_ACTIONS = [
   CONTACT.whatsapp && {
@@ -43,6 +46,9 @@ const CONTACT_ACTIONS = [
 
 /** Final call-to-action + contact strip (merged from the old ContactCta + CtaBanner). */
 export function CtaBanner() {
+  const { dict, lang } = useLang();
+  const isUr = lang === "ur";
+
   return (
     <section
       id="cta"
@@ -66,15 +72,29 @@ export function CtaBanner() {
 
         <div className="relative">
           <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.34em] text-gold-light">
-            Start today
+            {dict["cta.eyebrow"]}
           </p>
-          <h2 className="mt-4 font-display text-[clamp(1.8rem,4.4vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.02em] text-ivory">
-            Your voice is ready.
-            <br /> Let&apos;s <span className="gold-text">find it.</span>
+          <h2
+            className="mt-4 font-display text-[clamp(1.8rem,4.4vw,3rem)] font-extrabold leading-[1.05] tracking-[-0.02em] text-ivory"
+            dir={isUr ? "rtl" : "ltr"}
+          >
+            {isUr ? (
+              <>
+                {dict["cta.title1"]}
+                <br /> <span className="gold-text">{dict["cta.title2"]}</span>
+              </>
+            ) : (
+              <>
+                Your voice is ready.
+                <br /> Let&apos;s <span className="gold-text">find it.</span>
+              </>
+            )}
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-[1rem] leading-relaxed text-ivory/70">
-            Book a free demo class and experience how Language Hub turns
-            nervous words into confident conversations.
+          <p
+            className="mx-auto mt-5 max-w-xl text-[1rem] leading-relaxed text-ivory/70"
+            dir={isUr ? "rtl" : "ltr"}
+          >
+            {dict["cta.subtitle"]}
           </p>
           <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
             <BookDemoButton />
@@ -82,7 +102,7 @@ export function CtaBanner() {
               href="/login"
               className="inline-flex h-12 items-center rounded-full border border-ivory/25 px-7 font-display text-[0.9rem] font-bold text-ivory transition-all duration-300 hover:border-gold-light/60 hover:text-gold-light"
             >
-              Track your application
+              {dict["cta.track"]}
             </Link>
           </div>
         </div>
@@ -119,7 +139,7 @@ export function CtaBanner() {
 
         {CONTACT.email ? (
           <p className="relative mt-10 font-mono text-[0.62rem] uppercase tracking-widest text-ivory/40">
-            {ACADEMY.name} · replies fast
+            {ACADEMY.name} · {dict["cta.replies"]}
           </p>
         ) : null}
       </Reveal>
