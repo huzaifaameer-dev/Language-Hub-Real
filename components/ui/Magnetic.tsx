@@ -3,15 +3,18 @@
 import { useRef, useState, type ReactNode } from "react";
 import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 import { useIsTouch } from "@/lib/hooks";
+import { cn } from "@/lib/utils";
 
 interface MagneticProps {
   children: ReactNode;
   strength?: number;
   className?: string;
+  /** apply a subtle inner-shine sweep on hover (desktop only) */
+  glare?: boolean;
 }
 
 /** Desktop-only magnetic pull — subtle, never fights the user. */
-export function Magnetic({ children, strength = 0.18, className }: MagneticProps) {
+export function Magnetic({ children, strength = 0.18, className, glare = false }: MagneticProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isTouch = useIsTouch();
   const reduceMotion = useReducedMotion();
@@ -41,7 +44,7 @@ export function Magnetic({ children, strength = 0.18, className }: MagneticProps
   return (
     <motion.div
       ref={ref}
-      className={className}
+      className={cn(glare && "shine-sweep", className)}
       style={{ x: springX, y: springY }}
       onMouseMove={handleMove}
       onMouseEnter={() => setHovering(true)}

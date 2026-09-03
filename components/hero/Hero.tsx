@@ -157,31 +157,43 @@ export function Hero() {
 
             {/* floating mini-cards (content always visible; only float animates) */}
             <motion.div
-              animate={{ y: [0, -12, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -left-5 -top-5 flex items-center gap-2 rounded-2xl border border-ink/[0.06] bg-white px-4 py-3 shadow-[0_18px_40px_-20px_rgb(15_23_42/0.4)]"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand/[0.1] text-brand-deep">
-                <TrendingUp className="h-5 w-5" strokeWidth={1.8} />
-              </span>
-              <div className="text-ink">
-                <p className="font-display text-sm font-extrabold text-ink">Band 8+</p>
-                <p className="text-[0.68rem] font-semibold text-ink-3">IELTS average</p>
-              </div>
+              <motion.div
+                animate={{ y: [0, -14, 0], rotate: [0, 0.4, 0] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -left-5 -top-5 flex items-center gap-2 rounded-2xl border border-ink/[0.06] bg-white px-4 py-3 shadow-[0_18px_40px_-20px_rgb(15_23_42/0.4)]"
+              >
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand/[0.1] text-brand-deep">
+                  <TrendingUp className="h-5 w-5" strokeWidth={1.8} />
+                </span>
+                <div className="text-ink">
+                  <p className="font-display text-sm font-extrabold text-ink">Band 8+</p>
+                  <p className="text-[0.68rem] font-semibold text-ink-3">IELTS average</p>
+                </div>
+              </motion.div>
             </motion.div>
 
             <motion.div
-              animate={{ y: [0, 12, 0] }}
-              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
-              className="absolute -bottom-5 -right-3 flex items-center gap-2 rounded-2xl border border-ink/[0.06] bg-white px-4 py-3 shadow-[0_18px_40px_-20px_rgb(15_23_42/0.4)]"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, delay: 0.65, ease: [0.16, 1, 0.3, 1] }}
             >
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
-                <Star className="h-5 w-5" strokeWidth={1.8} />
-              </span>
-              <div className="text-ink">
-                <p className="font-display text-sm font-extrabold text-ink">+90% fluency</p>
-                <p className="text-[0.68rem] font-semibold text-ink-3">learner progress</p>
-              </div>
+              <motion.div
+                animate={{ y: [0, 14, 0], rotate: [0, -0.4, 0] }}
+                transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+                className="absolute -bottom-5 -right-3 flex items-center gap-2 rounded-2xl border border-ink/[0.06] bg-white px-4 py-3 shadow-[0_18px_40px_-20px_rgb(15_23_42/0.4)]"
+              >
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
+                  <Star className="h-5 w-5" strokeWidth={1.8} />
+                </span>
+                <div className="text-ink">
+                  <p className="font-display text-sm font-extrabold text-ink">+90% fluency</p>
+                  <p className="text-[0.68rem] font-semibold text-ink-3">learner progress</p>
+                </div>
+              </motion.div>
             </motion.div>
           </div>
         </div>

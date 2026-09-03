@@ -24,6 +24,51 @@ export function fadeUp(delay = 0, y = 28, blur = false, duration = 0.9): Variant
   };
 }
 
+/** Directional slide + fade: enter from `from` along the chosen axis. */
+export function slideIn(
+  from: "up" | "down" | "left" | "right",
+  delay = 0,
+  distance = 32,
+  duration = 0.9
+): Variants {
+  const offset: Record<typeof from, Partial<{ x: number; y: number }>> = {
+    up: { y: distance },
+    down: { y: -distance },
+    left: { x: distance },
+    right: { x: -distance },
+  };
+  return {
+    hidden: { opacity: 0, ...offset[from] },
+    visible: {
+      opacity: 1,
+      x: 0,
+      y: 0,
+      transition: { duration, delay, ease: EASE_EXPO },
+    },
+  };
+}
+
+/** Cinematic scale-in with a hint of blur — suits hero artwork / big cards. */
+export function scaleIn(delay = 0, scale = 0.94, duration = 1): Variants {
+  return {
+    hidden: { opacity: 0, scale, filter: "blur(6px)" },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      filter: "blur(0px)",
+      transition: { duration, delay, ease: EASE_EXPO },
+    },
+  };
+}
+
+/** Parent variants that stagger its children (maps nicely onto `variants`). */
+export function staggerContainer(staggerChildren = 0.09, delayChildren = 0): Variants {
+  return {
+    hidden: {},
+    visible: { transition: { staggerChildren, delayChildren } },
+  };
+}
+
 /** Soft fade with slight blur — used for background layers. */
 export function fadeIn(delay = 0, duration = 1.2): Variants {
   return {

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { ArrowRight, Menu, Sparkles, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
@@ -13,27 +13,35 @@ import { useBodyScrollLock } from "@/lib/hooks";
 import { FocusTrap, useEscapeKey } from "@/components/ui/FocusTrap";
 import { BookDemoButton } from "@/components/contact/BookDemoButton";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ScrollProgress } from "@/components/ui/ScrollProgress";
+import { Magnetic } from "@/components/ui/Magnetic";
+import { useLang } from "@/components/LanguageProvider";
 
+/** In-page section anchors, labelled via the i18n dictionary. */
 const SECTIONS = [
-  { id: "home", label: "Home" },
-  { id: "journey", label: "Journey" },
-  { id: "about", label: "About" },
-  { id: "courses", label: "Courses" },
-  { id: "pricing", label: "Pricing" },
-  { id: "reviews", label: "Reviews" },
-  { id: "faq", label: "FAQ" },
-];
+  { id: "home", key: "nav.home" },
+  { id: "journey", key: "nav.journey" },
+  { id: "about", key: "nav.about" },
+  { id: "courses", key: "nav.courses" },
+  { id: "pricing", key: "nav.pricing" },
+  { id: "reviews", key: "nav.reviews" },
+  { id: "faq", key: "nav.faq" },
+] as const;
 
-const LINKS = [
-  { href: "/team", label: "Team" },
-  { href: "/placement-test", label: "Placement Test" },
-  { href: "/blog", label: "Blog" },
-];
+/** Standalone routes, labelled via the i18n dictionary. */
+const ROUTES = [
+  { href: "/team", key: "nav.team" },
+  { href: "/placement-test", key: "nav.placement" },
+  { href: "/blog", key: "nav.blog" },
+] as const;
 
 export function Navbar() {
+  const { dict, lang } = useLang();
+  const isUr = lang === "ur";
   const [active, setActive] = useState("home");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const reduceMotion = useReducedMotion();
   const pathname = usePathname();
   const router = useRouter();
   const onSite = pathname === "/";
@@ -41,13 +49,15 @@ export function Navbar() {
   useBodyScrollLock(menuOpen);
   useEscapeKey(() => setMenuOpen(false), menuOpen);
 
+  // Track scroll for the floating-glass transition.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
+    const onScroll = () => setScrolled(window.scrollY > 16);
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Track the in-view section with an IntersectionObserver for the active pill.
   useEffect(() => {
     const sections = document.querySelectorAll<HTMLElement>("[data-section]");
     const observer = new IntersectionObserver(
@@ -77,75 +87,84 @@ export function Navbar() {
   return (
     <>
       <motion.header
-        initial={{ y: -20, opacity: 0 }}
+        initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className={cn(
-          "fixed inset-x-0 top-0 z-[100] transition-all duration-500",
-          scrolled ? "bg-white/80 backdrop-blur-xl shadow-[0_6px_24px_-16px_rgb(15_23_42/0.25)]" : "bg-transparent"
-        )}
+        className="fixed inset-x-0 top-0 z-[100]"
       >
+        {/* Scroll progress hairline */}
+        <ScrollProgress className="relative z-10 h-[3px] w-full" />
+
         <nav
           aria-label="Primary"
-          className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between px-5 sm:px-8"
+          className="mx-auto flex max-w-7xl items-center justify-between px-4 transition-all duration-500 sm:px-6"
+          style={{ height: scrolled ? "4rem" : "4.75rem" }}
         >
+          {/* Logo */}
           <button
             type="button"
             onClick={() => go("home")}
             aria-label="Language Hub — back to top"
-            className="flex items-center gap-2.5"
+            className="group flex shrink-0 items-center gap-2.5"
           >
-            <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white shadow-[0_4px_14px_-6px_rgb(15_23_42/0.2)] ring-1 ring-black/[0.04]">
+            <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white shadow-[0_6px_18px_-6px_rgb(15_23_42/0.25)] ring-1 ring-black/[0.05] transition-transform duration-300 group-hover:scale-105">
               <Logo size="xs" eager />
             </span>
-            <span className="hidden font-display text-[0.8rem] font-extrabold tracking-[0.12em] text-ink sm:block">
+            <span className="hidden font-display text-[0.82rem] font-extrabold tracking-[0.12em] text-ink sm:block">
               LANGUAGE<span className="gold-text"> HUB</span>
             </span>
           </button>
 
-          <ul className="hidden items-center gap-0.5 lg:flex">
+          {/* Desktop nav */}
+          <div
+            className={cn(
+              "hidden items-center gap-0.5 rounded-2xl px-1.5 py-1 transition-all duration-500 lg:flex",
+              scrolled
+                ? "border border-white/60 bg-white/75 shadow-[0_10px_34px_-16px_rgb(15_23_42/0.35)] backdrop-blur-xl"
+                : "border border-transparent bg-transparent"
+            )}
+            dir={isUr ? "rtl" : "ltr"}
+          >
             {SECTIONS.map((s) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  onClick={() => go(s.id)}
-                  className={cn(
-                    "rounded-full px-3.5 py-2 font-display text-[0.78rem] font-semibold tracking-wide transition-colors duration-300",
-                    active === s.id ? "bg-ink/[0.05] text-ink" : "text-ink-3 hover:text-ink"
-                  )}
-                >
-                  {s.label}
-                </button>
-              </li>
+              <NavItemButton
+                key={s.id}
+                label={dict[s.key] ?? s.key}
+                active={active === s.id}
+                onClick={() => go(s.id)}
+                reducedMotion={!!reduceMotion}
+              />
             ))}
-            {LINKS.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  className={cn(
-                    "rounded-full px-3.5 py-2 font-display text-[0.78rem] font-semibold tracking-wide transition-colors duration-300",
-                    pathname?.startsWith(l.href) ? "bg-ink/[0.05] text-ink" : "text-ink-3 hover:text-ink"
-                  )}
-                >
-                  {l.label}
-                </Link>
-              </li>
+            {ROUTES.map((r) => (
+              <NavItemButton
+                key={r.href}
+                label={dict[r.key] ?? r.key}
+                active={onSite ? false : pathname?.startsWith(r.href) ?? false}
+                onClick={() => router.push(r.href)}
+                href={r.href}
+                reducedMotion={!!reduceMotion}
+              />
             ))}
-          </ul>
+          </div>
 
-          <div className="flex items-center gap-2.5">
-            <div className="hidden sm:block">
-              <BookDemoButton className="h-10 px-5 text-[0.8rem]" />
+          {/* Actions */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <div className="hidden md:block">
+              <Magnetic strength={0.22} glare>
+                <BookDemoButton className="h-10 px-5 text-[0.78rem]" />
+              </Magnetic>
             </div>
             <LanguageToggle />
-            <AuthNavButtons />
+            <div className="hidden sm:block">
+              <AuthNavButtons />
+            </div>
             <button
               type="button"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-ink/10 bg-white/70 text-ink transition-colors hover:bg-ink hover:text-ivory lg:hidden"
+              aria-expanded={menuOpen}
+              className="group flex h-11 w-11 items-center justify-center rounded-xl border border-ink/10 bg-white/70 text-ink shadow-sm backdrop-blur transition-all duration-300 hover:border-brand/50 hover:text-brand-deep lg:hidden"
             >
-              <Menu className="h-5 w-5" strokeWidth={1.8} />
+              <Menu className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" strokeWidth={1.8} />
             </button>
           </div>
         </nav>
@@ -157,19 +176,20 @@ export function Navbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-[105] flex flex-col bg-white lg:hidden"
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[105] flex flex-col bg-ivory/95 backdrop-blur-2xl lg:hidden"
             role="dialog"
             aria-modal="true"
             aria-label="Menu"
           >
-            <FocusTrap active={menuOpen} className="flex h-full flex-col">
+            <FocusTrap active={menuOpen} className="flex h-full flex-col overflow-y-auto">
+              {/* Sheet header */}
               <div className="flex items-center justify-between px-6 py-4">
                 <span className="flex items-center gap-2.5">
                   <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-black/[0.05]">
                     <Logo size="xs" eager />
                   </span>
-                  <span className="font-display text-[0.8rem] font-extrabold tracking-[0.12em]">
+                  <span className="font-display text-[0.82rem] font-extrabold tracking-[0.12em]">
                     LANGUAGE<span className="gold-text"> HUB</span>
                   </span>
                 </span>
@@ -177,63 +197,129 @@ export function Navbar() {
                   type="button"
                   onClick={() => setMenuOpen(false)}
                   aria-label="Close menu"
-                  className="flex h-10 w-10 items-center justify-center rounded-xl border border-ink/10 text-ink hover:bg-ink hover:text-ivory"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl border border-ink/10 text-ink transition-all hover:bg-ink hover:text-ivory"
                 >
                   <X className="h-5 w-5" strokeWidth={1.8} />
                 </button>
               </div>
 
-              <div className="h-px w-full bg-ink/[0.06]" />
+              <div className="mx-6 h-px bg-ink/[0.06]" />
 
-              <ul className="flex flex-1 flex-col justify-center gap-1 px-6">
-                {SECTIONS.map((s, i) => (
-                  <motion.li
-                    key={s.id}
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 + i * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => go(s.id)}
-                      className={cn(
-                        "flex w-full items-center justify-between border-b border-ink/[0.05] py-4 font-display text-lg font-bold text-ink transition-colors",
-                        active === s.id ? "text-brand-deep" : "hover:text-ink/70"
-                      )}
+              {/* Staggered links */}
+              <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-6">
+                <p className="mb-2 font-display text-[0.6rem] font-bold uppercase tracking-[0.3em] text-gold-deep">
+                  <Sparkles className="mr-1 inline h-3 w-3" /> Explore
+                </p>
+                {SECTIONS.map((s, i) => {
+                  const label = dict[s.key] ?? s.key;
+                  return (
+                    <motion.div
+                      key={s.id}
+                      initial={{ opacity: 0, x: 40 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.05 + i * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
                     >
-                      {s.label}
-                      <span className="text-ink/30">→</span>
-                    </button>
-                  </motion.li>
-                ))}
-                {LINKS.map((l, i) => (
-                  <motion.li
-                    key={l.href}
-                    initial={{ opacity: 0, y: 14 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 + (SECTIONS.length + i) * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                  >
+                      <button
+                        type="button"
+                        onClick={() => go(s.id)}
+                        className={cn(
+                          "group flex w-full items-center justify-between py-3.5 font-display text-[1.35rem] font-bold tracking-tight transition-all",
+                          active === s.id
+                            ? "text-brand-deep"
+                            : "text-ink hover:translate-x-1 hover:text-brand-deep"
+                        )}
+                      >
+                        {label}
+                        <ArrowRight className="h-5 w-5 -translate-x-1 text-ink/25 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" strokeWidth={2} />
+                      </button>
+                    </motion.div>
+                  );
+                })}
+                <motion.div
+                  className="mt-1 border-t border-ink/[0.06] pt-3"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.4 }}
+                >
+                  {ROUTES.map((r, i) => (
                     <Link
-                      href={l.href}
+                      key={r.href}
+                      href={r.href}
                       onClick={() => setMenuOpen(false)}
-                      className="flex w-full items-center justify-between border-b border-ink/[0.05] py-4 font-display text-lg font-bold text-ink transition-colors hover:text-ink/70"
+                      className="group flex items-center gap-2 py-3 font-display text-base font-bold text-ink-2 transition-all hover:translate-x-1 hover:text-brand-deep"
                     >
-                      {l.label}
-                      <span className="text-ink/30">→</span>
+                      <span className="font-mono text-[0.7rem] text-gold-deep">
+                        0{i + SECTIONS.length + 1}
+                      </span>
+                      {dict[r.key] ?? r.key}
                     </Link>
-                  </motion.li>
-                ))}
-              </ul>
-
-              <div className="border-t border-ink/[0.06] px-6 py-6">
-                <div className="flex items-center justify-between">
-                  <AuthNavButtons />
-                </div>
+                  ))}
+                </motion.div>
               </div>
+
+              {/* Sheet footer */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25, duration: 0.45 }}
+                className="mx-6 mb-6 flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-[0_18px_40px_-24px_rgb(15_23_42/0.3)] ring-1 ring-black/[0.05]"
+              >
+                <BookDemoButton className="h-12 w-full" />
+                <div className="flex items-center justify-between gap-3">
+                  <AuthNavButtons />
+                  <LanguageToggle />
+                </div>
+              </motion.div>
             </FocusTrap>
           </motion.div>
         )}
       </AnimatePresence>
     </>
+  );
+}
+
+/** A single nav pill with a spring-gliding active indicator behind it. */
+function NavItemButton({
+  label,
+  active,
+  onClick,
+  href,
+  reducedMotion,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  href?: string;
+  reducedMotion: boolean;
+}) {
+  const inner = (
+    <>
+      {active && !reducedMotion && (
+        <motion.span
+          layoutId="nav-active-pill"
+          transition={{ type: "spring", stiffness: 380, damping: 32 }}
+          className="absolute inset-0 rounded-xl bg-gradient-to-b from-brand/[0.12] to-brand/[0.06] ring-1 ring-brand/20"
+        />
+      )}
+      <span className="relative z-10">{label}</span>
+    </>
+  );
+
+  const classes = cn(
+    "relative inline-flex items-center px-3.5 py-2 font-display text-[0.76rem] font-bold tracking-[0.04em] transition-colors duration-300",
+    active ? "text-brand-deep" : "text-ink-2 hover:text-ink"
+  );
+
+  if (href) {
+    return (
+      <Link href={href} onClick={onClick} className={classes}>
+        {inner}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" onClick={onClick} className={classes}>
+      {inner}
+    </button>
   );
 }
