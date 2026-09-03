@@ -36,6 +36,12 @@ export const enDict: Dict = {
   "hero.cta.primary": "Start Learning Today",
   "hero.cta.demo": "Book a Free Demo",
   "hero.trust": "Trusted by learners across Pakistan and beyond",
+  "hero.badge": "EST. 8+ yrs",
+  "hero.explore": "Explore Courses",
+  "hero.studentsGuided": "600+ students guided",
+  "hero.certified": "Certified IELTS · PTE · DET coaching",
+  "hero.card.ielts.label": "IELTS average",
+  "hero.card.progress.label": "learner progress",
 
   // Stats
   "stats.students": "Students guided",
@@ -180,6 +186,12 @@ export const urDict: Dict = {
   "hero.cta.primary": "آج ہی سیکھنا شروع کریں",
   "hero.cta.demo": "مفت ڈیمو بک کریں",
   "hero.trust": "پاکستان بھر کے سیکھنے والوں کا اعتماد",
+  "hero.badge": "۸+ سال کا تجربہ",
+  "hero.explore": "کورسز دیکھیں",
+  "hero.studentsGuided": "۶۰۰+ طلبہ کی رہنمائی",
+  "hero.certified": "سرٹیفائیڈ IELTS · PTE · DET کوچنگ",
+  "hero.card.ielts.label": "آئی ایل ٹی ایس اوسط",
+  "hero.card.progress.label": "طالب علم کی ترقی",
 
   "stats.students": "طلبا کی رہنمائی",
   "stats.years": "سال تدریس",

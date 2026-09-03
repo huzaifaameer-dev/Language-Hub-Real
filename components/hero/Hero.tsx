@@ -41,7 +41,7 @@ export function Hero() {
           <div className="inline-flex items-center gap-2 rounded-full border border-brand/15 bg-white/80 px-4 py-1.5 text-[0.72rem] font-semibold text-brand-deep shadow-sm backdrop-blur">
             <Sparkles className="h-3.5 w-3.5 text-gold-deep" />
             {dict["hero.eyebrow"] || "Hub of Language Excellence"}
-            <span className="ml-1 rounded-full bg-brand/[0.08] px-2 py-0.5 text-[0.6rem] font-bold text-brand-deep">EST. 8+ yrs</span>
+            <span className="ml-1 rounded-full bg-brand/[0.08] px-2 py-0.5 text-[0.6rem] font-bold text-brand-deep">{dict["hero.badge"]}</span>
           </div>
 
           <h1 className="mt-6 font-display text-[clamp(2.6rem,5.6vw,4.6rem)] font-extrabold leading-[1.04] tracking-[-0.03em] text-ink" dir={isUr ? "rtl" : "ltr"}>
@@ -85,7 +85,7 @@ export function Hero() {
               className="group inline-flex h-12 items-center gap-2 rounded-full border border-ink/15 bg-white/80 px-7 font-display text-[0.9rem] font-bold text-ink transition-all duration-300 hover:-translate-y-0.5 hover:border-ink hover:shadow-lg"
             >
               <PlayCircle className="h-5 w-5 text-brand-deep" strokeWidth={1.8} />
-              Explore Courses
+              {dict["hero.explore"] || "Explore Courses"}
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
             </button>
           </div>
@@ -109,7 +109,7 @@ export function Hero() {
                     <span key={i} className="text-[0.7rem]">★</span>
                   ))}
                 </div>
-                <p className="font-semibold text-ink-2">600+ students guided</p>
+                <p className="font-semibold text-ink-2">{dict["hero.studentsGuided"] || "600+ students guided"}</p>
               </div>
             </div>
             <div className="hidden h-10 w-px bg-ink/10 sm:block" />
@@ -117,7 +117,7 @@ export function Hero() {
               <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-50 text-emerald-600">
                 <ShieldCheck className="h-5 w-5" strokeWidth={1.8} />
               </span>
-              <p className="text-[0.85rem] font-semibold text-ink-2">Certified IELTS · PTE · DET coaching</p>
+              <p className="text-[0.85rem] font-semibold text-ink-2">{dict["hero.certified"] || "Certified IELTS · PTE · DET coaching"}</p>
             </div>
           </div>
 
@@ -171,7 +171,7 @@ export function Hero() {
                 </span>
                 <div className="text-ink">
                   <p className="font-display text-sm font-extrabold text-ink">Band 8+</p>
-                  <p className="text-[0.68rem] font-semibold text-ink-3">IELTS average</p>
+                  <p className="text-[0.68rem] font-semibold text-ink-3">{dict["hero.card.ielts.label"] || "IELTS average"}</p>
                 </div>
               </motion.div>
             </motion.div>
@@ -191,7 +191,7 @@ export function Hero() {
                 </span>
                 <div className="text-ink">
                   <p className="font-display text-sm font-extrabold text-ink">+90% fluency</p>
-                  <p className="text-[0.68rem] font-semibold text-ink-3">learner progress</p>
+                  <p className="text-[0.68rem] font-semibold text-ink-3">{dict["hero.card.progress.label"] || "learner progress"}</p>
                 </div>
               </motion.div>
             </motion.div>
