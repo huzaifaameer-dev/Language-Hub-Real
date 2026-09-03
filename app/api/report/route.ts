@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { reportError } from "@/lib/reporting";
+import { botGuardError } from "@/lib/bot-check";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,11 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ message: "Invalid JSON." }, { status: 400 });
+  }
+
+  const bot = botGuardError(body);
+  if (bot) {
+    return NextResponse.json({ message: bot }, { status: 400 });
   }
 
   // Reject oversized payloads before z does the string truncation work.

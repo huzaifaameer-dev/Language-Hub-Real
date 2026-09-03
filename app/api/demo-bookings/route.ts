@@ -6,6 +6,7 @@ import { DemoBookingSchema, fieldErrors } from "@/lib/validate";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { notifyAdmins, listAdminEmails } from "@/lib/notifications";
 import { sendNewDemoBookingEmail, sendDemoBookingConfirmationEmail } from "@/lib/email";
+import { botGuardError } from "@/lib/bot-check";
 
 /**
  * Public endpoint to book a free demo class. Does NOT require an account, so
@@ -27,6 +28,11 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ message: "Invalid request body." }, { status: 400 });
+  }
+
+  const bot = botGuardError(body);
+  if (bot) {
+    return NextResponse.json({ message: bot }, { status: 400 });
   }
 
   const parsed = DemoBookingSchema.safeParse(body);

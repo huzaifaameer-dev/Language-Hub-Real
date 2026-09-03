@@ -5,6 +5,7 @@ import { getDb } from "@/lib/db";
 import { notifyAdmins, listAdminEmails } from "@/lib/notifications";
 import { sendEmail, emailConfigured } from "@/lib/email";
 import { appBaseUrl } from "@/lib/base-url";
+import { botGuardError } from "@/lib/bot-check";
 
 /**
  * Public endpoint for placement test lead capture. Stores the result and
@@ -24,6 +25,11 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ message: "Invalid request body." }, { status: 400 });
+  }
+
+  const bot = botGuardError(body);
+  if (bot) {
+    return NextResponse.json({ message: bot }, { status: 400 });
   }
 
   const { name, email, score, total, level, recommendedCourse } = body as {

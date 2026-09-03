@@ -6,6 +6,7 @@ import { RegisterSchema, fieldErrors } from "@/lib/validate";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { sendWelcomeEmail } from "@/lib/email";
 import { generateToken, hashToken } from "@/lib/tokens";
+import { botGuardError } from "@/lib/bot-check";
 
 export async function POST(request: Request) {
   const rl = await rateLimitDb(await clientKey(request, "register"), 10, 15 * 60 * 1000);
@@ -21,6 +22,11 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ message: "Invalid request body." }, { status: 400 });
+  }
+
+  const bot = botGuardError(body);
+  if (bot) {
+    return NextResponse.json({ message: bot }, { status: 400 });
   }
 
   const parsed = RegisterSchema.safeParse(body);
