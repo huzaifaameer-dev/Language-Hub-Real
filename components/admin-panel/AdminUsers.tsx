@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
@@ -87,7 +87,7 @@ export function AdminUsers({ items }: { items: AdminUser[] }) {
           type="button"
           onClick={exportCsv}
           disabled={matches.length === 0}
-          className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50/80 px-4 py-2.5 font-display text-[0.72rem] font-bold text-indigo-700 transition-all hover:-translate-y-0.5 hover:bg-indigo-100 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-4 py-2.5 font-display text-[0.72rem] font-bold text-brand-deep transition-all hover:-translate-y-0.5 hover:bg-brand/12 disabled:opacity-50"
         >
           <Download className="h-3.5 w-3.5" /> Export CSV
         </button>
@@ -96,8 +96,8 @@ export function AdminUsers({ items }: { items: AdminUser[] }) {
       {visible.length === 0 ? (
         <div className="glass-dash grid place-items-center overflow-hidden rounded-[1.75rem] px-6 py-16 text-center">
           <p className="font-display text-4xl font-extrabold text-slate-200">∅</p>
-          <p className="mt-3 font-display text-[0.95rem] font-bold text-slate-500">No users here</p>
-          <p className="font-mono text-[0.7rem] text-slate-400">Accounts from the registry land in this directory.</p>
+          <p className="mt-3 font-display text-[0.95rem] font-bold text-ink-2">No users here</p>
+          <p className="font-mono text-[0.7rem] text-ink-3">Accounts from the registry land in this directory.</p>
         </div>
       ) : (
         visible.map((u, i) => (
@@ -106,9 +106,9 @@ export function AdminUsers({ items }: { items: AdminUser[] }) {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease, delay: Math.min(0.12, i * 0.03) }}
-            className="glass-dash relative overflow-hidden rounded-[1.5rem] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_48px_-20px_rgb(99_102_241/0.4)]"
+            className="glass-dash relative overflow-hidden rounded-[1.5rem] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_48px_-20px_rgb(110_90_224/0.4)]"
           >
-            <span aria-hidden className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-indigo-500 to-violet-500" />
+            <span aria-hidden className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-brand/80 to-brand-deep" />
             <div className="flex flex-wrap items-center gap-4 px-5 py-4">
               {u.image ? (
                 <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-2xl ring-1 ring-slate-200">
@@ -126,7 +126,7 @@ export function AdminUsers({ items }: { items: AdminUser[] }) {
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2 pr-8">
-                  <h3 className="font-display text-[1.02rem] font-extrabold text-slate-900">{u.name}</h3>
+                  <h3 className="font-display text-[1.02rem] font-extrabold text-ink">{u.name}</h3>
                   {u.emailVerified ? (
                     <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 font-mono text-[0.6rem] font-bold text-emerald-700">
                       <BadgeCheck className="h-3 w-3" /> Verified
@@ -137,12 +137,12 @@ export function AdminUsers({ items }: { items: AdminUser[] }) {
                     </span>
                   )}
                   {u.role === "ADMIN" ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-2.5 py-0.5 font-mono text-[0.6rem] font-bold text-violet-700">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-brand/20 bg-brand/8 px-2.5 py-0.5 font-mono text-[0.6rem] font-bold text-brand-deep">
                       <Shield className="h-3 w-3" /> {u.role}
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-[0.68rem] text-slate-400">
+                <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-[0.68rem] text-ink-3">
                   <span className="inline-flex items-center gap-1"><Mail className="h-3 w-3" />{u.email}</span>
                   <span className="inline-flex items-center gap-1"><UserRound className="h-3 w-3" />{u.role}</span>
                   <span className="inline-flex items-center gap-1"><CalendarDays className="h-3 w-3" />

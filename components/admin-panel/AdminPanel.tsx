@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -7,7 +7,9 @@ import { motion } from "framer-motion";
 import {
   BadgeCheck,
   BookOpen,
+  CalendarClock,
   Clock,
+  CreditCard,
   ExternalLink,
   FileText,
   GraduationCap,
@@ -15,6 +17,8 @@ import {
   LogOut,
   Radar,
   RefreshCw,
+  ShieldCheck,
+  Star,
   UserRoundPlus,
   Users,
   XCircle,
@@ -28,16 +32,27 @@ import { AdminApplications } from "./AdminApplications";
 import { AdminEnrollments } from "./AdminEnrollments";
 import { AdminCourses } from "./AdminCourses";
 import { AdminUsers } from "./AdminUsers";
+import { AdminDemoBookings } from "./AdminDemoBookings";
+import { AdminTestimonials } from "./AdminTestimonials";
+import { AdminPayments } from "./AdminPayments";
+import { AdminBlog } from "./AdminBlog";
+import { AdminAuditLog } from "./AdminAuditLog";
 import { AdminStatCard, GlassPanel, ProgressRing, StatusPill } from "./ui";
+import { AdminAnalyticsCharts } from "./AdminAnalyticsCharts";
 
-type Tab = "overview" | "applications" | "enrollments" | "courses" | "users";
+type Tab = "overview" | "applications" | "enrollments" | "payments" | "blog" | "audit" | "courses" | "users" | "demos" | "testimonials";
 
 const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "applications", label: "Applications", icon: FileText },
   { key: "enrollments", label: "Enrollments", icon: GraduationCap },
+  { key: "payments", label: "Payments", icon: CreditCard },
+  { key: "blog", label: "Blog", icon: BookOpen },
+  { key: "audit", label: "Activity Log", icon: ShieldCheck },
+  { key: "demos", label: "Demo Bookings", icon: CalendarClock },
+  { key: "testimonials", label: "Testimonials", icon: Star },
   { key: "users", label: "Students", icon: Users },
-  { key: "courses", label: "Courses", icon: BookOpen },
+  { key: "courses", label: "Courses", icon: GraduationCap },
 ];
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -62,6 +77,7 @@ export function AdminPanel({
   const [tab, setTab] = useState<Tab>("overview");
   const [appList, setAppList] = useState(applications);
   const [enrList, setEnrList] = useState(enrollments);
+  const [countsState, setCountsState] = useState<AdminCounts>(counts);
   const [syncing, setSyncing] = useState(false);
   const [freshApps, setFreshApps] = useState<Set<string>>(new Set());
   const [freshEnrs, setFreshEnrs] = useState<Set<string>>(new Set());
@@ -69,8 +85,8 @@ export function AdminPanel({
   const router = useRouter();
 
   const stat = useMemo(
-    () => deriveAdminStats(appList, enrList, counts),
-    [appList, enrList, counts]
+    () => deriveAdminStats(appList, enrList, countsState),
+    [appList, enrList, countsState]
   );
 
   const knownIds = useRef({ apps: new Set(applications.map((a) => a.id)), enrs: new Set(enrollments.map((e) => e.id)) });
@@ -113,6 +129,9 @@ export function AdminPanel({
 
         const apps = (sa?.applications ?? null) as AdminApplication[] | null;
         const enrs = (se?.enrollments ?? null) as AdminEnrollment[] | null;
+
+        if (sa?.counts) setCountsState((prev) => ({ ...prev, ...sa.counts }));
+        if (se?.counts) setCountsState((prev) => ({ ...prev, ...se.counts }));
 
         if (apps) {
           const nextPending = apps.filter((a) => a.status === "PENDING").length;
@@ -170,16 +189,35 @@ export function AdminPanel({
   );
 
   const decideEnr = useCallback(
-    async (id: string, action: "ENROLL" | "REJECT", message: string) => {
+    async (
+      id: string,
+      action: "REQUEST_PAYMENT" | "CONFIRM" | "REJECT",
+      message: string,
+      paymentInstructions?: string
+    ) => {
       const res = await fetch("/api/admin/enrollments", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action, message }),
+        body: JSON.stringify({ id, action, message, paymentInstructions }),
       });
       if (!res.ok) return;
-      const next = action === "ENROLL" ? "ENROLLED" : "REJECTED";
+      const statusMap: Record<string, AdminEnrollment["status"]> = {
+        REQUEST_PAYMENT: "AWAITING_PAYMENT",
+        CONFIRM: "ENROLLED",
+        REJECT: "REJECTED",
+      };
+      const next = statusMap[action];
       setEnrList((prev) =>
-        prev.map((e) => (e.id === id ? { ...e, status: next, adminMessage: message || e.adminMessage } : e))
+        prev.map((e) =>
+          e.id === id
+            ? {
+                ...e,
+                status: next,
+                adminMessage: message || e.adminMessage,
+                paymentInstructions: paymentInstructions || e.paymentInstructions,
+              }
+            : e
+        )
       );
       refresh(true);
     },
@@ -187,12 +225,12 @@ export function AdminPanel({
   );
 
   return (
-    <div className="relative min-h-screen overflow-x-clip bg-[#eef1f9] text-slate-900">
+    <div className="relative min-h-screen overflow-x-clip bg-[#faf8f4] text-ink">
       {/* backdrop scenery */}
       <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 opacity-60" style={{ maskImage: "radial-gradient(ellipse at 30% 0%, black 0%, transparent 70%)", WebkitMaskImage: "radial-gradient(ellipse at 30% 0%, black 0%, transparent 70%)" }} />
-      <div aria-hidden className="orb left-[-6%] top-[6%] h-80 w-80 bg-indigo-500/25" />
-      <div aria-hidden className="orb right-[-8%] top-[30%] h-96 w-96 bg-violet-500/20" style={{ animationDelay: "-6s" }} />
-      <div aria-hidden className="orb bottom-[-10%] left-[24%] h-80 w-80 bg-fuchsia-400/15" style={{ animationDelay: "-11s" }} />
+      <div aria-hidden className="orb left-[-6%] top-[6%] h-80 w-80 bg-brand/80/25" />
+      <div aria-hidden className="orb right-[-8%] top-[30%] h-96 w-96 bg-brand-deep/20" style={{ animationDelay: "-6s" }} />
+      <div aria-hidden className="orb bottom-[-10%] left-[24%] h-80 w-80 bg-brand-magenta/8" style={{ animationDelay: "-11s" }} />
 
       {/* toasts */}
       <div className="pointer-events-none fixed right-4 top-4 z-[60] flex w-[min(92vw,340px)] flex-col gap-2">
@@ -204,19 +242,19 @@ export function AdminPanel({
             exit={{ opacity: 0, x: 40 }}
             transition={{ duration: 0.35, ease }}
             className={cn(
-              "glass-dash pointer-events-auto flex items-center gap-3 rounded-2xl px-4 py-3 shadow-[0_20px_48px_-18px_rgb(99_102_241/0.5)]",
-              t.kind === "apps" ? "ring-1 ring-indigo-300" : "ring-1 ring-fuchsia-300"
+              "glass-dash pointer-events-auto flex items-center gap-3 rounded-2xl px-4 py-3 shadow-[0_20px_48px_-18px_rgb(110_90_224/0.5)]",
+              t.kind === "apps" ? "ring-1 ring-brand/45" : "ring-1 ring-brand-magenta/35"
             )}
           >
             <span className={cn(
               "grid h-9 w-9 shrink-0 place-items-center rounded-xl",
-              t.kind === "apps" ? "bg-indigo-500/15 text-indigo-600" : "bg-fuchsia-500/15 text-fuchsia-600"
+              t.kind === "apps" ? "bg-brand/80/15 text-brand-deep" : "bg-brand-magenta/15 text-brand-magenta"
             )}>
               {t.kind === "apps" ? <FileText className="h-4 w-4" /> : <GraduationCap className="h-4 w-4" />}
             </span>
             <div className="min-w-0">
-              <p className="truncate font-display text-[0.82rem] font-extrabold text-slate-900">{t.title}</p>
-              <p className="font-mono text-[0.6rem] uppercase tracking-widest text-slate-400">live stream</p>
+              <p className="truncate font-display text-[0.82rem] font-extrabold text-ink">{t.title}</p>
+              <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-3">live stream</p>
             </div>
           </motion.div>
         ))}
@@ -224,14 +262,14 @@ export function AdminPanel({
 
       {/* SIDEBAR */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[15.5rem] flex-col border-r border-white/60 bg-white/45 backdrop-blur-2xl lg:flex">
-        <div className="flex items-center gap-3 border-b border-slate-200/70 px-6 py-5">
+        <div className="flex items-center gap-3 border-b border-ink/8 px-6 py-5">
           <Logo mode="chip" size="xs" />
           <div className="leading-tight">
-            <p className="font-display text-[0.85rem] font-extrabold tracking-[0.06em] text-slate-900">
+            <p className="font-display text-[0.85rem] font-extrabold tracking-[0.06em] text-ink">
               LH
               <span className="indigo-text-shimmer">·OPS</span>
             </p>
-            <p className="font-mono text-[0.55rem] uppercase tracking-[0.3em] text-slate-400">control suite</p>
+            <p className="font-mono text-[0.55rem] uppercase tracking-[0.3em] text-ink-3">control suite</p>
           </div>
         </div>
 
@@ -251,19 +289,19 @@ export function AdminPanel({
                 type="button"
                 onClick={() => setTab(t.key)}
                 className={cn(
-                  "group relative flex items-center gap-3 overflow-hidden rounded-xl px-4 py-3 text-left font-display text-[0.84rem] font-bold transition-all duration-300",
+                  "group relative flex items-center gap-3 overflow-hidden rounded-xl px-4 py-3 text-start font-display text-[0.84rem] font-bold transition-all duration-300",
                   active
-                    ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.8)]"
-                    : "text-slate-500 hover:bg-white/70 hover:text-slate-900"
+                    ? "bg-gradient-to-r from-brand-deep to-brand-deep text-white shadow-[0_14px_30px_-12px_rgb(110_90_224/0.8)]"
+                    : "text-ink-2 hover:bg-white/70 hover:text-ink"
                 )}
               >
-                <Icon className={cn("h-4.5 w-4.5", active ? "text-white" : "text-slate-400")} strokeWidth={1.9} />
+                <Icon className={cn("h-4.5 w-4.5", active ? "text-white" : "text-ink-3")} strokeWidth={1.9} />
                 {t.label}
                 {badge ? (
                   <span
                     className={cn(
                       "ml-auto grid min-w-6 place-items-center rounded-full px-1.5 py-0.5 font-mono text-[0.6rem] font-black",
-                      active ? "bg-white/25 text-white" : "bg-indigo-600 text-white"
+                      active ? "bg-white/25 text-white" : "bg-brand-deep text-white"
                     )}
                   >
                     {badge}
@@ -274,8 +312,8 @@ export function AdminPanel({
           })}
         </nav>
 
-        <div className="border-t border-slate-200/70 px-6 py-5">
-          <p className="truncate font-mono text-[0.7rem] font-bold text-slate-700">{adminEmail}</p>
+        <div className="border-t border-ink/8 px-6 py-5">
+          <p className="truncate font-mono text-[0.7rem] font-bold text-ink">{adminEmail}</p>
           <div className="mt-2 flex items-center gap-2 font-mono text-[0.55rem] uppercase tracking-[0.24em] text-emerald-600">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
             Root session active
@@ -286,13 +324,13 @@ export function AdminPanel({
       {/* MAIN */}
       <div className="relative z-10 flex min-h-screen flex-1 flex-col lg:pl-[15.5rem]">
         {/* TOPBAR */}
-        <header className="sticky top-0 z-20 border-b border-white/60 bg-[#eef1f9]/70 backdrop-blur-2xl">
+        <header className="sticky top-0 z-20 border-b border-white/60 bg-[#faf8f4]/70 backdrop-blur-2xl">
           <div className="flex items-center justify-between gap-4 px-5 py-3.5 lg:px-8">
             <div className="flex items-center gap-3 lg:hidden">
               <Logo mode="chip" size="xs" />
             </div>
-            <div className="hidden items-center gap-2 font-mono text-[0.6rem] font-bold uppercase tracking-[0.3em] text-slate-500 lg:flex">
-              <Radar className="h-4 w-4 text-indigo-500" />
+            <div className="hidden items-center gap-2 font-mono text-[0.6rem] font-bold uppercase tracking-[0.3em] text-ink-2 lg:flex">
+              <Radar className="h-4 w-4 text-brand/80" />
               <span>Language Hub · Operations</span>
             </div>
             <LiveBadge live={live} syncTicker={syncing} />
@@ -301,14 +339,14 @@ export function AdminPanel({
                 type="button"
                 onClick={() => refresh(false)}
                 disabled={syncing}
-                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/70 px-4 py-2 font-display text-[0.72rem] font-bold text-slate-600 transition-all hover:border-indigo-300 hover:text-indigo-700 disabled:opacity-50 backdrop-blur-md"
+                className="inline-flex items-center gap-2 rounded-full border border-ink/12 bg-white/70 px-4 py-2 font-display text-[0.72rem] font-bold text-ink-2 transition-all hover:border-brand/45 hover:text-brand-deep disabled:opacity-50 backdrop-blur-md"
               >
                 <RefreshCw className={cn("h-4 w-4", syncing && "animate-spin")} />
                 <span className="hidden sm:inline">Sync</span>
               </button>
               <Link
                 href="/"
-                className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-4 py-2 font-display text-[0.72rem] font-bold text-slate-600 transition-all hover:border-indigo-300 hover:text-indigo-700 sm:inline-flex"
+                className="hidden items-center gap-1.5 rounded-full border border-ink/12 bg-white/70 px-4 py-2 font-display text-[0.72rem] font-bold text-ink-2 transition-all hover:border-brand/45 hover:text-brand-deep sm:inline-flex"
               >
                 <ExternalLink className="h-3.5 w-3.5" /> Site
               </Link>
@@ -341,6 +379,26 @@ export function AdminPanel({
             <AdminEnrollments items={enrList} onDecide={decideEnr} freshIds={freshEnrs} />
           ) : null}
 
+          {tab === "payments" ? (
+            <AdminPayments />
+          ) : null}
+
+          {tab === "blog" ? (
+            <AdminBlog />
+          ) : null}
+
+          {tab === "audit" ? (
+            <AdminAuditLog />
+          ) : null}
+
+          {tab === "demos" ? (
+            <AdminDemoBookings />
+          ) : null}
+
+          {tab === "testimonials" ? (
+            <AdminTestimonials />
+          ) : null}
+
           {tab === "courses" ? (
             <AdminCourses />
           ) : null}
@@ -352,7 +410,7 @@ export function AdminPanel({
       </div>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav className="fixed inset-x-3 bottom-3 z-40 flex items-center gap-1.5 rounded-2xl border border-white/70 bg-white/80 px-2 py-2 shadow-[0_18px_44px_-18px_rgb(15_23_42/0.4)] backdrop-blur-2xl lg:hidden">
+      <nav className="fixed inset-x-3 bottom-3 z-40 flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-white/70 bg-white/80 px-2 py-2 shadow-[0_18px_44px_-18px_rgb(15_23_42/0.4)] backdrop-blur-2xl no-scrollbar lg:hidden">
         {TABS.map((t) => {
           const Icon = t.icon;
           const active = tab === t.key;
@@ -369,15 +427,15 @@ export function AdminPanel({
               onClick={() => setTab(t.key)}
               className={cn(
                 "relative flex flex-1 flex-col items-center gap-0.5 rounded-xl py-2 font-display text-[0.6rem] font-bold uppercase tracking-wider transition-all",
-                active ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white" : "text-slate-500"
+                active ? "bg-gradient-to-r from-brand-deep to-brand-deep text-white" : "text-ink-2"
               )}
             >
               <Icon className="h-4.5 w-4.5" strokeWidth={1.9} />
-              {t.label}
+              <span className="whitespace-nowrap">{t.label}</span>
               {badge ? (
                 <span className={cn(
                   "absolute right-1.5 top-0.5 grid min-w-4 place-items-center rounded-full px-1 font-mono text-[0.5rem] font-black",
-                  active ? "bg-white/25 text-white" : "bg-indigo-600 text-white"
+                  active ? "bg-white/25 text-white" : "bg-brand-deep text-white"
                 )}>
                   {badge}
                 </span>
@@ -409,7 +467,7 @@ function LiveBadge({ live, syncTicker }: { live: boolean; syncTicker: boolean })
         "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[0.6rem] font-black uppercase tracking-[0.2em]",
         live && !syncTicker
           ? "border-emerald-300 bg-emerald-50/80 text-emerald-600"
-          : "border-slate-200 bg-white/70 text-slate-500"
+          : "border-ink/12 bg-white/70 text-ink-2"
       )}
     >
       <span className={cn("h-1.5 w-1.5 rounded-full", live && !syncTicker ? "bg-emerald-500 animate-pulse" : live ? "bg-slate-300" : "bg-amber-400 animate-pulse")} />
@@ -452,15 +510,15 @@ function Overview({
     <>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="flex items-center gap-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-indigo-600">
-            <span aria-hidden className="h-px w-7 bg-gradient-to-r from-indigo-500 to-transparent" />
+          <p className="flex items-center gap-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-brand-deep">
+            <span aria-hidden className="h-px w-7 bg-gradient-to-r from-brand/80 to-transparent" />
             Operations overview
           </p>
-          <h1 className="mt-1.5 font-display text-[clamp(1.8rem,4vw,2.6rem)] font-extrabold tracking-[-0.03em] text-slate-900">
+          <h1 className="mt-1.5 font-display text-[clamp(1.8rem,4vw,2.6rem)] font-extrabold tracking-[-0.03em] text-ink">
             COMMAND <span className="indigo-text-shimmer">CENTER.</span>
           </h1>
         </div>
-        <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-slate-400">
+        <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-ink-3">
           {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
         </p>
       </div>
@@ -474,13 +532,17 @@ function Overview({
         <AdminStatCard label="Courses" value={stats.courses} accent="violet" sub="live catalog" icon={<BookOpen className="h-5 w-5" />} onClick={() => onNavigate("courses")} />
         <AdminStatCard label="Enrolling" value={stats.enrPending} accent="fuchsia" sub="waiting" icon={<GraduationCap className="h-5 w-5" />} onClick={() => onNavigate("enrollments")} />
         <AdminStatCard label="Enrolled" value={stats.enrEnrolled} accent="violet" sub="students onboard" icon={<Users className="h-5 w-5" />} onClick={() => onNavigate("enrollments")} />
+        <AdminStatCard label="Payments" value={stats.paymentsTotal} accent="fuchsia" sub="transactions" icon={<CreditCard className="h-5 w-5" />} onClick={() => onNavigate("payments")} />
         <AdminStatCard label="Rejected" value={stats.rejected + stats.enrRejected} accent="rose" sub="total" icon={<XCircle className="h-5 w-5" />} onClick={() => onNavigate("applications")} />
       </section>
+
+      {/* Analytics: revenue, students, retention */}
+      <AdminAnalyticsCharts />
 
       <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         {/* Approval + funnel */}
         <GlassPanel>
-          <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.34em] text-indigo-600">Approval rate</p>
+          <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.34em] text-brand-deep">Approval rate</p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-6 sm:justify-start">
             <ProgressRing value={stats.approvalRate} />
             <div className="flex-1 space-y-3.5">
@@ -494,13 +556,13 @@ function Overview({
         {/* Inflow chart */}
         <GlassPanel>
           <div className="flex items-end justify-between">
-            <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.34em] text-indigo-600">
+            <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.34em] text-brand-deep">
               Inflow · 7 days
             </p>
-            <div className="flex flex-wrap justify-end gap-3 font-mono text-[0.62rem] text-slate-400">
+            <div className="flex flex-wrap justify-end gap-3 font-mono text-[0.62rem] text-ink-3">
               {week.map((d) => (
                 <span key={d.label} className="text-[0.6rem] uppercase tracking-wider">
-                  {d.label} <b className="text-indigo-600">{d.count}</b>
+                  {d.label} <b className="text-brand-deep">{d.count}</b>
                 </span>
               ))}
             </div>
@@ -517,7 +579,7 @@ function Overview({
                 style={{ transformOrigin: "bottom" }}
               >
                 <motion.div
-                  className="w-full rounded-t-xl bg-gradient-to-t from-indigo-500 via-violet-500 to-fuchsia-400"
+                  className="w-full rounded-t-xl bg-gradient-to-t from-brand/80 via-brand-deep to-brand-magenta"
                   initial={{ height: 6 }}
                   animate={{ height: `${Math.max(10, (d.count / maxDay) * 100)}%` }}
                   transition={{ duration: 0.7, ease, delay: 0.15 + i * 0.06 }}
@@ -525,7 +587,7 @@ function Overview({
               </motion.div>
             ))}
           </div>
-          <p className="mt-3 font-mono text-[0.58rem] uppercase tracking-widest text-slate-400">
+          <p className="mt-3 font-mono text-[0.58rem] uppercase tracking-widest text-ink-3">
             {stats.thisWeek} application{stats.thisWeek === 1 ? "" : "s"} this week · {liveEnrCount > 0 ? `${liveEnrCount} enrollment${liveEnrCount === 1 ? "" : "s"} waiting` : "no enrollments waiting"}
           </p>
         </GlassPanel>
@@ -534,15 +596,15 @@ function Overview({
       {/* Latest signals */}
       <GlassPanel className="p-0!">
         <div className="flex items-center justify-between px-6 pt-6 sm:px-7">
-          <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.34em] text-indigo-600">Latest signals</p>
+          <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.34em] text-brand-deep">Latest signals</p>
           <p className="inline-flex items-center gap-1.5 font-mono text-[0.58rem] uppercase tracking-widest text-emerald-600">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" /> live feed
           </p>
         </div>
         <div className="mt-4 flex flex-col gap-1 p-3">
           {recent.length === 0 ? (
-            <div className="grid place-items-center rounded-2xl border border-dashed border-slate-200 py-12 text-center">
-              <p className="font-mono text-[0.8rem] text-slate-400">No applications yet — the feed will light up in real time.</p>
+            <div className="grid place-items-center rounded-2xl border border-dashed border-ink/12 py-12 text-center">
+              <p className="font-mono text-[0.8rem] text-ink-3">No applications yet — the feed will light up in real time.</p>
             </div>
           ) : (
             recent.map((a, i) => (
@@ -554,10 +616,10 @@ function Overview({
                 transition={{ duration: 0.45, ease, delay: Math.min(0.3, i * 0.06) }}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white/60"
               >
-                <span className="font-mono text-[0.6rem] font-black text-indigo-400">{String(i + 1).padStart(2, "0")}</span>
+                <span className="font-mono text-[0.6rem] font-black text-brand">{String(i + 1).padStart(2, "0")}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-[0.84rem] font-extrabold text-slate-800">{a.name}</p>
-                  <p className="truncate font-mono text-[0.62rem] text-slate-400">{a.course}</p>
+                  <p className="truncate font-display text-[0.84rem] font-extrabold text-ink">{a.name}</p>
+                  <p className="truncate font-mono text-[0.62rem] text-ink-3">{a.course}</p>
                 </div>
                 <StatusPill status={a.status} />
               </motion.div>
@@ -573,15 +635,15 @@ function Funnel({ label, value, total }: { label: string; value: number; total: 
   const pct = Math.round((value / total) * 100);
   return (
     <div>
-      <div className="flex items-center justify-between font-mono text-[0.62rem] uppercase tracking-widest text-slate-400">
+      <div className="flex items-center justify-between font-mono text-[0.62rem] uppercase tracking-widest text-ink-3">
         <span>{label}</span>
-        <span className="text-indigo-600">
-          {value} <span className="text-slate-400">/ {pct}%</span>
+        <span className="text-brand-deep">
+          {value} <span className="text-ink-3">/ {pct}%</span>
         </span>
       </div>
-      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200/70">
+      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-ink/8">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-500 transition-all duration-700"
+          className="h-full rounded-full bg-gradient-to-r from-brand/80 via-brand-deep to-brand-magenta transition-all duration-700"
           style={{ width: `${pct}%` }}
         />
       </div>

@@ -5,9 +5,10 @@ import { requireAdmin } from "@/lib/admin-guard";
 import { ensureIndexesAndAdmin, getCoursesCollection } from "@/lib/db";
 import type { CourseDoc } from "@/lib/db";
 import {
-  batchUsageMap,
+  batchUsageFor,
   courseSeatSummary,
   seatViews,
+  type EnrolledLike,
 } from "@/lib/course-stats";
 import { getEnrollmentsCollection } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
@@ -47,12 +48,12 @@ export async function GET() {
 
   const [courseDocs, enrolledDocs] = await Promise.all([
     coursesCol.find({}).sort({ order: 1 }).toArray(),
-    enrollmentsCol.find({ status: "ENROLLED" }).project({ batch: 1 }).toArray(),
+    enrollmentsCol.find({ status: "ENROLLED" }).project({ batch: 1, subjects: 1 }).toArray(),
   ]);
 
-  const used = batchUsageMap(enrolledDocs as { batch: string }[]);
+  const used = batchUsageFor(enrolledDocs as EnrolledLike[]);
   const payload = courseDocs.map((c) => {
-    const batches = seatViews(c.batches ?? [], used);
+    const batches = seatViews(c.batches ?? [], used, c.name);
     return {
       id: String(c._id),
       name: c.name,

@@ -11,6 +11,15 @@ export interface AdminApplication {
   createdAt: string;
 }
 
+export type AdminEnrollmentStatus =
+  | "PENDING"
+  | "AWAITING_PAYMENT"
+  | "PROOF_SUBMITTED"
+  | "ENROLLED"
+  | "REJECTED";
+
+export type AdminPaymentMethod = "easypaisa" | "jazzcash" | "bank" | "other" | "card";
+
 export interface AdminEnrollment {
   id: string;
   name: string;
@@ -18,7 +27,10 @@ export interface AdminEnrollment {
   subjects: string[];
   batch: string;
   plan?: string;
-  status: "PENDING" | "ENROLLED" | "REJECTED";
+  paymentMethod?: AdminPaymentMethod | null;
+  paymentInstructions?: string | null;
+  paymentProof?: string | null;
+  status: AdminEnrollmentStatus;
   adminMessage?: string | null;
   createdAt: string;
 }
@@ -31,6 +43,7 @@ export interface AdminStats {
   enrPending: number;
   enrEnrolled: number;
   enrRejected: number;
+  paymentsTotal: number;
   today: number;
   thisWeek: number;
   thisMonth: number;
@@ -40,12 +53,24 @@ export interface AdminStats {
   approvalRate: number;
 }
 
-/** Counts that cannot be derived from the 200-item lists: full-table totals
- *  read once at page load instead of doubled up on the refresh path. */
+/** Counts that cannot be derived reliably from the capped lists: full-table
+ *  lifetime tallies (the queues are limited to 200 rows, so counting from them
+ *  would undercount above 200). Read at page load and refreshed from the list
+ *  APIs so the dashboard stays correct over time. */
 export interface AdminCounts {
   users: number;
   courses: number;
   notifications: number;
+  paymentsTotal: number;
+  appsTotal: number;
+  appsPending: number;
+  appsApproved: number;
+  appsRejected: number;
+  enrsPending: number;
+  enrsAwaiting: number;
+  enrsProof: number;
+  enrsEnrolled: number;
+  enrsRejected: number;
 }
 
 /** Lightweight student-directory entry (password never leaves the server). */

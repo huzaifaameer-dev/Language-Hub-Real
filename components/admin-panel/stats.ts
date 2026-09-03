@@ -5,9 +5,11 @@ import type {
   AdminStats,
 } from "./types";
 
-/** Derive the ops dashboard stats from the in-memory lists. The heavy server
- *  computation was the source of double work (page SSR + `/api/admin/stats`).
- *  Everything except users/courses/notifications is reachable from the lists. */
+/** Derive the ops dashboard stats. Lifetime cardinalities come from the
+ *  full-table server counts (the 200-row lists would undercount past 200
+ *  records); trailing-window buckets (today / thisWeek / thisMonth) come from
+ *  the lists, which are sorted newest-first. Everything except those buckets
+ *  is reachable without double-computing on the server refresh path. */
 export function deriveAdminStats(
   applications: AdminApplication[],
   enrollments: AdminEnrollment[],
@@ -24,48 +26,32 @@ export function deriveAdminStats(
   const week = startOfWeek.getTime();
   const month = startOfMonth.getTime();
 
-  let total = 0;
-  let pending = 0;
-  let approved = 0;
-  let rejected = 0;
   let today = 0;
   let thisWeek = 0;
   let thisMonth = 0;
 
   for (const a of applications) {
-    total += 1;
     const t = new Date(a.createdAt).getTime();
     if (t >= day) today += 1;
     if (t >= week) thisWeek += 1;
     if (t >= month) thisMonth += 1;
-    if (a.status === "PENDING") pending += 1;
-    else if (a.status === "APPROVED") approved += 1;
-    else rejected += 1;
-  }
-
-  let enrPending = 0;
-  let enrEnrolled = 0;
-  let enrRejected = 0;
-  for (const e of enrollments) {
-    if (e.status === "PENDING") enrPending += 1;
-    else if (e.status === "ENROLLED") enrEnrolled += 1;
-    else enrRejected += 1;
   }
 
   return {
-    total,
-    pending,
-    approved,
-    rejected,
-    enrPending,
-    enrEnrolled,
-    enrRejected,
+    total: counts.appsTotal,
+    pending: counts.appsPending,
+    approved: counts.appsApproved,
+    rejected: counts.appsRejected,
+    enrPending: counts.enrsPending + counts.enrsAwaiting + counts.enrsProof,
+    enrEnrolled: counts.enrsEnrolled,
+    enrRejected: counts.enrsRejected,
+    paymentsTotal: counts.paymentsTotal ?? 0,
     today,
     thisWeek,
     thisMonth,
     users: counts.users,
     courses: counts.courses,
     notifications: counts.notifications,
-    approvalRate: total > 0 ? Math.round((approved / total) * 100) : 0,
+    approvalRate: counts.appsTotal > 0 ? Math.round((counts.appsApproved / counts.appsTotal) * 100) : 0,
   };
 }

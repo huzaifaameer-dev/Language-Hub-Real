@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Banknote,
@@ -95,28 +95,6 @@ export function AdminCourses() {
     }
   }, []);
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/admin/courses");
-        if (!res.ok) throw new Error("Failed to load courses.");
-        const data = (await res.json()) as { courses: AdminCourse[] };
-        if (!alive) return;
-        setCourses(data.courses);
-        setError(null);
-      } catch (err) {
-        if (!alive) return;
-        setError((err as Error).message);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
   useLiveSync(() => load(true));
 
   const flash = useCallback((id: string) => {
@@ -168,18 +146,18 @@ export function AdminCourses() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="flex items-center gap-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-indigo-600">
-            <span aria-hidden className="h-px w-7 bg-gradient-to-r from-indigo-500 to-transparent" />
+          <p className="flex items-center gap-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-brand-deep">
+            <span aria-hidden className="h-px w-7 bg-gradient-to-r from-brand/80 to-transparent" />
             Course catalog
           </p>
-          <h1 className="mt-1.5 font-display text-[clamp(1.6rem,3.6vw,2.3rem)] font-extrabold tracking-[-0.03em] text-slate-900">
+          <h1 className="mt-1.5 font-display text-[clamp(1.6rem,3.6vw,2.3rem)] font-extrabold tracking-[-0.03em] text-ink">
             CLASS <span className="indigo-text-shimmer">ROSTER.</span>
           </h1>
         </div>
         <button
           type="button"
           onClick={() => setEditing({ id: "" } as AdminCourse)}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-4 py-2.5 font-display text-[0.78rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.8)] transition-all hover:-translate-y-0.5"
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-deep px-4 py-2.5 font-display text-[0.78rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(110_90_224/0.8)] transition-all hover:-translate-y-0.5"
         >
           <Plus className="h-4 w-4" strokeWidth={2.4} /> Add course
         </button>
@@ -194,12 +172,12 @@ export function AdminCourses() {
       {loading && courses.length === 0 ? (
         <div className="grid gap-4 sm:grid-cols-2">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-48 animate-pulse rounded-3xl bg-slate-200/70" />
+            <div key={i} className="h-48 animate-pulse rounded-3xl bg-ink/8" />
           ))}
         </div>
       ) : courses.length === 0 ? (
         <GlassPanel>
-          <p className="font-mono text-[0.8rem] text-slate-400">
+          <p className="font-mono text-[0.8rem] text-ink-3">
             No courses yet — add your first one.
           </p>
         </GlassPanel>
@@ -222,7 +200,7 @@ export function AdminCourses() {
                 aria-hidden
                 className={cn(
                   "pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full blur-3xl",
-                  c.active ? "bg-indigo-400/15" : "bg-slate-400/10"
+                  c.active ? "bg-brand/10" : "bg-slate-400/10"
                 )}
               />
               <div className="relative flex items-start justify-between gap-3">
@@ -230,16 +208,16 @@ export function AdminCourses() {
                   <span
                     className={cn(
                       "grid h-11 w-11 shrink-0 place-items-center rounded-2xl",
-                      c.active ? "bg-indigo-500/10 text-indigo-600" : "bg-slate-200/70 text-slate-400"
+                      c.active ? "bg-brand-deep/10 text-brand-deep" : "bg-ink/8 text-ink-3"
                     )}
                   >
                     <BookOpen className="h-5 w-5" strokeWidth={1.8} />
                   </span>
                   <div>
-                    <p className="font-display text-[0.98rem] font-extrabold text-slate-900">
+                    <p className="font-display text-[0.98rem] font-extrabold text-ink">
                       {c.name}
                     </p>
-                    <p className="font-mono text-[0.6rem] uppercase tracking-widest text-slate-400">
+                    <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-3">
                       {c.active ? "live" : "archived"} · order {c.order}
                     </p>
                   </div>
@@ -253,7 +231,7 @@ export function AdminCourses() {
                       "grid h-8 w-8 place-items-center rounded-full border transition-all",
                       c.active
                         ? "border-emerald-300 bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                        : "border-slate-200 bg-slate-50 text-slate-400 hover:text-slate-600"
+                        : "border-ink/12 bg-slate-50 text-ink-3 hover:text-ink-2"
                     )}
                   >
                     <Check className="h-4 w-4" strokeWidth={2.4} />
@@ -262,7 +240,7 @@ export function AdminCourses() {
                     type="button"
                     onClick={() => setEditing(c)}
                     title="Edit"
-                    className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-slate-500 transition-all hover:border-indigo-300 hover:text-indigo-600"
+                    className="grid h-8 w-8 place-items-center rounded-full border border-ink/12 bg-white text-ink-2 transition-all hover:border-brand/45 hover:text-brand-deep"
                   >
                     <Pencil className="h-3.5 w-3.5" />
                   </button>
@@ -270,7 +248,7 @@ export function AdminCourses() {
                     type="button"
                     onClick={() => remove(c)}
                     title="Remove"
-                    className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white text-rose-400 transition-all hover:border-rose-300 hover:text-rose-600"
+                    className="grid h-8 w-8 place-items-center rounded-full border border-ink/12 bg-white text-rose-400 transition-all hover:border-rose-300 hover:text-rose-600"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -285,17 +263,17 @@ export function AdminCourses() {
               </div>
 
               <div className="relative mt-4 flex flex-col gap-2">
-                {(c.batches ?? []).map((b) => (
+                {(c.batches ?? []).map((b, i) => (
                   <div
-                    key={b.name}
+                    key={`${b.name}-${i}`}
                     className="flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="font-display text-[0.74rem] font-bold text-slate-700">
+                      <span className="font-display text-[0.74rem] font-bold text-ink">
                         {b.name}
                       </span>
                       {b.time ? (
-                        <span className="font-mono text-[0.62rem] text-slate-400">{b.time}</span>
+                        <span className="font-mono text-[0.62rem] text-ink-3">{b.time}</span>
                       ) : null}
                     </div>
                     <span
@@ -310,9 +288,9 @@ export function AdminCourses() {
                 ))}
               </div>
 
-              <div className="relative mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
+              <div className="relative mt-3 h-1.5 overflow-hidden rounded-full bg-cream">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-fuchsia-400 transition-all duration-700"
+                  className="h-full rounded-full bg-gradient-to-r from-brand/80 via-brand-deep to-brand-magenta transition-all duration-700"
                   style={{
                     width: `${Math.min(100, Math.round(((c.seatsUsed ?? 0) / Math.max(1, c.seatsTotal ?? 1)) * 100))}%`,
                   }}
@@ -344,10 +322,10 @@ export function AdminCourses() {
 function Meta({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="rounded-xl border border-slate-100 bg-white/80 px-2.5 py-2">
-      <p className="flex items-center gap-1 font-mono text-[0.55rem] uppercase tracking-widest text-slate-400">
+      <p className="flex items-center gap-1 font-mono text-[0.55rem] uppercase tracking-widest text-ink-3">
         {icon} {label}
       </p>
-      <p className="mt-0.5 truncate font-display text-[0.76rem] font-extrabold text-slate-800" title={value}>
+      <p className="mt-0.5 truncate font-display text-[0.76rem] font-extrabold text-ink" title={value}>
         {value}
       </p>
     </div>
@@ -401,7 +379,7 @@ function CourseEditor({
   };
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-900/45 px-5 py-10 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-ink/45 px-5 py-10 backdrop-blur-md">
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -412,16 +390,16 @@ function CourseEditor({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full border border-slate-200 text-slate-400 transition-all duration-300 hover:rotate-90 hover:text-slate-700"
+          className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full border border-ink/12 text-ink-3 transition-all duration-300 hover:rotate-90 hover:text-ink"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <p className="font-display text-[0.58rem] font-bold uppercase tracking-[0.36em] text-indigo-600">
+        <p className="font-display text-[0.58rem] font-bold uppercase tracking-[0.36em] text-brand-deep">
           {isNew ? "New course" : "Edit course"}
         </p>
         <h3 className="mt-1.5 font-display text-[1.4rem] font-extrabold tracking-[-0.02em]">
-          {isNew ? "ADD A" : "EDIT"} <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent">COURSE.</span>
+          {isNew ? "ADD A" : "EDIT"} <span className="bg-gradient-to-r from-brand-deep to-brand-magenta bg-clip-text text-transparent">COURSE.</span>
         </h3>
 
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -484,14 +462,14 @@ function CourseEditor({
             />
           </Labelled>
           <div className="flex items-end pb-1.5">
-            <label className="inline-flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+            <label className="inline-flex cursor-pointer items-center gap-2.5 rounded-xl border border-ink/12 bg-slate-50 px-4 py-3">
               <input
                 type="checkbox"
                 checked={form.active}
                 onChange={(e) => set("active", e.target.checked)}
-                className="h-4 w-4 rounded accent-indigo-600"
+                className="h-4 w-4 rounded accent-brand-deep"
               />
-              <span className="font-display text-[0.78rem] font-bold text-slate-700">Published</span>
+              <span className="font-display text-[0.78rem] font-bold text-ink">Published</span>
             </label>
           </div>
           <div className="sm:col-span-2">
@@ -508,7 +486,7 @@ function CourseEditor({
 
         <div className="mt-4">
           <div className="mb-2 flex items-center justify-between">
-            <label className="font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">
+            <label className="font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink-2">
               Batches
             </label>
             <button
@@ -519,7 +497,7 @@ function CourseEditor({
                   batches: [...f.batches, { name: "Evening", time: "", seatsTotal: 20 }],
                 }))
               }
-              className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 font-display text-[0.68rem] font-bold text-indigo-600 transition-colors hover:bg-indigo-100"
+              className="inline-flex items-center gap-1 rounded-full border border-brand/20 bg-brand/8 px-3 py-1 font-display text-[0.68rem] font-bold text-brand-deep transition-colors hover:bg-brand/12"
             >
               <Plus className="h-3.5 w-3.5" /> Add batch
             </button>
@@ -575,7 +553,7 @@ function CourseEditor({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-11 items-center rounded-full border border-slate-200 bg-white px-5 font-display text-[0.8rem] font-bold text-slate-600 transition-colors hover:border-slate-300"
+            className="inline-flex h-11 items-center rounded-full border border-ink/12 bg-white px-5 font-display text-[0.8rem] font-bold text-ink-2 transition-colors hover:border-slate-300"
           >
             Cancel
           </button>
@@ -583,7 +561,7 @@ function CourseEditor({
             type="button"
             onClick={submit}
             disabled={busy || form.name.trim().length < 2}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-6 font-display text-[0.8rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.8)] transition-all hover:-translate-y-0.5 disabled:opacity-50"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-deep px-6 font-display text-[0.8rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(110_90_224/0.8)] transition-all hover:-translate-y-0.5 disabled:opacity-50"
           >
             {busy ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -599,12 +577,12 @@ function CourseEditor({
 }
 
 const inputCls =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[0.9rem] text-slate-900 outline-none transition-all duration-200 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/12";
+  "w-full rounded-xl border border-ink/12 bg-white px-3.5 py-2.5 text-[0.9rem] text-ink outline-none transition-all duration-200 placeholder:text-ink-3 focus:border-brand/80 focus:ring-4 focus:ring-brand-deep/12";
 
 function Labelled({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">
+      <span className="mb-1.5 block font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink-2">
         {label}
       </span>
       {children}

@@ -8,6 +8,7 @@ import {
   getUsersCollection,
   getCoursesCollection,
   getNotificationsCollection,
+  getPaymentsCollection,
 } from "@/lib/db";
 import { AdminGate } from "@/components/admin-panel/AdminGate";
 import { AdminPanel } from "@/components/admin-panel/AdminPanel";
@@ -29,20 +30,39 @@ export default async function AdminPanelPage() {
   const applications = await getApplicationsCollection();
   const enrollments = await getEnrollmentsCollection();
 
-  const [appDocs, enrDocs] = await Promise.all([
+  // One $group pipeline per collection replaces 9 round-tripping countDocuments
+  // calls — single pass groups all statuses at once.
+  const [appDocs, enrDocs, appCounts, enrCounts] = await Promise.all([
     applications.find({}).sort({ createdAt: -1 }).limit(200).toArray(),
     enrollments.find({}).sort({ createdAt: -1 }).limit(200).toArray(),
+    applications
+      .aggregate<{ _id: string | null; n: number }>([{ $group: { _id: "$status", n: { $sum: 1 } } }])
+      .toArray(),
+    enrollments
+      .aggregate<{ _id: string | null; n: number }>([{ $group: { _id: "$status", n: { $sum: 1 } } }])
+      .toArray(),
   ]);
 
-  const [usersCol, coursesCol, notificationsCol] = await Promise.all([
+  // Pivot the grouped rows into fixed positional counts.
+  const appByStatus = Object.fromEntries(
+    appCounts.filter((r) => r._id).map((r) => [r._id as string, r.n])
+  );
+  const enrByStatus = Object.fromEntries(
+    enrCounts.filter((r) => r._id).map((r) => [r._id as string, r.n])
+  );
+  const appStatusTotal = appCounts.reduce((s, r) => s + r.n, 0);
+
+  const [usersCol, coursesCol, notificationsCol, paymentsCol] = await Promise.all([
     getUsersCollection(),
     getCoursesCollection(),
     getNotificationsCollection(),
+    getPaymentsCollection(),
   ]);
-  const [userCount, courseCount, notificationCount, userDocs] = await Promise.all([
+  const [userCount, courseCount, notificationCount, paymentsTotal, userDocs] = await Promise.all([
     usersCol.countDocuments({ role: { $ne: "ADMIN" } }),
     coursesCol.countDocuments({ active: true }),
     notificationsCol.countDocuments({}),
+    paymentsCol.countDocuments({}),
     usersCol
       .find({ role: { $ne: "ADMIN" } })
       .sort({ createdAt: -1 })
@@ -54,6 +74,16 @@ export default async function AdminPanelPage() {
     users: userCount,
     courses: courseCount,
     notifications: notificationCount,
+    paymentsTotal,
+    appsTotal: appStatusTotal,
+    appsPending: appByStatus.PENDING ?? 0,
+    appsApproved: appByStatus.APPROVED ?? 0,
+    appsRejected: appByStatus.REJECTED ?? 0,
+    enrsPending: enrByStatus.PENDING ?? 0,
+    enrsAwaiting: enrByStatus.AWAITING_PAYMENT ?? 0,
+    enrsProof: enrByStatus.PROOF_SUBMITTED ?? 0,
+    enrsEnrolled: enrByStatus.ENROLLED ?? 0,
+    enrsRejected: enrByStatus.REJECTED ?? 0,
   };
 
   const applicationList: AdminApplication[] = appDocs.map((d) => ({
@@ -76,6 +106,9 @@ export default async function AdminPanelPage() {
     subjects: d.subjects,
     batch: d.batch,
     plan: d.plan,
+    paymentMethod: d.paymentMethod,
+    paymentInstructions: d.paymentInstructions,
+    paymentProof: d.paymentProof,
     status: d.status,
     adminMessage: d.adminMessage,
     createdAt: d.createdAt.toISOString(),
