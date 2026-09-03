@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { signOut } from "next-auth/react";
 import {
-  BookOpen,
   CalendarDays,
   Camera,
   Check,
@@ -16,27 +15,38 @@ import {
   LogOut,
   Mail,
   MapPin,
-  MessageCircle,
   MessageSquare,
   Send,
   Settings,
   Sparkles,
   User,
-  X,
 } from "lucide-react";
 
 import { Logo } from "@/components/ui/Logo";
 import { cn } from "@/lib/utils";
-import { FocusTrap, LiveRegion, useEscapeKey } from "@/components/ui/FocusTrap";
-import { booksFor } from "@/lib/books";
 import { useLiveSync } from "@/lib/use-live";
 import { SettingsModal } from "@/components/dashboard/SettingsModal";
 import { NotificationsBell } from "@/components/dashboard/NotificationsBell";
+import {
+  EnrollmentCard,
+  Bookshelf,
+  ContactCard,
+} from "@/components/dashboard/cards";
+import {
+  EnrollmentModal,
+  EnrolledCelebration,
+  ApplicationCelebration,
+} from "@/components/dashboard/modals";
+import { ProgressCard } from "@/components/dashboard/ProgressCard";
+import { UpcomingClassesCard } from "@/components/dashboard/UpcomingClassesCard";
+import { CertificatesCard } from "@/components/dashboard/CertificatesCard";
+import { AssignmentsCard } from "@/components/dashboard/AssignmentsCard";
+import { ReferralCard } from "@/components/dashboard/ReferralCard";
+import { Field, Chip, ErrorNote, resizeImage, type Enr } from "@/components/dashboard/ui";
 import type { CourseInfo } from "@/lib/course-data";
 import { FALLBACK_COURSES } from "@/lib/course-data";
 
 type AppStatus = "PENDING" | "APPROVED" | "REJECTED";
-type EnrStatus = "PENDING" | "ENROLLED" | "REJECTED";
 
 interface App {
   id: string;
@@ -51,14 +61,50 @@ interface App {
   createdAt: string;
 }
 
-interface Enr {
+interface ProgressRecord {
   id: string;
-  subjects: string[];
+  enrollmentId: string;
+  course: string;
+  chapters: Array<{ title: string; completed: boolean; completedAt?: string | null }>;
+  attendance: Array<{ date: string; attended: boolean; topic?: string }>;
+  lastChapter?: string | null;
+  updatedAt: string;
+}
+
+interface LiveClassRecord {
+  id: string;
+  title: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  meetingLink: string;
+  platform: string;
+  instructor: string;
+  course: string;
   batch: string;
-  plan?: string;
-  status: EnrStatus;
-  adminMessage?: string | null;
+}
+
+interface CertificateRecord {
+  id: string;
+  certificateId: string;
+  studentName: string;
+  course: string;
+  batch: string;
+  issuedAt: string;
+  completionPercent: number;
+  signedBy: string;
+}
+
+interface AssignmentRecord {
+  id: string;
+  course: string;
+  title: string;
+  description: string;
+  studentAnswer?: string;
+  status: "DRAFT" | "SUBMITTED" | "GRADED";
+  grade?: string | null;
+  feedbackCount: number;
   createdAt: string;
+  updatedAt: string;
 }
 
 const COURSES = FALLBACK_COURSES.map((c) => c.name);
@@ -67,12 +113,6 @@ const APP_META: Record<AppStatus, { cls: string; dot: string; label: string }> =
   PENDING: { cls: "border-amber-300 bg-amber-50 text-amber-700", dot: "bg-amber-500", label: "In review" },
   APPROVED: { cls: "border-emerald-300 bg-emerald-50 text-emerald-700", dot: "bg-emerald-500", label: "Approved" },
   REJECTED: { cls: "border-red-300 bg-red-50 text-red-600", dot: "bg-red-500", label: "Not selected" },
-};
-
-const ENR_META: Record<EnrStatus, { cls: string; dot: string; label: string }> = {
-  PENDING: { cls: "border-amber-300 bg-amber-50 text-amber-700", dot: "bg-amber-500", label: "Waiting for admin" },
-  ENROLLED: { cls: "border-emerald-300 bg-emerald-50 text-emerald-700", dot: "bg-emerald-500", label: "Enrolled" },
-  REJECTED: { cls: "border-red-300 bg-red-50 text-red-600", dot: "bg-red-500", label: "Declined" },
 };
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -117,6 +157,8 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
   const [supportWhatsapp, setSupportWhatsapp] = useState<string | null>(null);
 
   const [catalog, setCatalog] = useState<CourseInfo[]>(FALLBACK_COURSES);
+  const [onlinePayment, setOnlinePayment] = useState(false);
+  const [konnectPayment, setKonnectPayment] = useState(false);
 
   const [form, setForm] = useState({ name: name ?? "", place: "", bio: "", course: COURSES[0], message: "" });
   const [formErrors, setFormErrors] = useState<Record<string, string[]> | null>(null);
@@ -136,18 +178,32 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
   const [enrolledCelebrated, setEnrolledCelebrated] = useState(false);
   const celebratedRef = useRef(false);
 
+  // Feature 5–8: progress, classes, certificates, assignments
+  const [progressData, setProgressData] = useState<ProgressRecord | null>(null);
+  const [upcomingClasses, setUpcomingClasses] = useState<LiveClassRecord[]>([]);
+  const [certificates, setCertificates] = useState<CertificateRecord[]>([]);
+  const [assignments, setAssignments] = useState<AssignmentRecord[]>([]);
+
   const load = () => {
     fetch("/api/dashboard")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         const data = d as {
+          onlinePayment?: boolean;
+          konnectPayment?: boolean;
           user?: { createdAt?: string | null; image?: string | null; whatsapp?: string };
           support?: { email?: string | null; whatsapp?: string | null };
           applications?: App[];
           enrollments?: Enr[];
           courses?: Array<CourseInfo & { id: string }>;
+          progress?: ProgressRecord[];
+          upcomingClasses?: LiveClassRecord[];
+          certificates?: CertificateRecord[];
+          assignments?: AssignmentRecord[];
         } | null;
         if (!data) return;
+        if (typeof data.onlinePayment === "boolean") setOnlinePayment(data.onlinePayment);
+        if (typeof data.konnectPayment === "boolean") setKonnectPayment(data.konnectPayment);
         if (data.user) {
           setJoined(data.user.createdAt ?? null);
           if (data.user.image !== undefined) setAvatar(data.user.image);
@@ -161,6 +217,10 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
         const enrList = data.enrollments ?? [];
         setApps(list);
         setEnrs(enrList);
+        if (data.progress) setProgressData(data.progress[0] ?? null);
+        if (data.upcomingClasses) setUpcomingClasses(data.upcomingClasses);
+        if (data.certificates) setCertificates(data.certificates);
+        if (data.assignments) setAssignments(data.assignments);
         const firstEnr = enrList[0];
         if (firstEnr?.status === "ENROLLED" && !celebratedRef.current) {
           celebratedRef.current = true;
@@ -298,6 +358,72 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
     }
   };
 
+  // Feature 5: Toggle chapter completion
+  const handleToggleChapter = async (enrollmentId: string, chapterTitle: string) => {
+    try {
+      const res = await fetch("/api/dashboard/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enrollmentId, action: "toggle_chapter", chapterTitle }),
+      });
+      const data = await res.json();
+      if (data.progress) setProgressData(data.progress);
+    } catch {}
+  };
+
+  // Feature 7: Claim certificate
+  const handleIssueCert = async () => {
+    if (!activeEnr) return;
+    try {
+      const res = await fetch("/api/dashboard/certificates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enrollmentId: activeEnr.id }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        // Refresh certificates
+        const certRes = await fetch("/api/dashboard/certificates");
+        const certData = await certRes.json();
+        if (certData.certificates) setCertificates(certData.certificates);
+      }
+    } catch {}
+  };
+
+  // Feature 8: Submit assignment
+  const handleSubmitAssignment = async (title: string, description: string, answer: string) => {
+    if (!activeEnr) return;
+    try {
+      const res = await fetch("/api/dashboard/assignments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enrollmentId: activeEnr.id, action: "submit", title, description, studentAnswer: answer }),
+      });
+      if (res.ok) {
+        const aRes = await fetch("/api/dashboard/assignments");
+        const aData = await aRes.json();
+        if (aData.assignments) setAssignments(aData.assignments);
+      }
+    } catch {}
+  };
+
+  // Feature 8: Reply to assignment feedback
+  const handleReplyAssignment = async (assignmentId: string, message: string) => {
+    if (!activeEnr) return;
+    try {
+      const res = await fetch("/api/dashboard/assignments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enrollmentId: activeEnr.id, assignmentId, action: "reply", message }),
+      });
+      if (res.ok) {
+        const aRes = await fetch("/api/dashboard/assignments");
+        const aData = await aRes.json();
+        if (aData.assignments) setAssignments(aData.assignments);
+      }
+    } catch {}
+  };
+
   return (
     <div id="lh-dashboard" className="relative min-h-screen overflow-hidden bg-[#eef1f9] text-slate-900">
       <div
@@ -387,7 +513,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
                 <span className="relative grid h-20 w-20 overflow-hidden rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 ring-4 ring-white shadow-[0_10px_28px_-8px_rgb(99_102_241/0.5)] sm:h-24 sm:w-24">
                   {avatar ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={avatar} alt="Profile" className="h-full w-full object-cover" />
+                    <img src={avatar} alt={`Profile photo of ${displayName}`} className="h-full w-full object-cover" />
                   ) : (
                     <span className="grid h-full w-full place-items-center font-display text-3xl font-black text-white">
                       {(displayName || name || "L").slice(0, 1).toUpperCase()}
@@ -479,6 +605,15 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
             {activeEnr?.status === "ENROLLED" ? (
               <Rise>
                 <Bookshelf subjects={activeEnr.subjects} />
+              </Rise>
+            ) : null}
+
+            {activeEnr?.status === "ENROLLED" ? (
+              <Rise delay={0.04}>
+                <ProgressCard
+                  progress={progressData}
+                  onToggleChapter={handleToggleChapter}
+                />
               </Rise>
             ) : null}
 
@@ -588,7 +723,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
               </Rise>
             ) : (
               <Rise delay={0.06}>
-                <EnrollmentCard enr={activeEnr} onRetry={approvedApp ? () => setEnrOpen(true) : undefined} />
+                <EnrollmentCard enr={activeEnr} onlinePayment={onlinePayment} konnectPayment={konnectPayment} onRetry={approvedApp ? () => setEnrOpen(true) : undefined} />
               </Rise>
             )}
           </section>
@@ -675,7 +810,35 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
           </Rise>
 
           {/* Contact tile */}
+          <Rise delay={0.14}>
+            <UpcomingClassesCard classes={upcomingClasses} />
+          </Rise>
+
           <Rise delay={0.16}>
+            <CertificatesCard
+              certificates={certificates}
+              enrollmentStatus={activeEnr?.status}
+              progressPercent={progressData?.chapters?.length
+                ? Math.round((progressData.chapters.filter((c) => c.completed).length / progressData.chapters.length) * 100)
+                : 0
+              }
+              onIssueCert={handleIssueCert}
+            />
+          </Rise>
+
+          <Rise delay={0.18}>
+            <AssignmentsCard
+              assignments={assignments}
+              onSubmit={handleSubmitAssignment}
+              onReply={handleReplyAssignment}
+            />
+          </Rise>
+
+          <Rise delay={0.19}>
+            <ReferralCard />
+          </Rise>
+
+          <Rise delay={0.2}>
             <ContactCard
               myWhatsapp={whatsapp}
               supportEmail={supportEmail}
@@ -913,674 +1076,5 @@ function TimelineNode({
         {hint}
       </p>
     </div>
-  );
-}
-
-function EnrollmentCard({ enr, onRetry }: { enr: Enr; onRetry?: () => void }) {
-  const meta = ENR_META[enr.status];
-  return (
-    <section className="glass-dash relative overflow-hidden rounded-[2rem] p-6 sm:p-8">
-      <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-52 w-52 rounded-full bg-indigo-400/20 blur-3xl" />
-      <div className="relative flex flex-wrap items-center justify-between gap-3">
-        <p className="flex items-center gap-3 font-display text-[0.6rem] font-bold uppercase tracking-[0.36em] text-indigo-600">
-          <span aria-hidden className="h-px w-7 bg-indigo-500/40" /> Your enrollment
-        </p>
-        <span className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[0.62rem] font-bold tracking-widest", meta.cls)}>
-          <span className={cn("h-1.5 w-1.5 rounded-full", meta.dot)} />
-          {meta.label}
-        </span>
-      </div>
-      <h2 className="relative mt-2 font-display text-[1.5rem] font-extrabold tracking-[-0.02em]">
-        {enr.status === "ENROLLED" ? (
-          <>SEAT <span className="text-emerald-600">CONFIRMED.</span></>
-        ) : enr.status === "REJECTED" ? (
-          <>REQUEST <span className="text-rose-600">DECLINED.</span></>
-        ) : (
-          <>REQUEST <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent">IN QUEUE.</span></>
-        )}
-      </h2>
-
-      <div className="relative mt-5 flex flex-wrap gap-2">
-        {enr.subjects.map((s) => (
-          <span key={s} className="rounded-full border border-indigo-200/80 bg-indigo-50/80 px-3.5 py-1.5 font-mono text-[0.7rem] font-bold text-indigo-700">
-            {s}
-          </span>
-        ))}
-        <span className="rounded-full border border-slate-200 bg-white px-3.5 py-1.5 font-mono text-[0.7rem] text-slate-500">
-          Batch · {enr.batch}
-        </span>
-      </div>
-
-      {enr.plan ? (
-        <p className="relative mt-4 text-[0.9rem] leading-relaxed text-slate-500">
-          “{enr.plan}”
-        </p>
-      ) : null}
-
-      {enr.adminMessage ? (
-        <div className="relative mt-5 rounded-xl border border-indigo-200/70 bg-indigo-50/70 px-4 py-3">
-          <p className="font-display text-[0.58rem] font-bold uppercase tracking-[0.26em] text-indigo-600">From the admin</p>
-          <p className="mt-1 text-[0.9rem] text-slate-700">{enr.adminMessage}</p>
-        </div>
-      ) : null}
-
-      {enr.status === "PENDING" ? (
-        <div className="relative mt-6 flex items-center gap-3 rounded-2xl border border-amber-300/70 bg-amber-50 px-4 py-4">
-          <span className="relative flex h-3 w-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-60" />
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-500" />
-          </span>
-          <p className="text-[0.92rem] text-amber-800">
-            Confirmation usually lands within a few hours — keep an eye on this card.
-          </p>
-        </div>
-      ) : null}
-
-      {enr.status === "REJECTED" && onRetry ? (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="mt-6 inline-flex h-[3rem] items-center gap-2 rounded-full border-2 border-indigo-500 px-6 font-display text-[0.85rem] font-bold text-indigo-600 transition-all duration-300 hover:-translate-y-0.5 hover:bg-indigo-500/10"
-        >
-          Re-submit enrollment →
-        </button>
-      ) : null}
-    </section>
-  );
-}
-
-function Bookshelf({ subjects }: { subjects: string[] }) {
-  const books = booksFor(subjects as Parameters<typeof booksFor>[0]);
-  return (
-    <section id="lh-bookshelf" className="glass-dash relative overflow-hidden rounded-[2rem] border-emerald-200/60 p-6 sm:p-8">
-      <div aria-hidden className="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-emerald-400/25 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute -right-24 -bottom-28 h-56 w-56 rounded-full bg-teal-400/20 blur-3xl" />
-      <div className="relative flex items-center justify-between gap-3">
-        <p className="flex items-center gap-3 font-display text-[0.6rem] font-bold uppercase tracking-[0.36em] text-emerald-700">
-          <span aria-hidden className="h-px w-7 bg-emerald-500/40" /> Your bookshelf
-        </p>
-        <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 font-mono text-[0.62rem] font-bold tracking-widest text-emerald-700">
-          {books.length} BOOKS
-        </span>
-      </div>
-      <h2 className="relative mt-2 font-display text-[1.5rem] font-extrabold tracking-[-0.02em]">
-        STUDY <span className="text-emerald-600">MATERIALS.</span>
-      </h2>
-      <p className="relative mt-1.5 text-[0.9rem] text-slate-500">
-        Hand-picked for your enrolled subjects. Work through them in order — core first.
-      </p>
-
-      <div className="relative mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {books.map((b, i) => (
-          <motion.article
-            key={b.title}
-            initial={{ opacity: 0, y: 24, scale: 0.97 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-            viewport={{ once: true, margin: "-40px" }}
-            transition={{ duration: 0.6, ease, delay: i * 0.06 }}
-            whileHover={{ y: -6 }}
-            className="group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_10px_28px_-16px_rgb(15_23_42/0.16)] transition-colors duration-300 hover:border-emerald-300"
-          >
-            <div
-              aria-hidden
-              className="absolute inset-x-0 top-0 h-14"
-              style={{ background: `linear-gradient(135deg, ${b.from}, ${b.to})` }}
-            />
-            <div className="relative mt-14">
-              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[0.55rem] font-bold uppercase tracking-[0.2em] text-slate-500">
-                <BookOpen className="h-3 w-3" strokeWidth={2} />
-                {b.tag}
-              </span>
-              <h3 className="mt-2.5 font-display text-[0.98rem] font-extrabold leading-snug">{b.title}</h3>
-              <p className="mt-1 text-[0.8rem] text-slate-400">{b.author}</p>
-            </div>
-          </motion.article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ContactCard({
-  myWhatsapp,
-  supportEmail,
-  supportWhatsapp,
-}: {
-  myWhatsapp?: string;
-  supportEmail?: string | null;
-  supportWhatsapp?: string | null;
-}) {
-  const hasStudioWa = !!supportWhatsapp;
-  const hasEmail = !!supportEmail;
-  const hasMyWa = !!myWhatsapp;
-  if (!hasStudioWa && !hasEmail && !hasMyWa) return null;
-
-  return (
-    <section className="glass-dash relative overflow-hidden rounded-[2rem] border-sky-200/60 p-6 sm:p-8">
-      <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-52 w-52 rounded-full bg-sky-400/20 blur-3xl" />
-      <div className="relative flex items-center justify-between gap-3">
-        <p className="flex items-center gap-3 font-display text-[0.6rem] font-bold uppercase tracking-[0.36em] text-sky-700">
-          <span aria-hidden className="h-px w-7 bg-sky-500/40" /> Get in touch
-        </p>
-      </div>
-      <h2 className="relative mt-2 font-display text-[1.5rem] font-extrabold tracking-[-0.02em]">
-        NEED A <span className="bg-gradient-to-r from-sky-600 to-indigo-600 bg-clip-text text-transparent">HAND?</span>
-      </h2>
-      <p className="relative mt-1.5 text-[0.9rem] text-slate-500">
-        Questions about batches, books or your schedule? We reply fast.
-      </p>
-
-      <div className="relative mt-5 flex flex-col gap-3">
-        {hasStudioWa ? (
-          <a
-            href={`https://wa.me/${supportWhatsapp}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-500 font-display text-[0.85rem] font-bold text-white shadow-[0_12px_26px_-12px_rgb(16_185_129/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-600"
-          >
-            <MessageCircle className="h-4.5 w-4.5" strokeWidth={2} />
-            Chat on WhatsApp
-          </a>
-        ) : null}
-        {hasEmail ? (
-          <a
-            href={`mailto:${supportEmail}`}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-sky-200 bg-white/80 font-display text-[0.82rem] font-bold text-sky-700 transition-all duration-300 hover:-translate-y-0.5 hover:border-sky-400 hover:bg-sky-50"
-          >
-            <Mail className="h-4.5 w-4.5" strokeWidth={2} />
-            Email the studio
-          </a>
-        ) : null}
-        {hasMyWa ? (
-          <p className="flex items-center gap-2 rounded-xl border border-slate-200/80 bg-white/60 px-4 py-3 font-mono text-[0.72rem] text-slate-500 backdrop-blur-sm">
-            <MessageCircle className="h-3.5 w-3.5 shrink-0 text-emerald-500" strokeWidth={2} />
-            <span className="truncate">
-              Your WhatsApp · <span className="font-bold text-slate-700">{myWhatsapp}</span> — the studio may reach you here.
-            </span>
-          </p>
-        ) : null}
-      </div>
-    </section>
-  );
-}
-
-/* ------------------------------ modals ------------------------------ */
-
-function EnrollmentModal({
-  catalog, selected, batch, plan, errors, error, busy, onToggle, onBatch, onPlan, onClose, onSubmit,
-}: {
-  catalog: CourseInfo[];
-  selected: string[];
-  batch: string;
-  plan: string;
-  errors: Record<string, string[]> | null;
-  error: string | null;
-  busy: boolean;
-  onToggle: (c: string) => void;
-  onBatch: (b: string) => void;
-  onPlan: (v: string) => void;
-  onClose: () => void;
-  onSubmit: () => void;
-}) {
-  const batchOptions = Array.from(new Set(catalog.flatMap((c) => c.batches.map((b) => b.name))));
-  const soloCourse = selected.length === 1 ? catalog.find((c) => c.name === selected[0]) : undefined;
-  const seatsKnown = !!soloCourse && soloCourse.batches.some((b) => b.seatsLeft !== undefined);
-  const soloBatchMeta = new Map<string, { time: string; total: number; left: number; full: boolean }>();
-  if (seatsKnown && soloCourse) {
-    for (const b of soloCourse.batches) {
-      soloBatchMeta.set(b.name, {
-        time: b.time,
-        total: b.seatsTotal ?? 1,
-        left: b.seatsLeft ?? 0,
-        full: !!b.full || (b.seatsLeft ?? 0) <= 0,
-      });
-    }
-  }
-  const soloSeats = seatsKnown && soloCourse
-    ? {
-        total: soloCourse.batches.reduce((n, b) => n + (b.seatsTotal ?? 0), 0),
-        left: soloCourse.batches.reduce((n, b) => n + (b.seatsLeft ?? 0), 0),
-      }
-    : undefined;
-
-  useEscapeKey(onClose, true);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-900/45 px-5 py-10 backdrop-blur-md"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Enroll in courses"
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 36, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease }}
-        className="relative w-full max-w-lg rounded-[2rem] border border-white/70 bg-white/95 p-7 shadow-[0_40px_90px_-30px_rgb(15_23_42/0.55)] backdrop-blur-2xl sm:p-9"
-      >
-        <FocusTrap active>
-          <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full border border-slate-200 text-slate-400 transition-all duration-300 hover:rotate-90 hover:border-slate-300 hover:text-slate-700"
-        >
-          <X className="h-4 w-4" />
-        </button>
-
-        <p className="flex items-center gap-3 font-display text-[0.58rem] font-bold uppercase tracking-[0.36em] text-indigo-600">
-          <span aria-hidden className="h-px w-6 bg-indigo-500/40" /> Seat confirmation
-        </p>
-        <h3 className="mt-1.5 font-display text-[1.5rem] font-extrabold tracking-[-0.02em]">
-          ENROLL IN <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent">COURSES.</span>
-        </h3>
-        <p className="mt-1.5 text-[0.9rem] text-slate-500">
-          Pick one to four subjects and your preferred batch — the admin will confirm your seat.
-        </p>
-
-        <div className="mt-6">
-          <div className="mb-2 flex items-center justify-between">
-            <label className="font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">Subjects</label>
-            <span className="font-mono text-[0.62rem] text-slate-400">{selected.length}/4</span>
-          </div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {catalog.map((c) => {
-              const on = selected.includes(c.name);
-              const full = selected.length >= 4 && !on;
-              return (
-                <button
-                  key={c.name}
-                  type="button"
-                  onClick={() => onToggle(c.name)}
-                  disabled={full}
-                  className={cn(
-                    "flex items-center justify-between gap-2.5 rounded-xl border px-3.5 py-3 text-left font-display text-[0.82rem] font-bold transition-all duration-200",
-                    on
-                      ? "border-indigo-500 bg-indigo-500/10 text-indigo-700 shadow-[0_8px_20px_-8px_rgb(99_102_241/0.5)]"
-                      : "border-slate-200 bg-white text-slate-600 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-slate-900",
-                    full && "cursor-not-allowed opacity-40"
-                  )}
-                >
-                  <span className="flex items-center gap-2.5">
-                    <span className={cn(
-                      "grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-colors",
-                      on ? "border-indigo-500 bg-indigo-600 text-white" : "border-slate-300"
-                    )}>
-                      {on ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}
-                    </span>
-                    {c.name}
-                  </span>
-                  {c.fee ? (
-                    <span className="shrink-0 font-mono text-[0.62rem] font-bold text-slate-400">
-                      {c.fee.toLocaleString("en-PK")}
-                    </span>
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-          {errors?.subjects ? <p className="mt-2 text-[0.78rem] font-medium text-rose-600">{errors.subjects[0]}</p> : null}
-        </div>
-
-        <div className="mt-5">
-          <div className="mb-1.5 flex items-center justify-between">
-            <label className="font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">
-              Batch
-            </label>
-            {soloSeats ? (
-              <span className="font-mono text-[0.62rem] font-bold text-indigo-600">
-                {soloSeats.left}/{soloSeats.total} seats free
-              </span>
-            ) : null}
-          </div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {batchOptions.map((b) => {
-              const meta = soloBatchMeta.get(b);
-              const full = !!meta?.full;
-              return (
-                <button
-                  key={b}
-                  type="button"
-                  onClick={() => onBatch(b)}
-                  disabled={full}
-                  className={cn(
-                    "rounded-xl border px-3.5 py-3 text-left transition-all duration-200",
-                    batch === b
-                      ? "border-indigo-600 bg-indigo-600 text-white shadow-[0_10px_24px_-10px_rgb(99_102_241/0.7)]"
-                      : "border-slate-200 bg-white text-slate-500 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-slate-900",
-                    full && "cursor-not-allowed opacity-40"
-                  )}
-                >
-                  <span className="block font-mono text-[0.72rem] font-bold tracking-widest">
-                    {b.toUpperCase()}
-                  </span>
-                  {meta ? (
-                    <span
-                      className={cn(
-                        "mt-0.5 block font-mono text-[0.58rem] font-semibold tracking-normal",
-                        batch === b
-                          ? "text-white/75"
-                          : full
-                            ? "text-rose-500"
-                            : "text-slate-400"
-                      )}
-                    >
-                      {[meta.time, full ? "FULL" : `${meta.left}/${meta.total} seats`]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-          {error ? <ErrorNote>{error}</ErrorNote> : null}
-        </div>
-
-        <div className="mt-5">
-          <label htmlFor="enr-plan" className="mb-1.5 block font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">
-            Study plan <span className="normal-case text-slate-400">(optional)</span>
-          </label>
-          <textarea
-            id="enr-plan"
-            value={plan}
-            onChange={(e) => onPlan(e.target.value)}
-            rows={3}
-            maxLength={800}
-            placeholder="Tell us about your goals, current level, or study schedule."
-            className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-[0.9rem] text-slate-900 shadow-[0_1px_2px_rgb(15_23_42/0.04)] outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/12"
-          />
-          <span className="mt-1 block text-right font-mono text-[0.68rem] text-slate-400">{plan.length}/800</span>
-          {errors?.plan ? <p className="text-[0.78rem] font-medium text-rose-600">{errors.plan[0]}</p> : null}
-        </div>
-
-        <button
-          type="button"
-          onClick={onSubmit}
-          disabled={busy}
-          className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-12px_rgb(99_102_241/0.85)] hover:brightness-[1.05] disabled:opacity-60"
-        >
-          {busy ? (
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-          ) : (
-            <>
-              Confirm Enrollment
-              <span className="inline-block transition-transform duration-500 group-hover:translate-x-1">→</span>
-            </>
-          )}
-        </button>
-        </FocusTrap>
-        <LiveRegion text={error ?? (busy ? "Submitting enrollment…" : null)} />
-      </motion.div>
-    </motion.div>
-  );
-}
-
-/* --------------------------- celebrations --------------------------- */
-
-function EnrolledCelebration({ name, subjects, onDone }: { name: string; subjects: string[]; onDone: () => void }) {
-  const rings = [
-    { size: 120, delay: "0s", border: "rgb(99 102 241 / 0.7)" },
-    { size: 170, delay: "0.35s", border: "rgb(168 85 247 / 0.5)" },
-    { size: 220, delay: "0.7s", border: "rgb(217 70 239 / 0.4)" },
-  ];
-  const confetti = [
-    { left: "12%", top: "18%", "--dx": "-30px", "--dy": "86px", color: "#6366f1", delay: "0s" },
-    { left: "26%", top: "12%", "--dx": "40px", "--dy": "110px", color: "#d946ef", delay: "0.18s" },
-    { left: "42%", top: "8%", "--dx": "-24px", "--dy": "120px", color: "#0ea5e9", delay: "0.36s" },
-    { left: "58%", top: "10%", "--dx": "28px", "--dy": "115px", color: "#16a34a", delay: "0.12s" },
-    { left: "72%", top: "16%", "--dx": "-34px", "--dy": "95px", color: "#8b5cf6", delay: "0.28s" },
-    { left: "86%", top: "22%", "--dx": "-16px", "--dy": "80px", color: "#c084fc", delay: "0.44s" },
-    { left: "18%", top: "70%", "--dx": "50px", "--dy": "-70px", color: "#0ea5e9", delay: "0.2s" },
-    { left: "82%", top: "64%", "--dx": "-42px", "--dy": "-64px", color: "#6366f1", delay: "0.38s" },
-  ];
-  const title = "ENROLLMENT SUCCESSFUL.";
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
-      className="fixed inset-0 z-[60] grid place-items-center overflow-hidden bg-slate-50/95 px-5 backdrop-blur-md"
-    >
-      {confetti.map((c, i) => (
-        <span
-          key={i}
-          aria-hidden
-          className="absolute h-2.5 w-2.5 rounded-sm"
-          style={{
-            left: c.left,
-            top: c.top,
-            background: c.color,
-            animation: `confetti-burst 0.9s cubic-bezier(0.22,1,0.36,1) ${c.delay} both`,
-            ...(c as unknown as React.CSSProperties),
-          }}
-        />
-      ))}
-
-      <div className="relative flex w-full max-w-lg flex-col items-center text-center">
-        <div className="relative grid h-56 w-56 place-items-center sm:h-64 sm:w-64">
-          {rings.map((r, i) => (
-            <span
-              key={i}
-              aria-hidden
-              className="absolute rounded-full border-2"
-              style={{ width: r.size, height: r.size, borderColor: r.border, animation: `burst-ring 1.6s cubic-bezier(0.22,1,0.36,1) ${r.delay} both` }}
-            />
-          ))}
-          <span aria-hidden className="absolute inset-0 animate-spin rounded-full border border-dashed border-indigo-400/60" style={{ animation: "spin-dash 8s linear infinite" }} />
-          <svg viewBox="0 0 56 56" className="relative h-36 w-36">
-            <circle cx="28" cy="28" r="25" fill="none" stroke="rgb(99 102 241 / 0.25)" strokeWidth="2" />
-            <circle
-              cx="28" cy="28" r="25" fill="none" stroke="url(#enrGrad)" strokeWidth="2.5"
-              strokeLinecap="round" strokeDasharray="157" strokeDashoffset="157"
-              style={{ animation: "check-draw 1s cubic-bezier(0.65,0,0.35,1) 0.1s forwards" }}
-            />
-            <path
-              d="M17 29 L25 37 L39 21"
-              fill="none"
-              stroke="#6366f1"
-              strokeWidth="3.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeDasharray="84"
-              strokeDashoffset="84"
-              style={{ animation: "check-draw 0.7s ease-out 0.85s forwards" }}
-            />
-            <defs>
-              <linearGradient id="enrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#6366f1" />
-                <stop offset="50%" stopColor="#8b5cf6" />
-                <stop offset="100%" stopColor="#d946ef" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-
-        <motion.h3
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="mt-2 font-display text-[clamp(1.9rem,6vw,2.7rem)] font-extrabold tracking-[-0.03em]"
-        >
-          {Array.from(title).map((ch, i) => (
-              <span
-                key={i}
-                className={ch === " " ? "inline-block w-3" : "inline-block indigo-text-shimmer"}
-                style={{ animation: `letter-rise 0.6s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.045}s both` }}
-              >
-                {ch === " " ? "\u00A0" : ch}
-              </span>
-            ))}
-        </motion.h3>
-        <p className="mt-3 text-[1rem] text-slate-500">
-          <span className="font-bold not-italic text-indigo-600">{name}</span>, welcome aboard — your seat is locked in and your books are ready.
-        </p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
-          {subjects.slice(0, 4).map((s) => (
-            <span key={s} className="rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 font-mono text-[0.68rem] font-bold text-emerald-700">
-              {s}
-            </span>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={onDone}
-          className="mt-8 inline-flex h-[3.1rem] items-center justify-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_16px_36px_-14px_rgb(99_102_241/0.7)] transition-all duration-500 hover:-translate-y-0.5 hover:brightness-[1.05]"
-        >
-          Enter my classroom
-          <span className="inline-block transition-transform duration-500 group-hover:translate-x-1">→</span>
-        </button>
-      </div>
-    </motion.div>
-  );
-}
-
-function ApplicationCelebration() {
-  const sparks = [
-    { "--sx": "70px", "--sy": "-80px", color: "#6366f1", left: "22%", top: "30%", delay: "0s" },
-    { "--sx": "-80px", "--sy": "-50px", color: "#d946ef", left: "58%", top: "22%", delay: "0.15s" },
-    { "--sx": "90px", "--sy": "-30px", color: "#0ea5e9", left: "35%", top: "12%", delay: "0.3s" },
-    { "--sx": "-60px", "--sy": "-90px", color: "#16a34a", left: "72%", top: "35%", delay: "0.45s" },
-    { "--sx": "30px", "--sy": "-100px", color: "#8b5cf6", left: "15%", top: "55%", delay: "0.12s" },
-    { "--sx": "-40px", "--sy": "-110px", color: "#c084fc", left: "68%", top: "60%", delay: "0.28s" },
-  ];
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 grid place-items-center bg-slate-900/45 px-5 backdrop-blur-md"
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.85, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, ease }}
-        className="relative w-full max-w-md animate-success-pop rounded-[1.75rem] border border-slate-200 bg-white p-10 text-center shadow-2xl"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Application sent"
-      >
-        {sparks.map((s, i) => (
-          <span
-            key={i}
-            aria-hidden
-            className="spark"
-            style={{ ...(s as React.CSSProperties), animationDelay: s.delay, color: s.color }}
-          />
-        ))}
-
-        <div className="relative mx-auto grid h-28 w-28 place-items-center">
-          <span aria-hidden className="absolute inset-0 animate-ring-spread rounded-full border-2 border-indigo-400/70" />
-          <span aria-hidden className="absolute inset-0 animate-ring-spread rounded-full border border-violet-500/40" style={{ animationDelay: "0.4s" }} />
-          <svg viewBox="0 0 56 56" className="h-28 w-28">
-            <circle cx="28" cy="28" r="25" fill="none" stroke="rgb(99 102 241 / 0.3)" strokeWidth="2" />
-            <circle
-              cx="28" cy="28" r="25" fill="none" stroke="#4f46e5" strokeWidth="2.5"
-              strokeLinecap="round" strokeDasharray="157" strokeDashoffset="157"
-              style={{ animation: "check-draw 0.9s cubic-bezier(0.65,0,0.35,1) 0.1s forwards" }}
-            />
-            <path
-              d="M17 29 L25 37 L39 21"
-              fill="none"
-              stroke="#6366f1"
-              strokeWidth="3.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeDasharray="84"
-              strokeDashoffset="84"
-              style={{ animation: "check-draw 0.7s ease-out 0.75s forwards" }}
-            />
-          </svg>
-        </div>
-
-        <h3 className="mt-6 font-display text-2xl font-extrabold tracking-[-0.02em]">
-          APPLICATION <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent">SENT.</span>
-        </h3>
-        <p className="mx-auto mt-2 max-w-[22rem] text-[0.92rem] leading-relaxed text-slate-500">
-          Your application is now in review — our team responds within 12 hours. Watch the status update live below.
-        </p>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-/* ------------------------------ helpers ------------------------------ */
-
-function resizeImage(file: File, max: number): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(1, max / Math.max(img.width, img.height));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(img.width * scale));
-      canvas.height = Math.max(1, Math.round(img.height * scale));
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        URL.revokeObjectURL(url);
-        reject(new Error("Canvas unavailable"));
-        return;
-      }
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL(file.type === "image/png" ? "image/png" : "image/webp", 0.85));
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Bad image"));
-    };
-    img.src = url;
-  });
-}
-
-function Field({
-  label, id, value, onChange, placeholder, error, required, type = "text", icon,
-}: {
-  label: string; id: string; value: string; onChange: (v: string) => void; placeholder?: string; error?: string; required?: boolean; type?: string; icon?: React.ReactNode;
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="mb-1.5 block font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">
-        {label}
-      </label>
-      <div className="relative">
-        {icon ? (
-          <span aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-            {icon}
-          </span>
-        ) : null}
-        <input
-          id={id} name={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required}
-          className={cn(
-            "w-full rounded-xl border bg-white px-4 py-3 text-[0.95rem] text-slate-900 shadow-[0_1px_2px_rgb(15_23_42/0.04)] outline-none transition-all duration-300 placeholder:text-slate-400",
-            icon ? "pl-11" : undefined,
-            error
-              ? "border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10"
-              : "border-slate-200 hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/12"
-          )}
-        />
-      </div>
-      {error ? <p className="mt-1.5 text-[0.78rem] font-medium text-rose-600">{error}</p> : null}
-    </div>
-  );
-}
-
-function Chip({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1 font-mono text-[0.68rem] text-slate-500">
-      {icon}
-      {children}
-    </span>
-  );
-}
-
-function ErrorNote({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-[0.85rem] font-medium text-rose-600">
-      {children}
-    </p>
   );
 }

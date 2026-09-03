@@ -15,7 +15,7 @@ const ReportSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const rl = await rateLimitDb(clientKey(request, "report"), 40, 60_000);
+  const rl = await rateLimitDb(await clientKey(request, "report"), 40, 60_000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many reports.", retryAfter: rl.retryAfter },

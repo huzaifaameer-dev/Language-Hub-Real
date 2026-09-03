@@ -18,7 +18,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: "Invalid session." }, { status: 400 });
   }
 
-  const rl = await rateLimitDb(clientKey(request, `password:${session.user.id}`), 10, 60 * 60 * 1000);
+  const rl = await rateLimitDb(await clientKey(request, `password:${session.user.id}`), 10, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many attempts. Please try again later." },

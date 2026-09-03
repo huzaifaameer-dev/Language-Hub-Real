@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { getAdminSession } from "@/lib/admin-session";
-import { subscribe } from "@/lib/realtime";
+import { subscribe, type LiveEvent } from "@/lib/realtime";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -32,8 +32,21 @@ export async function GET(request: Request) {
   send(`retry: 2000\n\n`);
   send(`data: ${JSON.stringify({ table: "poll", at: Date.now() })}\n\n`);
 
+  // Server-side filtering: never stream another user's events onto a
+  // learner's connection. Poll signals (value-less keepalives) go to everyone;
+  // admins (who manage the whole catalog) get the full feed; a learner only
+  // receives events explicitly targeted at their own userId.
+  const viewerId = session?.user?.id ?? null;
+  const isAdmin = !!admin?.email;
+  const relevant = (ev: LiveEvent): boolean => {
+    if (ev.table === "poll") return true;
+    if (isAdmin) return true;
+    if (!viewerId) return false;
+    return ev.userId === viewerId;
+  };
+
   const unsubscribe = subscribe((ev) => {
-    send(`data: ${JSON.stringify(ev)}\n\n`);
+    if (relevant(ev)) send(`data: ${JSON.stringify(ev)}\n\n`);
   });
 
   // Keep the connection alive through idle proxies/proxies without activity.

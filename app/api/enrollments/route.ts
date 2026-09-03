@@ -4,9 +4,10 @@ import { auth } from "@/auth";
 import {
   getApplicationsCollection,
   getEnrollmentsCollection,
-  getCoursesCollection,
   ensureIndexesAndAdmin,
+  ENROLLMENT_ACTIVE_STATUSES,
 } from "@/lib/db";
+import { checkSeatAvailability } from "@/lib/course-stats";
 import { publishEvent } from "@/lib/realtime";
 import { EnrollmentSchema, fieldErrors } from "@/lib/validate";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
 
-  const rl = await rateLimitDb(clientKey(request, `enroll:${session.user.id}`), 5, 60 * 60 * 1000);
+  const rl = await rateLimitDb(await clientKey(request, `enroll:${session.user.id}`), 5, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many submissions. Please try again later." },
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
 
   const existingEnrolled = await enrollments.findOne({
     userId: session.user.id,
-    status: { $in: ["PENDING", "ENROLLED"] },
+    status: { $in: ENROLLMENT_ACTIVE_STATUSES },
   });
   if (existingEnrolled) {
     return NextResponse.json(
@@ -75,43 +76,14 @@ const data = parsed.data;
   const now = new Date();
 
   // Seat gate: reject when any chosen subject's batch is already full in the
-  // live catalog, so admin never over-subscribes a running batch. Batch values
-  // are admin-managed per course (no hardcoded enum), so every batch is also
-  // verified against the course's own list.
-  await ensureIndexesAndAdmin();
-  const coursesCol = await getCoursesCollection();
-  const [courseDocs, enrolledDocs] = await Promise.all([
-    coursesCol.find({ active: true, name: { $in: data.subjects } }).toArray(),
-    enrollments
-      .find({ status: "ENROLLED" })
-      .project({ batch: 1 })
-      .toArray(),
-  ]);
-
-  const missing = courseDocs.find((c) => !(c.batches ?? []).some((b) => b.name === data.batch));
-  if (missing) {
+  // live catalog, so admin never over-subscribes a running batch. The batch is
+  // verified against each subject's own admin-managed batch list, and subjects
+  // are validated against the active catalog rather than a hardcoded list.
+  const gate = await checkSeatAvailability(data.subjects, data.batch);
+  if (!gate.ok) {
     return NextResponse.json(
-      { message: `${data.batch} is not a batch of ${missing.name}.` },
-      { status: 400 }
-    );
-  }
-
-  const batchCount = new Map<string, number>();
-  for (const e of enrolledDocs) batchCount.set(e.batch, (batchCount.get(e.batch) ?? 0) + 1);
-  const full: string[] = [];
-  for (const c of courseDocs) {
-    const batch = (c.batches ?? []).find((b) => b.name === data.batch);
-    if (batch && (batchCount.get(batch.name) ?? 0) >= batch.seatsTotal) {
-      full.push(`${c.name} · ${batch.name}`);
-    }
-  }
-  if (full.length > 0) {
-    return NextResponse.json(
-      {
-        message: `That batch is full. Try another batch: ${full.join(", ")}`,
-        code: "BATCH_FULL",
-      },
-      { status: 409 }
+      { message: gate.message, code: gate.code },
+      { status: gate.code === "BATCH_FULL" ? 409 : 400 }
     );
   }
 
@@ -123,6 +95,9 @@ const data = parsed.data;
     subjects: data.subjects,
     batch: data.batch,
     plan: data.plan || undefined,
+    paymentMethod: data.paymentMethod,
+    paymentInstructions: null,
+    paymentProof: null,
     status: "PENDING",
     adminMessage: null,
     createdAt: now,
@@ -166,6 +141,9 @@ export async function GET() {
     subjects: d.subjects,
     batch: d.batch,
     plan: d.plan,
+    paymentMethod: d.paymentMethod,
+    paymentInstructions: d.paymentInstructions,
+    paymentProof: d.paymentProof,
     status: d.status,
     adminMessage: d.adminMessage,
     createdAt: d.createdAt.toISOString(),

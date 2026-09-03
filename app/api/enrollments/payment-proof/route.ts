@@ -1,48 +1,44 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { mkdir, unlink } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import sharp, { type Metadata } from "sharp";
 
 import { auth } from "@/auth";
-import { getDb } from "@/lib/db";
+import { getDb, ENROLLMENT_ACTIVE_STATUSES } from "@/lib/db";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { z } from "zod";
 
-const AvatarSchema = z.object({
+const ProofSchema = z.object({
+  enrollmentId: z.string().min(1),
   dataUrl: z
     .string()
     .min(10, "Empty image.")
-    .max(3_500_000, "Image is too large (max 2.5 MB encoded)."),
+    .max(7_000_000, "Image is too large (max 5 MB encoded)."),
 });
 
 const ALLOWED_PREFIXES = ["data:image/jpeg;base64,", "data:image/png;base64,", "data:image/webp;base64,"];
 
-const AVATAR_SIZE = 196; // px (largest square used in the UI is ~96px; @2x covers it)
-const AVATAR_QUALITY = 82;
+const PROOF_WIDTH = 1400; // downscale wide screenshots, keep them readable
+const PROOF_QUALITY = 82;
 
 function uploadsDir(): string {
-  return path.join(process.cwd(), "public", "uploads", "avatars");
+  return path.join(process.cwd(), "private", "uploads", "proof");
 }
 
-function avatarPath(userId: string): string {
-  // userId is a validated ObjectId, safe to use in a filename.
-  return path.join(uploadsDir(), `${userId}.webp`);
+function proofPath(enrollmentId: string): string {
+  return path.join(uploadsDir(), `${enrollmentId}.webp`);
 }
 
-function publicUrl(userId: string): string {
-  return `/uploads/avatars/${userId}.webp`;
+/** Signed API path to retrieve a proof (never exposed from /public). */
+function publicUrl(enrollmentId: string): string {
+  return `/api/proof/${enrollmentId}`;
 }
 
-async function removeOldAvatars(userId: string): Promise<void> {
-  const dir = uploadsDir();
-  await Promise.all([
-    unlink(path.join(dir, `${userId}.jpg`)).catch(() => {}),
-    unlink(path.join(dir, `${userId}.png`)).catch(() => {}),
-    unlink(path.join(dir, `${userId}.webp`)).catch(() => {}),
-  ]);
-}
-
+/**
+ * Student uploads a payment-proof screenshot. Marks the enrollment
+ * PROOF_SUBMITTED so the admin can review the money-transfer receipt.
+ */
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -52,7 +48,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid session." }, { status: 400 });
   }
 
-  const rl = await rateLimitDb(await clientKey(request, `avatar:${session.user.id}`), 10, 60 * 60 * 1000);
+  const rl = await rateLimitDb(await clientKey(request, `proof:${session.user.id}`), 10, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json({ message: "Too many uploads. Wait a bit." }, { status: 429 });
   }
@@ -64,12 +60,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid request body." }, { status: 400 });
   }
 
-  const parsed = AvatarSchema.safeParse(body);
+  const parsed = ProofSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { message: "Validation failed.", errors: z.flattenError(parsed.error).fieldErrors },
-      { status: 400 }
-    );
+    return NextResponse.json({ message: "Validation failed." }, { status: 400 });
+  }
+
+  const enrollmentId = parsed.data.enrollmentId;
+  if (!ObjectId.isValid(enrollmentId)) {
+    return NextResponse.json({ message: "Invalid enrollment." }, { status: 400 });
+  }
+
+  // The enrollment must belong to this user and be in an active state.
+  const db = await getDb();
+  const enrollments = db.collection("enrollments");
+  const target = await enrollments.findOne({
+    _id: new ObjectId(enrollmentId),
+    userId: session.user.id,
+    status: { $in: ENROLLMENT_ACTIVE_STATUSES },
+  });
+  if (!target) {
+    return NextResponse.json({ message: "Enrollment not found or not active." }, { status: 404 });
   }
 
   const dataUrl = parsed.data.dataUrl.trim();
@@ -88,7 +98,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid image data." }, { status: 400 });
   }
 
-  // Decode with sharp so the format is actually verified, not just claimed.
   let meta: Metadata;
   try {
     meta = await sharp(input).metadata();
@@ -102,26 +111,30 @@ export async function POST(request: Request) {
   let output: Buffer;
   try {
     output = await sharp(input)
-      .rotate() // honour EXIF orientation
-      .resize(AVATAR_SIZE, AVATAR_SIZE, { fit: "cover", position: "centre" })
-      .webp({ quality: AVATAR_QUALITY })
+      .rotate()
+      .resize({ width: PROOF_WIDTH, withoutEnlargement: true })
+      .webp({ quality: PROOF_QUALITY })
       .toBuffer();
   } catch {
     return NextResponse.json({ message: "Image processing failed." }, { status: 422 });
   }
 
   await mkdir(uploadsDir(), { recursive: true });
-  await removeOldAvatars(session.user.id); // clear any jpg/png/webp leftovers
-  const filePath = avatarPath(session.user.id);
+  const filePath = proofPath(enrollmentId);
   const { writeFile } = await import("node:fs/promises");
   await writeFile(filePath, output);
 
-  const url = publicUrl(session.user.id);
-  const db = await getDb();
-  await db.collection("users").updateOne(
-    { _id: new ObjectId(session.user.id) },
-    { $set: { image: url, updatedAt: new Date() } }
+  const url = publicUrl(enrollmentId);
+  await enrollments.updateOne(
+    { _id: new ObjectId(enrollmentId) },
+    {
+      $set: {
+        status: "PROOF_SUBMITTED",
+        paymentProof: url,
+        updatedAt: new Date(),
+      },
+    }
   );
 
-  return NextResponse.json({ ok: true, image: url });
+  return NextResponse.json({ ok: true, proof: url, status: "PROOF_SUBMITTED" }, { status: 201 });
 }
