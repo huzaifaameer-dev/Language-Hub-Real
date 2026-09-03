@@ -42,10 +42,11 @@ module.exports = {
   // Images are served locally (blog covers at /uploads/blog/...), so we keep
   // them on-disk and only rely on the browser/HTTP caching — no external image
   // CDN. Fetching through Next's optimizer is not needed for these already
-  // re-compressed WebP uploads.
+  // re-compressed WebP uploads, so we mark them unoptimized (identical
+  // pass-through to the previous custom loader) and avoid the
+  // "loader does not implement width" dev warning.
   images: {
-    loader: "custom",
-    loaderFile: "./lib/image-loader.ts",
+    unoptimized: true,
   },
   allowedDevOrigins: ["192.168.100.7", "127.0.0.1", "localhost"],
   async headers() {
