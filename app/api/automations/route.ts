@@ -7,6 +7,7 @@ import {
   emailConfigured,
 } from "@/lib/email";
 import { formatPKR } from "@/lib/course-data";
+import { createDedupTracker } from "@/lib/automation-dedup";
 
 export const dynamic = "force-dynamic";
 
@@ -44,16 +45,19 @@ export async function GET(request: Request) {
   }>("automation_sends");
   const now = new Date();
 
-  async function alreadySent(key: string): Promise<boolean> {
-    return !!(await sends.findOne({ key }));
-  }
-  async function markSent(key: string, kind: string) {
-    try {
-      await sends.insertOne({ key, kind, sentAt: now });
-    } catch {
-      // unique index race — fine, another tick already sent it
-    }
-  }
+  // Dedup via a tiny store backed by the collection (unique-index race is
+  // swallowed by insertOne in markSent) — keeps every send to one email/one
+  // automation from firing twice.
+  const dedup = createDedupTracker({
+    has: async (key) => !!(await sends.findOne({ key })),
+    add: async (key) => {
+      try {
+        await sends.insertOne({ key, kind: "dedup", sentAt: now });
+      } catch {
+        // unique index race — fine, another tick already sent it
+      }
+    },
+  });
 
   const sent: Array<{ kind: string; to: string }> = [];
 
@@ -79,10 +83,10 @@ export async function GET(request: Request) {
     if (appCount > 0) continue;
 
     const key = `abandoned:${email.toLowerCase()}`;
-    if (await alreadySent(key)) continue;
+    if (await dedup.alreadySent(key)) continue;
 
     await sendAbandonedApplicationEmail({ to: email, name: u.name, daysAgo });
-    await markSent(key, "abandoned_application");
+    await dedup.markSent(key);
     sent.push({ kind: "abandoned_application", to: email });
   }
 
@@ -103,7 +107,7 @@ export async function GET(request: Request) {
     if (!email) continue;
     const daysAgo = Math.max(1, Math.floor((now.getTime() - new Date(e.updatedAt as Date).getTime()) / 86400000));
     const key = `payment:${email.toLowerCase()}`;
-    if (await alreadySent(key)) continue;
+    if (await dedup.alreadySent(key)) continue;
 
     const subjects = Array.isArray(e.subjects) ? (e.subjects as string[]) : [];
     const course = subjects[0];
@@ -120,7 +124,7 @@ export async function GET(request: Request) {
       amountLabel: amount,
       daysAgo,
     });
-    await markSent(key, "payment_reminder");
+    await dedup.markSent(key);
     sent.push({ kind: "payment_reminder", to: email });
   }
 
@@ -144,10 +148,10 @@ export async function GET(request: Request) {
     const appCount = await db.collection("applications").countDocuments({ email });
     if (appCount > 0) continue;
     const key = `seq2:${email.toLowerCase()}`;
-    if (await alreadySent(key)) continue;
+    if (await dedup.alreadySent(key)) continue;
 
     await sendSequenceStep2Email({ to: email, name: u.name });
-    await markSent(key, "welcome_sequence_2");
+    await dedup.markSent(key);
     sent.push({ kind: "welcome_sequence_2", to: email });
   }
 
