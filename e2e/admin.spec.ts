@@ -1,8 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-const ADMIN_EMAIL = "huzaifa.ameer.2009@gmail.com";
-const ADMIN_PASS = "Hub!Admin2026Secure";
-const ADMIN_CODE = "LH-2026-SECURE-KEY";
+// Admin credentials come from env (set to match the server-under-test), never
+// production values. CI supplies its own fixtures via LH_TEST_ADMIN_*.
+const ADMIN_EMAIL = process.env.LH_TEST_ADMIN_EMAIL ?? "ci.e2e.admin@languagehub.test";
+const ADMIN_PASS = process.env.LH_TEST_ADMIN_PASSWORD ?? "E2e-Test-Admin-Pass-9x!";
+const ADMIN_CODE = process.env.LH_TEST_ADMIN_ACCESS_CODE ?? "E2E-TEST-ACCESS-9x";
 
 test("admin gate unlock -> user directory tab", async ({ page }) => {
   await page.goto("/admin-panel");

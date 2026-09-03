@@ -42,12 +42,16 @@ next-env.d.ts
 
 # dev artifacts
 *.log
+*.serverlog.txt
+serverlog.txt
 dev.log
 public/uploads/*.jpg
 public/uploads/*.png
 public/uploads/*.webp
 # avatar uploads (resized webp on disk, never committed)
 public/uploads/avatars/
+# private payment-proofs (outside /public, served via auth-guarded route)
+/private/
 # keep the uploads folder itself
 !public/uploads/.gitkeep
 

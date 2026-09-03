@@ -1,8 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-const ADMIN_EMAIL = "huzaifa.ameer.2009@gmail.com";
-const ADMIN_PASS = "Hub!Admin2026Secure";
-const ADMIN_CODE = "LH-2026-SECURE-KEY";
+// Admin credentials come from env (set to match the server-under-test), never
+// production values. CI supplies its own fixtures via LH_TEST_ADMIN_*.
+const ADMIN_EMAIL = process.env.LH_TEST_ADMIN_EMAIL ?? "ci.e2e.admin@languagehub.test";
+const ADMIN_PASS = process.env.LH_TEST_ADMIN_PASSWORD ?? "E2e-Test-Admin-Pass-9x!";
+const ADMIN_CODE = process.env.LH_TEST_ADMIN_ACCESS_CODE ?? "E2E-TEST-ACCESS-9x";
 
 const random = () => Math.random().toString(36).slice(2, 10);
 const EMAIL = `hp-${Date.now()}-${random()}@example.com`;
@@ -119,11 +121,24 @@ test("signup -> apply -> admin approve -> enroll -> admin confirm", async ({
   };
   const enr = enrollments.find((e) => e.email === EMAIL);
   expect(enr, "enrollment reaches the admin queue").toBeTruthy();
-  const enrollRes = await request.patch("/api/admin/enrollments", {
+
+  // Mirror the real admin flow: request payment, then confirm the seat.
+  const reqPayRes = await request.patch("/api/admin/enrollments", {
     headers: adminHeaders,
-    data: { id: enr!.id, action: "ENROLL", message: "Seat locked — see your books!" },
+    data: {
+      id: enr!.id,
+      action: "REQUEST_PAYMENT",
+      message: "Send your fee to lock the seat.",
+      paymentInstructions: "Rs 12,000 via JazzCash 0300-1234567 — upload the receipt.",
+    },
   });
-  expect(enrollRes.ok(), `enroll failed: ${enrollRes.statusText()}`).toBeTruthy();
+  expect(reqPayRes.ok(), `request payment failed: ${reqPayRes.statusText()}`).toBeTruthy();
+
+  const confirmRes = await request.patch("/api/admin/enrollments", {
+    headers: adminHeaders,
+    data: { id: enr!.id, action: "CONFIRM", message: "Seat locked — see your books!" },
+  });
+  expect(confirmRes.ok(), `confirm seat failed: ${confirmRes.statusText()}`).toBeTruthy();
 
   // 6 —— user sees the fully-onboarded state (celebration overlay is a
 // transient 5s animation; the persistent state below is the stable proof).

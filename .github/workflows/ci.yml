@@ -5,6 +5,10 @@ on:
     branches: [master, main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -30,7 +34,15 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Upload build cache for e2e
+        uses: actions/upload-artifact@v4
+        with:
+          name: next-cache
+          path: .next
+          if-no-files-found: ignore
+
   e2e:
+    needs: checks
     runs-on: ubuntu-latest
     services:
       mongodb:
@@ -40,8 +52,11 @@ jobs:
     env:
       MONGODB_URI: mongodb://127.0.0.1:27017
       MONGODB_DB: languagehub
-      ADMIN_EMAIL: huzaifa.ameer.2009@gmail.com
-      ADMIN_PASSWORD: Hub!Admin2026Secure
+      # TEST-ONLY fixtures — never production credentials. Matches the defaults
+      # in e2e/*.spec.ts (they can be overridden via the LH_TEST_ADMIN_* vars).
+      ADMIN_EMAIL: ci.e2e.admin@languagehub.test
+      ADMIN_PASSWORD: E2e-Test-Admin-Pass-9x!
+      ADMIN_ACCESS_CODE: E2E-TEST-ACCESS-9x
       NEXTAUTH_SECRET: ci-only-secret-00000000000000000000000000000000
       AUTH_SECRET: ci-only-secret-00000000000000000000000000000000
       NEXTAUTH_URL: http://localhost:3000
@@ -67,6 +82,7 @@ jobs:
         run: npx playwright test
         env:
           E2E_BASE_URL: http://127.0.0.1:3000
+          CI: "true"
 
       - uses: actions/upload-artifact@v4
         if: failure()
