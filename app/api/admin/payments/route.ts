@@ -13,13 +13,28 @@ export async function GET() {
   if (!admin) return NextResponse.json({ message: "Forbidden." }, { status: 403 });
 
   const db = await getDb();
-  const [docs, total, paid, failed, refunded, pending] = await Promise.all([
+  const notWithdrawal = { $or: [{ type: { $ne: "WITHDRAWAL" } }, { type: { $exists: false } }] };
+  const [docs, total, paid, failed, refunded, pending, depAgg, witAgg] = await Promise.all([
     db.collection("payments").find({}).sort({ createdAt: -1 }).limit(300).toArray(),
     db.collection("payments").countDocuments({}),
     db.collection("payments").countDocuments({ status: "PAID" }),
     db.collection("payments").countDocuments({ status: "FAILED" }),
     db.collection("payments").countDocuments({ status: "REFUNDED" }),
     db.collection("payments").countDocuments({ status: "PENDING" }),
+    db
+      .collection("payments")
+      .aggregate([
+        { $match: { status: "PAID", ...notWithdrawal } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ])
+      .toArray(),
+    db
+      .collection("payments")
+      .aggregate([
+        { $match: { status: "PAID", type: "WITHDRAWAL" } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ])
+      .toArray(),
   ]);
 
   const list = docs.map((d) => ({
@@ -39,9 +54,17 @@ export async function GET() {
     createdAt: d.createdAt?.toISOString?.() ?? null,
   }));
 
+  const depositsTotal = depAgg[0]?.total ?? 0;
+  const withdrawalsTotal = witAgg[0]?.total ?? 0;
+
   return NextResponse.json({
     payments: list,
     counts: { total, paid, failed, refunded, pending },
+    finance: {
+      deposits: depositsTotal,
+      withdrawals: withdrawalsTotal,
+      balance: depositsTotal - withdrawalsTotal,
+    },
   });
 }
 
@@ -88,6 +111,36 @@ export async function POST(request: Request) {
 
   const now = new Date();
   const enrollmentId = typeof body.enrollmentId === "string" ? body.enrollmentId : "";
+
+  // A withdrawal must actually be covered by available balance — it reduces the
+  // ledger balance (deposits − withdrawals) instead of just being logged.
+  if (type === "WITHDRAWAL") {
+    const [deposits, withdrawals] = await Promise.all([
+      db
+        .collection("payments")
+        .aggregate([
+          { $match: { status: "PAID", $or: [{ type: { $ne: "WITHDRAWAL" } }, { type: { $exists: false } }] } },
+          { $group: { _id: null, total: { $sum: "$amount" } } },
+        ])
+        .toArray(),
+      db
+        .collection("payments")
+        .aggregate([
+          { $match: { status: "PAID", type: "WITHDRAWAL" } },
+          { $group: { _id: null, total: { $sum: "$amount" } } },
+        ])
+        .toArray(),
+    ]);
+    const balance = (deposits[0]?.total ?? 0) - (withdrawals[0]?.total ?? 0);
+    if (amount > balance) {
+      return NextResponse.json(
+        {
+          message: `Insufficient balance. Available: PKR ${Math.max(0, balance).toLocaleString()}. Cannot withdraw PKR ${amount.toLocaleString()}.`,
+        },
+        { status: 400 }
+      );
+    }
+  }
 
   const result = await db.collection("payments").insertOne({
     enrollmentId,

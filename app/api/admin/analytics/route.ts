@@ -48,24 +48,36 @@ export async function GET() {
     db
       .collection("payments")
       .find({ status: "PAID", createdAt: { $gte: bucketStart(now, "7d")[0] } })
-      .project({ amount: 1, createdAt: 1 })
+      .project({ amount: 1, createdAt: 1, type: 1 })
       .toArray(),
     db
       .collection("payments")
       .find({ status: "PAID", createdAt: { $gte: bucketStart(now, "30d")[0] } })
-      .project({ amount: 1, createdAt: 1 })
+      .project({ amount: 1, createdAt: 1, type: 1 })
       .toArray(),
   ]);
 
+  // Revenue buckets exclude withdrawals so money-out never inflates income.
+  const isDeposit = (p: { type?: string }) => (p.type ?? "DEPOSIT") !== "WITHDRAWAL";
   const rev7Buckets = toBuckets(bucketStart(now, "7d"), () => 0).map((b) => {
     const sum = rev7
-      .filter((p) => p.createdAt && bucketKey(new Date(p.createdAt as Date)) === b.date)
+      .filter(
+        (p) =>
+          isDeposit(p) &&
+          p.createdAt &&
+          bucketKey(new Date(p.createdAt as Date)) === b.date
+      )
       .reduce((s, p) => s + (p.amount ?? 0), 0);
     return { ...b, value: sum };
   });
   const rev30Buckets = toBuckets(bucketStart(now, "30d"), () => 0).map((b) => {
     const sum = rev30
-      .filter((p) => p.createdAt && bucketKey(new Date(p.createdAt as Date)) === b.date)
+      .filter(
+        (p) =>
+          isDeposit(p) &&
+          p.createdAt &&
+          bucketKey(new Date(p.createdAt as Date)) === b.date
+      )
       .reduce((s, p) => s + (p.amount ?? 0), 0);
     return { ...b, value: sum };
   });
@@ -73,13 +85,19 @@ export async function GET() {
   const rev7Total = rev7Buckets.reduce((s, b) => s + b.value, 0);
   const rev30Total = rev30Buckets.reduce((s, b) => s + b.value, 0);
 
-  // Total lifetime revenue + running totals
+  // Lifetime revenue (deposits only) + total withdrawals + net cash balance.
   const allPaid = await db
     .collection("payments")
     .find({ status: "PAID" })
-    .project({ amount: 1, createdAt: 1 })
+    .project({ amount: 1, createdAt: 1, type: 1 })
     .toArray();
-  const lifetimeRevenue = allPaid.reduce((s, p) => s + (p.amount ?? 0), 0);
+  const lifetimeRevenue = allPaid
+    .filter((p) => isDeposit(p))
+    .reduce((s, p) => s + (p.amount ?? 0), 0);
+  const lifetimeWithdrawals = allPaid
+    .filter((p) => !isDeposit(p))
+    .reduce((s, p) => s + (p.amount ?? 0), 0);
+  const balance = lifetimeRevenue - lifetimeWithdrawals;
 
   // ---------- Student signups over time (non-admin users) ----------
   const [users7, users30] = await Promise.all([
@@ -165,6 +183,8 @@ export async function GET() {
     {
       revenue: {
         lifetime: lifetimeRevenue,
+        withdrawals: lifetimeWithdrawals,
+        balance,
         week7: rev7Total,
         month30: rev30Total,
         series7: rev7Buckets,

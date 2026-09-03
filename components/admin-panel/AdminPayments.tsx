@@ -50,6 +50,7 @@ export function AdminPayments() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [recordOpen, setRecordOpen] = useState(false);
+  const [finance, setFinance] = useState<{ deposits: number; withdrawals: number; balance: number } | null>(null);
   const PAGE_SIZE = 25;
 
   const fetchAll = useCallback(() => {
@@ -59,6 +60,7 @@ export function AdminPayments() {
         if (data) {
           setPayments(data.payments ?? []);
           setCounts(data.counts ?? { total: 0, paid: 0, failed: 0, refunded: 0, pending: 0 });
+          setFinance(data.finance ?? null);
           setLoaded(true);
         }
       })
@@ -180,6 +182,16 @@ export function AdminPayments() {
           <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.3em] text-emerald-600">Revenue</p>
           <p className="mt-2 font-display text-[1.6rem] font-extrabold text-ink">Rs. <CountUp to={totalRevenue} /></p>
           <p className="font-mono text-[0.58rem] text-ink-3">{totalWithdrawn ? `collected · ${totalWithdrawn.toLocaleString()} withdrawn` : "collected (PKR)"}</p>
+        </GlassPanel>
+        <GlassPanel className="p-4! ring-1 ring-brand/20">
+          <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.3em] text-brand-deep">Net Balance</p>
+          <p className={cn("mt-2 font-display text-[1.6rem] font-extrabold", (finance?.balance ?? totalRevenue) < 0 ? "text-rose-600" : "text-ink")}>
+            Rs. <CountUp to={finance?.balance ?? totalRevenue} />
+          </p>
+          <p className="font-mono text-[0.58rem] text-ink-3">
+            deposits − withdrawals
+            {finance ? ` · ${finance.deposits.toLocaleString()} − ${finance.withdrawals.toLocaleString()}` : ""}
+          </p>
         </GlassPanel>
         <GlassPanel className="p-4!">
           <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.3em] text-amber-600">Pending</p>
