@@ -2,7 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Menu, Sparkles, X } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronDown,
+  GraduationCap,
+  BookOpen,
+  ClipboardList,
+  Languages,
+  Menu,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
@@ -14,25 +24,47 @@ import { FocusTrap, useEscapeKey } from "@/components/ui/FocusTrap";
 import { BookDemoButton } from "@/components/contact/BookDemoButton";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
-import { Magnetic } from "@/components/ui/Magnetic";
 import { useLang } from "@/components/LanguageProvider";
+import { FALLBACK_COURSES, courseSlug } from "@/lib/course-data";
 
-/** In-page section anchors, labelled via the i18n dictionary. */
-const SECTIONS = [
+interface CourseItem {
+  slug: string;
+  name: string;
+  tagline: string;
+  icon: typeof GraduationCap;
+}
+
+/** Programme dropdown built from the live course catalogue. */
+function buildCourses(dict: Record<string, string>): CourseItem[] {
+  return FALLBACK_COURSES.map((c) => {
+    const cfg: Record<string, { tagline: string; icon: typeof GraduationCap }> = {
+      "Spoken English": {
+        tagline: dict["nav.course.spoken"] ?? "Build real confidence",
+        icon: Languages,
+      },
+      "IELTS Preparation": {
+        tagline: dict["nav.course.ielts"] ?? "Reach Band 6.5+",
+        icon: GraduationCap,
+      },
+      "PTE Preparation": {
+        tagline: dict["nav.course.pte"] ?? "Computer-first, AI-scored",
+        icon: ClipboardList,
+      },
+      "Duolingo English Test": {
+        tagline: dict["nav.course.det"] ?? "Score 110+ fast",
+        icon: BookOpen,
+      },
+    };
+    const def = cfg[c.name] ?? { tagline: "Explore", icon: GraduationCap };
+    return { slug: courseSlug(c.name), name: c.name, tagline: def.tagline, icon: def.icon };
+  });
+}
+
+const PAGES = [
   { id: "home", key: "nav.home" },
-  { id: "journey", key: "nav.journey" },
   { id: "about", key: "nav.about" },
-  { id: "courses", key: "nav.courses" },
-  { id: "pricing", key: "nav.pricing" },
   { id: "reviews", key: "nav.reviews" },
   { id: "faq", key: "nav.faq" },
-] as const;
-
-/** Standalone routes, labelled via the i18n dictionary. */
-const ROUTES = [
-  { href: "/team", key: "nav.team" },
-  { href: "/placement-test", key: "nav.placement" },
-  { href: "/blog", key: "nav.blog" },
 ] as const;
 
 export function Navbar() {
@@ -41,15 +73,19 @@ export function Navbar() {
   const [active, setActive] = useState("home");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [programmesOpen, setProgrammesOpen] = useState(false);
   const reduceMotion = useReducedMotion();
   const pathname = usePathname();
   const router = useRouter();
   const onSite = pathname === "/";
+  const courses = buildCourses(dict);
 
   useBodyScrollLock(menuOpen);
-  useEscapeKey(() => setMenuOpen(false), menuOpen);
+  useEscapeKey(() => {
+    setMenuOpen(false);
+    setProgrammesOpen(false);
+  }, menuOpen || programmesOpen);
 
-  // Track scroll for the floating-glass transition.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -57,7 +93,6 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Track the in-view section with an IntersectionObserver for the active pill.
   useEffect(() => {
     const sections = document.querySelectorAll<HTMLElement>("[data-section]");
     const observer = new IntersectionObserver(
@@ -72,8 +107,19 @@ export function Navbar() {
     return () => observer.disconnect();
   }, []);
 
+  // Close menus when the user navigates back/forward (external event).
+  useEffect(() => {
+    const close = () => {
+      setProgrammesOpen(false);
+      setMenuOpen(false);
+    };
+    window.addEventListener("popstate", close);
+    return () => window.removeEventListener("popstate", close);
+  }, []);
+
   const go = (id: string) => {
     setMenuOpen(false);
+    setProgrammesOpen(false);
     if (!onSite) {
       try {
         sessionStorage.setItem("lh:scroll-to", id);
@@ -84,6 +130,8 @@ export function Navbar() {
     scrollToId(id);
   };
 
+  const activeCourse = pathname?.startsWith("/courses") ?? false;
+
   return (
     <>
       <motion.header
@@ -92,67 +140,165 @@ export function Navbar() {
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
         className="fixed inset-x-0 top-0 z-[100]"
       >
-        {/* Scroll progress hairline */}
         <ScrollProgress className="relative z-10 h-[3px] w-full" />
 
         <nav
           aria-label="Primary"
-          className="mx-auto flex max-w-7xl items-center justify-between px-4 transition-all duration-500 sm:px-6"
-          style={{ height: scrolled ? "4rem" : "4.75rem" }}
+          className={cn(
+            "mx-auto flex max-w-7xl items-center justify-between px-4 transition-all duration-500 sm:px-6",
+            scrolled ? "h-16" : "h-20"
+          )}
+          dir={isUr ? "rtl" : "ltr"}
         >
-          {/* Logo */}
+          {/* Wordmark */}
           <button
             type="button"
             onClick={() => go("home")}
             aria-label="Language Hub — back to top"
-            className="group flex shrink-0 items-center gap-2.5"
+            className="group relative z-[60] flex shrink-0 items-center gap-3"
           >
-            <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white shadow-[0_6px_18px_-6px_rgb(15_23_42/0.25)] ring-1 ring-black/[0.05] transition-transform duration-300 group-hover:scale-105">
+            <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white shadow-[0_6px_18px_-6px_rgb(15_23_42/0.28)] ring-1 ring-black/[0.05] transition-transform duration-300 group-hover:scale-105">
               <Logo size="xs" eager />
             </span>
-            <span className="hidden font-display text-[0.82rem] font-extrabold tracking-[0.12em] text-ink sm:block">
-              LANGUAGE<span className="gold-text"> HUB</span>
+            <span className="flex flex-col items-start leading-none">
+              <span className="font-display text-[0.95rem] font-extrabold tracking-[0.08em] text-ink">
+                LANGUAGE<span className="gold-text"> HUB</span>
+              </span>
+              <span className="mt-1 hidden text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-ink-3 sm:block">
+                Excellence in English
+              </span>
             </span>
           </button>
 
-          {/* Desktop nav */}
+          {/* Center nav — grouped + dropdown */}
           <div
             className={cn(
-              "hidden items-center gap-0.5 rounded-2xl px-1.5 py-1 transition-all duration-500 lg:flex",
+              "hidden items-center gap-0.5 rounded-full px-1.5 py-1 lg:flex",
+              "relative border transition-all duration-500",
               scrolled
-                ? "border border-white/60 bg-white/75 shadow-[0_10px_34px_-16px_rgb(15_23_42/0.35)] backdrop-blur-xl"
-                : "border border-transparent bg-transparent"
+                ? "border-white/60 bg-white/80 shadow-[0_14px_40px_-18px_rgb(15_23_42/0.4)] backdrop-blur-xl"
+                : "border-transparent bg-white/0"
             )}
-            dir={isUr ? "rtl" : "ltr"}
           >
-            {SECTIONS.map((s) => (
-              <NavItemButton
-                key={s.id}
-                label={dict[s.key] ?? s.key}
-                active={active === s.id}
-                onClick={() => go(s.id)}
-                reducedMotion={!!reduceMotion}
-              />
-            ))}
-            {ROUTES.map((r) => (
-              <NavItemButton
-                key={r.href}
-                label={dict[r.key] ?? r.key}
-                active={onSite ? false : pathname?.startsWith(r.href) ?? false}
-                onClick={() => router.push(r.href)}
-                href={r.href}
+            {/* Programmes dropdown trigger */}
+            <div
+              className="relative"
+              onMouseEnter={() => !reduceMotion && setProgrammesOpen(true)}
+              onMouseLeave={() => setProgrammesOpen(false)}
+            >
+              <button
+                type="button"
+                onClick={() => setProgrammesOpen((o) => !o)}
+                aria-expanded={programmesOpen}
+                aria-haspopup="true"
+                className={cn(
+                  "relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-[0.78rem] font-bold tracking-[0.03em] transition-colors duration-300",
+                  activeCourse ? "text-brand-deep" : "text-ink hover:text-ink"
+                )}
+              >
+                {activeCourse && !reduceMotion && (
+                  <motion.span
+                    layoutId="nav-pill"
+                    className="absolute inset-0 rounded-full bg-gradient-to-b from-brand/[0.14] to-brand/[0.06] ring-1 ring-brand/20"
+                  />
+                )}
+                <span className="relative z-10 flex items-center gap-1.5">
+                  {dict["nav.courses"] ?? "Programmes"}
+                  <ChevronDown
+                    className={cn(
+                      "h-3.5 w-3.5 transition-transform duration-300",
+                      programmesOpen && "rotate-180"
+                    )}
+                    strokeWidth={2.4}
+                  />
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {programmesOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute left-1/2 top-[calc(100%+0.75rem)] w-[26rem] -translate-x-1/2"
+                    role="menu"
+                    aria-label={dict["nav.courses"] ?? "Programmes"}
+                  >
+                    <div className="overflow-hidden rounded-3xl border border-ink/[0.06] bg-white/95 p-2 shadow-[0_30px_80px_-28px_rgb(15_23_42/0.45)] backdrop-blur-xl">
+                      <div className="flex items-center justify-between px-4 pb-2 pt-3">
+                        <span className="font-display text-[0.62rem] font-bold uppercase tracking-[0.28em] text-gold-deep">
+                          {dict["nav.courses"] ?? "Programmes"}
+                        </span>
+                        <span className="text-[0.62rem] font-semibold text-ink-3">
+                          {dict["nav.programmes.hint"] ?? "4 proven paths"}
+                        </span>
+                      </div>
+                      {courses.map((c) => (
+                        <Link
+                          key={c.slug}
+                          href={`/courses/${c.slug}`}
+                          onClick={() => setProgrammesOpen(false)}
+                          role="menuitem"
+                          className="group flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors duration-200 hover:bg-brand/[0.05]"
+                        >
+                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand/[0.08] text-brand-deep transition-transform duration-300 group-hover:scale-105">
+                            <c.icon className="h-5 w-5" strokeWidth={1.9} />
+                          </span>
+                          <span className="flex min-w-0 flex-1 flex-col">
+                            <span className="font-display text-[0.85rem] font-bold text-ink">
+                              {c.name}
+                            </span>
+                            <span className="text-[0.7rem] font-medium text-ink-3">{c.tagline}</span>
+                          </span>
+                          <ArrowRight
+                            className="h-4 w-4 -translate-x-1 text-brand opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
+                            strokeWidth={2}
+                          />
+                        </Link>
+                      ))}
+                      <div className="mt-1 border-t border-ink/[0.05] px-3 pb-2 pt-3">
+                        <button
+                          type="button"
+                          onClick={() => go("pricing")}
+                          className="inline-flex items-center gap-1.5 font-display text-[0.72rem] font-bold text-brand-deep transition-colors hover:text-brand"
+                        >
+                          {dict["nav.pricing"] ?? "View pricing"}
+                          <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.4} />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Page links */}
+            {PAGES.map((p) => (
+              <NavLink
+                key={p.id}
+                label={dict[p.key] ?? p.key}
+                active={active === p.id}
+                onClick={() => go(p.id)}
                 reducedMotion={!!reduceMotion}
               />
             ))}
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="hidden md:block">
-              <Magnetic strength={0.22} glare>
-                <BookDemoButton className="h-10 px-5 text-[0.78rem]" />
-              </Magnetic>
-            </div>
+          {/* Right actions */}
+          <div className="relative z-[60] flex items-center gap-2 sm:gap-2.5">
+            <Link
+              href="/placement-test"
+              className={cn(
+                "hidden h-10 items-center gap-1.5 rounded-full px-4 font-display text-[0.78rem] font-bold transition-all duration-300 xl:inline-flex",
+                pathname === "/placement-test"
+                  ? "bg-brand/[0.1] text-brand-deep"
+                  : "text-ink-2 hover:bg-ink/[0.04] hover:text-ink"
+              )}
+            >
+              {dict["nav.placement"] ?? "Placement Test"}
+            </Link>
+            <BookDemoButton className="hidden h-10 px-5 text-[0.78rem] md:inline-flex" />
             <LanguageToggle />
             <div className="hidden sm:block">
               <AuthNavButtons />
@@ -168,8 +314,17 @@ export function Navbar() {
             </button>
           </div>
         </nav>
+
+        {/* Bottom hairline on scroll */}
+        <div
+          className={cn(
+            "h-px w-full bg-gradient-to-r from-transparent via-ink/10 to-transparent transition-opacity duration-500",
+            scrolled ? "opacity-100" : "opacity-0"
+          )}
+        />
       </motion.header>
 
+      {/* Mobile drawer */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -183,13 +338,12 @@ export function Navbar() {
             aria-label="Menu"
           >
             <FocusTrap active={menuOpen} className="flex h-full flex-col overflow-y-auto">
-              {/* Sheet header */}
               <div className="flex items-center justify-between px-6 py-4">
                 <span className="flex items-center gap-2.5">
                   <span className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-black/[0.05]">
                     <Logo size="xs" eager />
                   </span>
-                  <span className="font-display text-[0.82rem] font-extrabold tracking-[0.12em]">
+                  <span className="font-display text-[0.82rem] font-extrabold tracking-[0.08em]">
                     LANGUAGE<span className="gold-text"> HUB</span>
                   </span>
                 </span>
@@ -205,63 +359,58 @@ export function Navbar() {
 
               <div className="mx-6 h-px bg-ink/[0.06]" />
 
-              {/* Staggered links */}
-              <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-6">
-                <p className="mb-2 font-display text-[0.6rem] font-bold uppercase tracking-[0.3em] text-gold-deep">
-                  <Sparkles className="mr-1 inline h-3 w-3" /> Explore
+              <div className="flex flex-1 flex-col gap-1 px-6 py-5">
+                <p className="mb-2 flex items-center gap-1.5 font-display text-[0.6rem] font-bold uppercase tracking-[0.3em] text-gold-deep">
+                  <Sparkles className="h-3 w-3" /> {dict["nav.courses"] ?? "Programmes"}
                 </p>
-                {SECTIONS.map((s, i) => {
-                  const label = dict[s.key] ?? s.key;
-                  return (
-                    <motion.div
-                      key={s.id}
-                      initial={{ opacity: 0, x: 40 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.05 + i * 0.05, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => go(s.id)}
-                        className={cn(
-                          "group flex w-full items-center justify-between py-3.5 font-display text-[1.35rem] font-bold tracking-tight transition-all",
-                          active === s.id
-                            ? "text-brand-deep"
-                            : "text-ink hover:translate-x-1 hover:text-brand-deep"
-                        )}
-                      >
-                        {label}
-                        <ArrowRight className="h-5 w-5 -translate-x-1 text-ink/25 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100" strokeWidth={2} />
-                      </button>
-                    </motion.div>
-                  );
-                })}
-                <motion.div
-                  className="mt-1 border-t border-ink/[0.06] pt-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.4 }}
-                >
-                  {ROUTES.map((r, i) => (
+                {courses.map((c, i) => (
+                  <motion.div
+                    key={c.slug}
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.05 + i * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  >
                     <Link
-                      key={r.href}
-                      href={r.href}
+                      href={`/courses/${c.slug}`}
                       onClick={() => setMenuOpen(false)}
-                      className="group flex items-center gap-2 py-3 font-display text-base font-bold text-ink-2 transition-all hover:translate-x-1 hover:text-brand-deep"
+                      className="group flex items-center gap-3 rounded-2xl px-2 py-2.5 transition-colors hover:bg-brand/[0.05]"
                     >
-                      <span className="font-mono text-[0.7rem] text-gold-deep">
-                        0{i + SECTIONS.length + 1}
+                      <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand/[0.08] text-brand-deep">
+                        <c.icon className="h-5 w-5" strokeWidth={1.9} />
                       </span>
-                      {dict[r.key] ?? r.key}
+                      <span className="flex flex-col">
+                        <span className="font-display text-base font-bold text-ink">{c.name}</span>
+                        <span className="text-[0.7rem] font-medium text-ink-3">{c.tagline}</span>
+                      </span>
                     </Link>
+                  </motion.div>
+                ))}
+
+                <div className="mt-3 border-t border-ink/[0.06] pt-4">
+                  {PAGES.map((p, i) => (
+                    <motion.button
+                      key={p.id}
+                      type="button"
+                      onClick={() => go(p.id)}
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.25 + i * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                      className={cn(
+                        "flex w-full items-center justify-between py-3 font-display text-lg font-bold tracking-tight transition-colors",
+                        active === p.id ? "text-brand-deep" : "text-ink hover:text-brand-deep"
+                      )}
+                    >
+                      {dict[p.key] ?? p.key}
+                      <ArrowRight className="h-5 w-5 text-ink/25" strokeWidth={2} />
+                    </motion.button>
                   ))}
-                </motion.div>
+                </div>
               </div>
 
-              {/* Sheet footer */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25, duration: 0.45 }}
+                transition={{ delay: 0.3, duration: 0.45 }}
                 className="mx-6 mb-6 flex flex-col gap-3 rounded-2xl bg-white p-4 shadow-[0_18px_40px_-24px_rgb(15_23_42/0.3)] ring-1 ring-black/[0.05]"
               >
                 <BookDemoButton className="h-12 w-full" />
@@ -278,48 +427,35 @@ export function Navbar() {
   );
 }
 
-/** A single nav pill with a spring-gliding active indicator behind it. */
-function NavItemButton({
+/** A single animated nav link with a shared gliding active pill. */
+function NavLink({
   label,
   active,
   onClick,
-  href,
   reducedMotion,
 }: {
   label: string;
   active: boolean;
   onClick: () => void;
-  href?: string;
   reducedMotion: boolean;
 }) {
-  const inner = (
-    <>
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative inline-flex items-center rounded-full px-3.5 py-2 font-display text-[0.78rem] font-bold tracking-[0.03em] transition-colors duration-300",
+        active ? "text-brand-deep" : "text-ink-2 hover:text-ink"
+      )}
+    >
       {active && !reducedMotion && (
         <motion.span
-          layoutId="nav-active-pill"
+          layoutId="nav-pill"
           transition={{ type: "spring", stiffness: 380, damping: 32 }}
-          className="absolute inset-0 rounded-xl bg-gradient-to-b from-brand/[0.12] to-brand/[0.06] ring-1 ring-brand/20"
+          className="absolute inset-0 rounded-full bg-gradient-to-b from-brand/[0.14] to-brand/[0.06] ring-1 ring-brand/20"
         />
       )}
       <span className="relative z-10">{label}</span>
-    </>
-  );
-
-  const classes = cn(
-    "relative inline-flex items-center px-3.5 py-2 font-display text-[0.76rem] font-bold tracking-[0.04em] transition-colors duration-300",
-    active ? "text-brand-deep" : "text-ink-2 hover:text-ink"
-  );
-
-  if (href) {
-    return (
-      <Link href={href} onClick={onClick} className={classes}>
-        {inner}
-      </Link>
-    );
-  }
-  return (
-    <button type="button" onClick={onClick} className={classes}>
-      {inner}
     </button>
   );
 }

@@ -19,6 +19,11 @@ export const enDict: Dict = {
   "nav.bookDemo": "Book a Free Demo",
   "nav.signIn": "Sign in",
   "nav.signUp": "Sign up",
+  "nav.programmes.hint": "4 proven paths",
+  "nav.course.spoken": "Build real confidence",
+  "nav.course.ielts": "Reach Band 6.5+",
+  "nav.course.pte": "Computer-first, AI-scored",
+  "nav.course.det": "Score 110+ fast",
 
   // Hero
   "hero.eyebrow": "Hub of Language Excellence",
@@ -159,6 +164,11 @@ export const urDict: Dict = {
   "nav.bookDemo": "مفت ڈیمو بک کریں",
   "nav.signIn": "لاگ ان",
   "nav.signUp": "رجسٹر کریں",
+  "nav.programmes.hint": "چار ثابت شدہ راستے",
+  "nav.course.spoken": "حقیقی اعتماد بنائیں",
+  "nav.course.ielts": "بینڈ 6.5+ حاصل کریں",
+  "nav.course.pte": "کمپیوٹر پر مبنی، AI اسکور",
+  "nav.course.det": "110+ اسکور کریں",
 
   "hero.eyebrow": "زبان کی عمدگی کا مرکز",
   "hero.headline.a": "انگریزی",
