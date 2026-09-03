@@ -46,13 +46,17 @@ export function getDb(): Promise<Db> {
 
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
 
+/** How a manually-recorded payment/withdrawal entered the ledger. */
+export type PaymentLedgerType = "DEPOSIT" | "WITHDRAWAL";
+export type ManualPaymentMethod = "card" | "easypaisa" | "jazzcash" | "bank" | "cash";
+
 export interface PaymentDoc {
   _id?: unknown;
   enrollmentId: string;
   userId: string;
   amount: number;
   currency: string;
-  /** "manual" for screenshot flow, "card"/"stripe" for online checkout, "konnect" for EasyPaisa/JazzCash. */
+  /** "manual" for screenshot flow / admin-recorded, "card"/"stripe" for online checkout, "konnect" for EasyPaisa/JazzCash. */
   provider: "manual" | "stripe" | "konnect";
   /** Stripe PaymentIntent / Session id when online. */
   providerRef?: string | null;
@@ -61,6 +65,16 @@ export interface PaymentDoc {
   /** True when the charge was actually refunded through Stripe (not just marked). */
   refundedRef?: string | null;
   status: PaymentStatus;
+  /** DEPOSIT (money in) vs WITHDRAWAL (money out). Defaults to DEPOSIT. */
+  type?: PaymentLedgerType;
+  /** How a manual record was settled (card/easypaisa/jazzcash/bank/cash). */
+  method?: ManualPaymentMethod | null;
+  /** Optional admin note attached to a manual record. */
+  note?: string | null;
+  /** Free-text payer/bank name for manual records without an enrollment. */
+  studentName?: string | null;
+  studentEmail?: string | null;
+  createdBy?: string;
   createdAt: Date;
   updatedAt: Date;
 }

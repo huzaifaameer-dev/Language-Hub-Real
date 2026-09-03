@@ -30,6 +30,11 @@ export async function GET() {
     currency: d.currency,
     provider: d.provider,
     status: d.status,
+    type: d.type ?? "DEPOSIT",
+    method: d.method ?? null,
+    note: d.note ?? null,
+    studentName: d.studentName ?? null,
+    studentEmail: d.studentEmail ?? null,
     providerRef: d.providerRef ?? null,
     createdAt: d.createdAt?.toISOString?.() ?? null,
   }));
@@ -38,6 +43,78 @@ export async function GET() {
     payments: list,
     counts: { total, paid, failed, refunded, pending },
   });
+}
+
+/**
+ * Admin: record a manual payment or withdrawal into the ledger. The admin
+ * types in the amount and picks a settlement method (card / EasyPaisa /
+ * JazzCash / bank / cash) — no real gateway is hit, this is an offline ledger
+ * entry for cash, screenshots and walk-ins.
+ */
+export async function POST(request: Request) {
+  const admin = await requireAdmin();
+  if (!admin) return NextResponse.json({ message: "Forbidden." }, { status: 403 });
+
+  const db = await getDb();
+
+  const body = (await request.json().catch(() => null)) as {
+    type?: string;
+    method?: string;
+    amount?: unknown;
+    currency?: string;
+    note?: string;
+    studentName?: string;
+    studentEmail?: string;
+    enrollmentId?: string;
+  } | null;
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ message: "Invalid request body." }, { status: 400 });
+  }
+
+  const type = body.type === "WITHDRAWAL" ? "WITHDRAWAL" : "DEPOSIT";
+  const method =
+    body.method === "card" ||
+    body.method === "easypaisa" ||
+    body.method === "jazzcash" ||
+    body.method === "bank" ||
+    body.method === "cash"
+      ? body.method
+      : "cash";
+
+  const amount = Number(body.amount);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return NextResponse.json({ message: "A valid amount greater than zero is required." }, { status: 400 });
+  }
+
+  const now = new Date();
+  const enrollmentId = typeof body.enrollmentId === "string" ? body.enrollmentId : "";
+
+  const result = await db.collection("payments").insertOne({
+    enrollmentId,
+    userId: "",
+    amount,
+    currency: typeof body.currency === "string" && body.currency ? body.currency.slice(0, 3).toUpperCase() : "PKR",
+    provider: "manual",
+    status: "PAID",
+    type,
+    method,
+    note: typeof body.note === "string" && body.note ? body.note.slice(0, 300) : null,
+    studentName: typeof body.studentName === "string" && body.studentName ? body.studentName.slice(0, 120) : null,
+    studentEmail: typeof body.studentEmail === "string" && body.studentEmail ? body.studentEmail.slice(0, 160) : null,
+    createdBy: admin.email ?? "admin",
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  void logAdminAction({
+    actor: admin.email ?? "admin",
+    action: type === "WITHDRAWAL" ? "MANUAL_WITHDRAWAL" : "MANUAL_DEPOSIT",
+    targetType: "payment",
+    targetLabel: String(result.insertedId),
+    detail: `PKR ${amount.toLocaleString()} via ${method}${body.note ? ` (${body.note})` : ""}`,
+  });
+
+  return NextResponse.json({ ok: true, id: String(result.insertedId) }, { status: 201 });
 }
 
 /**
