@@ -16,6 +16,8 @@ interface Bucket {
 interface ReqAnalytics {
   revenue: {
     lifetime: number;
+    withdrawals: number;
+    balance: number;
     week7: number;
     month30: number;
     series7: Bucket[];
@@ -130,6 +132,12 @@ export function AdminAnalyticsCharts() {
           <p className="mt-3 font-display text-[2rem] font-black text-ink">{fmtPKR(analytics.revenue.month30)}</p>
           <p className="font-mono text-[0.58rem] text-ink-3">
             last 7 days: <b className="text-emerald-600">{fmtPKR(analytics.revenue.week7)}</b> · lifetime <b>{fmtPKR(analytics.revenue.lifetime)}</b>
+          </p>
+          <p className="mt-1 font-mono text-[0.58rem] text-ink-3">
+            withdrawn <b className="text-rose-600">{fmtPKR(analytics.revenue.withdrawals ?? 0)}</b> · net balance{" "}
+            <b className={cn(analytics.revenue.balance < 0 ? "text-rose-600" : "text-emerald-600")}>
+              {fmtPKR(analytics.revenue.balance ?? analytics.revenue.lifetime)}
+            </b>
           </p>
           <BarChart data={analytics.revenue.series30} accent="#10b981" valueFmt={fmtPKR} />
         </GlassPanel>
