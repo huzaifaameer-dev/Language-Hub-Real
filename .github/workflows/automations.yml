@@ -1,0 +1,23 @@
+name: Automations Cron
+
+on:
+  schedule:
+    # Every 6 hours (UTC). Adjust the cron to suit your traffic/runtime limits.
+    - cron: "0 */6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  run-automations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger /api/automations
+        env:
+          AUTOMATION_SECRET: ${{ secrets.AUTOMATION_SECRET }}
+        run: |
+          # TODO: Replace ACADEMY_PRODUCTION_URL with your real production domain,
+          # e.g. https://www.languagehub.example. Keep the secret query param.
+          ACADEMY_PRODUCTION_URL="https://your-domain.example"
+          curl -fsS \
+            -H "User-Agent: github-actions-cron" \
+            "$ACADEMY_PRODUCTION_URL/api/automations?secret=$AUTOMATION_SECRET" \
+            || echo "automations run reported a non-2xx status"
