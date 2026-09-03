@@ -12,7 +12,7 @@ const VerifySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const rl = await rateLimitDb(clientKey(request, "verify"), 10, 60 * 60 * 1000);
+  const rl = await rateLimitDb(await clientKey(request, "verify"), 10, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many attempts. Please try again later." },

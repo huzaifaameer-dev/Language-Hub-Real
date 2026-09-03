@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -136,12 +136,12 @@ export function AuthShell({
           <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
             <Link
               href="/"
-              className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-slate-200/70 transition-transform hover:scale-105"
+              className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-ink/8 transition-transform hover:scale-105"
               aria-label="Back to Language Hub"
             >
               <Logo size="xs" eager />
             </Link>
-            <span className="font-display text-[0.85rem] font-extrabold tracking-wide text-slate-900">
+            <span className="font-display text-[0.85rem] font-extrabold tracking-wide text-ink">
               Language Hub
             </span>
           </div>
@@ -150,16 +150,16 @@ export function AuthShell({
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease, delay: 0.12 }}
-            className="mb-7 text-center lg:text-left"
+            className="mb-7 text-center lg:text-start"
           >
-            <p className="font-display text-[0.72rem] font-bold uppercase tracking-[0.22em] text-indigo-600">
+            <p className="font-display text-[0.72rem] font-bold uppercase tracking-[0.22em] text-brand-deep">
               {kicker}
             </p>
-            <h1 className="mt-2 font-display text-[clamp(1.9rem,4.5vw,2.5rem)] font-extrabold leading-tight tracking-[-0.03em] text-slate-900">
+            <h1 className="mt-2 font-display text-[clamp(1.9rem,4.5vw,2.5rem)] font-extrabold leading-tight tracking-[-0.03em] text-ink">
               {title}
             </h1>
             {subtitle ? (
-              <p className="mt-2 font-sans text-[0.97rem] leading-relaxed text-slate-500">
+              <p className="mt-2 font-sans text-[0.97rem] leading-relaxed text-ink-2">
                 {subtitle}
               </p>
             ) : null}
@@ -169,7 +169,7 @@ export function AuthShell({
             initial={{ opacity: 0, y: 22 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease, delay: 0.2 }}
-            className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_30px_70px_-32px_rgb(15_23_42/0.35)] sm:p-8"
+            className="rounded-3xl border border-ink/10 bg-white p-6 shadow-[0_30px_70px_-32px_rgb(15_23_42/0.35)] sm:p-8"
           >
             {children}
           </motion.div>
@@ -178,7 +178,7 @@ export function AuthShell({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease, delay: 0.28 }}
-            className="mt-6 text-center font-sans text-[0.88rem] text-slate-500"
+            className="mt-6 text-center font-sans text-[0.88rem] text-ink-2"
           >
             {footer}
           </motion.p>
@@ -219,13 +219,13 @@ export function Field({
     <div>
       <label
         htmlFor={id}
-        className="mb-1.5 block font-sans text-[0.82rem] font-semibold text-slate-700"
+        className="mb-1.5 block font-sans text-[0.82rem] font-semibold text-ink"
       >
         {label}
       </label>
       <div className="relative">
         {icon ? (
-          <span aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
+          <span aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-3">
             {icon}
           </span>
         ) : null}
@@ -239,12 +239,12 @@ export function Field({
           autoComplete={autoComplete}
           required={required}
           className={cn(
-            "h-12 w-full rounded-xl border bg-white px-4 font-sans text-[0.95rem] text-slate-900 shadow-[0_1px_2px_rgb(15_23_42/0.04)] outline-none transition-all duration-300 placeholder:text-slate-400",
+            "h-12 w-full rounded-xl border bg-white px-4 font-sans text-[0.95rem] text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] outline-none transition-all duration-300 placeholder:text-ink-3",
             icon ? "pl-11" : undefined,
             trailing ? "pr-11" : undefined,
             error
               ? "border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10"
-              : "border-slate-200 hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/12"
+              : "border-ink/12 hover:border-slate-300 focus:border-brand/80 focus:ring-4 focus:ring-brand-deep/12"
           )}
         />
         {trailing ? (
@@ -256,7 +256,7 @@ export function Field({
           {error}
         </p>
       ) : hint ? (
-        <p className="mt-1.5 font-sans text-[0.78rem] font-medium text-slate-500">
+        <p className="mt-1.5 font-sans text-[0.78rem] font-medium text-ink-2">
           {hint}
         </p>
       ) : null}

@@ -18,7 +18,6 @@ function ResetPasswordForm() {
   const [confirm, setConfirm] = useState("");
   const [mode, setMode] = useState(token ? "set" : "request");
   const [message, setMessage] = useState<string | null>(null);
-  const [devLink, setDevLink] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -26,7 +25,6 @@ function ResetPasswordForm() {
     e.preventDefault();
     setError(null);
     setMessage(null);
-    setDevLink(null);
     setBusy(true);
     try {
       const res = await fetch("/api/auth/forgot", {
@@ -44,7 +42,6 @@ function ResetPasswordForm() {
             ? "If an account exists for that email, a reset link is on its way."
             : "If an account exists for that email, a reset link would be sent."
         );
-        if (data.devLink) setDevLink(data.devLink);
       }
     } catch {
       setError("Something went wrong. Please try again.");
@@ -57,7 +54,6 @@ function ResetPasswordForm() {
     e.preventDefault();
     setError(null);
     setMessage(null);
-    setDevLink(null);
     if (password !== confirm) {
       setError("Passwords do not match.");
       return;
@@ -98,7 +94,7 @@ function ResetPasswordForm() {
             : "We'll wait here while you check your email."
         }
         footer={
-          <Link href="/login" className="inline-flex items-center gap-1.5 font-bold text-indigo-600 underline-offset-4 hover:underline">
+          <Link href="/login" className="inline-flex items-center gap-1.5 font-bold text-brand-deep underline-offset-4 hover:underline">
             <ArrowLeft className="h-4 w-4" /> Back to sign in
           </Link>
         }
@@ -110,19 +106,10 @@ function ResetPasswordForm() {
             </p>
           ) : null}
 
-          {devLink ? (
-            <div className="flex flex-col gap-1 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Dev link (SMTP not configured)
-              </span>
-              <span className="break-all font-mono text-[0.8rem] text-slate-600">{devLink}</span>
-            </div>
-          ) : null}
-
           {mode === "done" ? (
             <Link
               href="/login"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.05]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-deep to-brand-deep font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.05]"
             >
               Sign in
             </Link>
@@ -131,7 +118,7 @@ function ResetPasswordForm() {
               type="button"
               onClick={requestLink}
               disabled={busy}
-              className="group mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.05] disabled:opacity-60"
+              className="group mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-deep to-brand-deep font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.05] disabled:opacity-60"
             >
               Send again
             </button>
@@ -139,7 +126,7 @@ function ResetPasswordForm() {
 
           <Link
             href="/login"
-            className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-slate-500 transition-colors hover:text-indigo-600"
+            className="inline-flex items-center justify-center gap-1.5 text-sm font-semibold text-ink-2 transition-colors hover:text-brand-deep"
           >
             <ArrowLeft className="h-4 w-4" /> Back to sign in
           </Link>
@@ -166,7 +153,7 @@ function ResetPasswordForm() {
           : "Pick a strong password you haven't used before."
       }
       footer={
-        <Link href="/login" className="inline-flex items-center gap-1.5 font-bold text-indigo-600 underline-offset-4 hover:underline">
+        <Link href="/login" className="inline-flex items-center gap-1.5 font-bold text-brand-deep underline-offset-4 hover:underline">
           <ArrowLeft className="h-4 w-4" /> Back to sign in
         </Link>
       }
@@ -221,7 +208,7 @@ function ResetPasswordForm() {
         <button
           type="submit"
           disabled={busy}
-          className="group mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-12px_rgb(99_102_241/0.85)] hover:brightness-[1.05] disabled:opacity-60"
+          className="group mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-deep to-brand-deep font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-12px_rgb(99_102_241/0.6)] hover:brightness-[1.05] disabled:opacity-60"
         >
           {busy ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />

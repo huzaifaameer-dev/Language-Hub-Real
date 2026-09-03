@@ -3,9 +3,12 @@ import { Inter, Manrope, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
+import { LanguageProvider } from "@/components/LanguageProvider";
 import { ErrorReporter } from "@/components/ErrorReporter";
 import { PwaInit } from "@/components/PwaInit";
 import { SiteAnalytics } from "@/components/analytics/SiteAnalytics";
+import { CONTACT, COURSE_CARDS, FAQS, OPENING_HOURS } from "@/lib/content";
+import { appBaseUrl } from "@/lib/base-url";
 
 const analyticsUrl =
   (process.env.ANALYTICS_SCRIPT_URL ?? "").trim() ||
@@ -30,8 +33,7 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const baseUrl =
-  (process.env.NEXTAUTH_URL || process.env.AUTH_URL || "http://localhost:3000").replace(/\/+$/, "");
+const baseUrl = appBaseUrl();
 
 const title = "Language Hub | Hub of Language Excellence";
 const description =
@@ -47,23 +49,75 @@ const organizationJsonLd = {
   logo: `${baseUrl}/opengraph-image`,
   image: `${baseUrl}/opengraph-image`,
   founder: { "@type": "Person", name: "Javeria Malik" },
-  email: process.env.ACADEMY_EMAIL ?? undefined,
+  email: CONTACT.email || undefined,
+  telephone: CONTACT.phone || undefined,
+  ...(CONTACT.address || CONTACT.city
+    ? {
+        address: {
+          "@type": "PostalAddress",
+          ...(CONTACT.address ? { streetAddress: CONTACT.address } : {}),
+          addressLocality: CONTACT.city,
+        },
+      }
+    : {}),
   knowsAbout: ["Spoken English", "IELTS preparation", "PTE preparation", "Duolingo English Test"],
   openingHoursSpecification: [
     {
       "@type": "OpeningHoursSpecification",
-      dayOfWeek: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ],
-      opens: "10:00",
-      closes: "20:00",
+      dayOfWeek: OPENING_HOURS.daysOfWeek,
+      opens: OPENING_HOURS.isoFrom,
+      closes: OPENING_HOURS.isoTo,
     },
   ],
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Programmes",
+    itemListElement: COURSE_CARDS.map((c) => ({
+      "@type": "Offer",
+      name: c.info.name,
+      description: c.info.description,
+      category: "course",
+      price: c.info.fee,
+      priceCurrency: c.info.currency,
+      eligibleRegion: { "@type": "Country", name: CONTACT.city || "Pakistan" },
+    })),
+  },
+};
+
+const coursesJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Language Hub Programmes",
+  itemListElement: COURSE_CARDS.map((c, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    item: {
+      "@type": "Course",
+      name: c.info.name,
+      description: c.info.description,
+      provider: {
+        "@type": "EducationalOrganization",
+        name: "Language Hub",
+        url: baseUrl,
+      },
+      offers: {
+        "@type": "Offer",
+        price: c.info.fee,
+        priceCurrency: c.info.currency,
+        priceValidUntil: new Date(new Date().getFullYear() + 1, 11, 31).toISOString().slice(0, 10),
+      },
+    },
+  })),
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
 };
 
 export const metadata: Metadata = {
@@ -84,7 +138,16 @@ export const metadata: Metadata = {
     "English communication",
     "Javeria Malik",
   ],
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    languages: {
+      en: "/",
+      "en-US": "/",
+      ur: "/?lang=ur",
+      "ur-PK": "/?lang=ur",
+      "x-default": "/",
+    },
+  },
   openGraph: {
     title,
     description,
@@ -120,7 +183,17 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
-        <Providers>{children}</Providers>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(coursesJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+        <Providers>
+          <LanguageProvider>{children}</LanguageProvider>
+        </Providers>
         <ErrorReporter />
         <PwaInit enabled={process.env.NODE_ENV === "production"} />
         <SiteAnalytics />

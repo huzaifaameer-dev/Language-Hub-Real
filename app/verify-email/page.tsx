@@ -62,7 +62,7 @@ function VerifyEmailForm() {
       title={
         state === "done" ? (
           <>
-            You&apos;re <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">verified.</span>
+            You&apos;re <span className="bg-gradient-to-r from-brand-deep to-brand-deep bg-clip-text text-transparent">verified.</span>
           </>
         ) : state === "checking" ? (
           "Verifying your email…"
@@ -78,7 +78,7 @@ function VerifyEmailForm() {
             : "We couldn't verify your email."
       }
       footer={
-        <Link href="/login" className="inline-flex items-center gap-1.5 font-bold text-indigo-600 underline-offset-4 hover:underline">
+        <Link href="/login" className="inline-flex items-center gap-1.5 font-bold text-brand-deep underline-offset-4 hover:underline">
           <ArrowLeft className="h-4 w-4" /> Back to sign in
         </Link>
       }
@@ -86,7 +86,7 @@ function VerifyEmailForm() {
       <div className="flex flex-col gap-4">
         {state === "checking" ? (
           <div className="grid h-12 place-items-center rounded-xl bg-slate-50">
-            <span className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-200 border-t-indigo-600" />
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand/20 border-t-brand-deep" />
           </div>
         ) : state === "done" ? (
           <>
@@ -95,7 +95,7 @@ function VerifyEmailForm() {
             </div>
             <Link
               href="/dashboard"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.05]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-deep to-brand-deep font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.05]"
             >
               Go to dashboard
             </Link>
@@ -106,11 +106,11 @@ function VerifyEmailForm() {
               <ShieldAlert className="h-9 w-9" strokeWidth={1.6} />
             </div>
             {error ? (
-              <p className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[0.88rem] font-medium text-slate-600">
+              <p className="rounded-xl border border-ink/12 bg-white px-4 py-3 text-[0.88rem] font-medium text-ink-2">
                 {error}
               </p>
             ) : null}
-            <p className="text-center text-[0.8rem] text-slate-400">
+            <p className="text-center text-[0.8rem] text-ink-3">
               You can ignore this if you already verified — most flows never block on it.
             </p>
           </>

@@ -46,14 +46,14 @@ export default function LoginPage() {
       kicker="Welcome back"
       title={
         <>
-          Glad to see <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">you again.</span>
+          Glad to see <span className="bg-gradient-to-r from-brand-deep to-brand-deep bg-clip-text text-transparent">you again.</span>
         </>
       }
       subtitle="Sign in to your dashboard and pick up right where you left off."
       footer={
         <>
           New to Language Hub?{" "}
-          <Link href="/signup" className="font-bold text-indigo-600 underline-offset-4 hover:underline">
+          <Link href="/signup" className="font-bold text-brand-deep underline-offset-4 hover:underline">
             Create an account
           </Link>
         </>
@@ -85,7 +85,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => setShowPass((v) => !v)}
               aria-label={showPass ? "Hide password" : "Show password"}
-              className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              className="grid h-9 w-9 place-items-center rounded-lg text-ink-3 transition-colors hover:bg-cream hover:text-ink"
             >
               {showPass ? <EyeOff className="h-4.5 w-4.5" strokeWidth={1.8} /> : <Eye className="h-4.5 w-4.5" strokeWidth={1.8} />}
             </button>
@@ -102,21 +102,21 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={busy}
-          className="group mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-12px_rgb(99_102_241/0.85)] hover:brightness-[1.05] disabled:opacity-60"
+          className="group mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-deep to-brand-deep font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-12px_rgb(99_102_241/0.6)] hover:brightness-[1.05] disabled:opacity-60"
         >
           {busy ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
           ) : (
             <>
               Sign In
-              <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+              <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">?</span>
             </>
           )}
         </button>
 
         <Link
           href="/reset-password"
-          className="-mt-1 self-center text-sm font-semibold text-slate-500 transition-colors hover:text-indigo-600"
+          className="-mt-1 self-center text-sm font-semibold text-ink-2 transition-colors hover:text-brand-deep"
         >
           Forgot your password?
         </Link>

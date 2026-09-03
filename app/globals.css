@@ -1,24 +1,24 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ivory: #faf8f4;
-  --color-cream: #f4efe6;
-  --color-parchment: #ece4d5;
-  --color-ink: #221e2b;
-  --color-ink-2: #4b4658;
-  --color-ink-3: #7d768a;
-  --color-night: #17131f;
-  --color-night-2: #1e1929;
-  --color-brand: #6e5ae0;
-  --color-brand-deep: #513fc4;
-  --color-brand-magenta: #d63a8c;
-  --color-brand-cyan: #2bb3d8;
-  --color-brand-fern: #2e9e6b;
-  --color-gold: #c2a05c;
-  --color-gold-light: #ead9b2;
-  --color-gold-deep: #a3823f;
-  --color-line: #e7e0d3;
-  --color-line-dark: rgb(255 255 255 / 0.1);
+  --color-ivory: #ffffff;
+  --color-cream: #f6f8fc;
+  --color-parchment: #eef1f8;
+  --color-ink: #0f172a;
+  --color-ink-2: #475569;
+  --color-ink-3: #94a3b8;
+  --color-night: #0b1220;
+  --color-night-2: #111a2e;
+  --color-brand: #6366f1;
+  --color-brand-deep: #4f46e5;
+  --color-brand-magenta: #8b5cf6;
+  --color-brand-cyan: #0ea5e9;
+  --color-brand-fern: #10b981;
+  --color-gold: #f59e0b;
+  --color-gold-light: #fcd34d;
+  --color-gold-deep: #d97706;
+  --color-line: #e5e9f2;
+  --color-line-dark: rgb(226 232 240 / 0.16);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-manrope), var(--font-inter), ui-sans-serif, sans-serif;
@@ -27,11 +27,11 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 
-  --shadow-soft: 0 30px 70px -30px rgb(34 30 43 / 0.25);
-  --shadow-card: 0 14px 44px -16px rgb(34 30 43 / 0.16);
-  --shadow-gold: 0 18px 50px -18px rgb(194 160 92 / 0.45);
-  --shadow-gold-strong: 0 22px 64px -20px rgb(194 160 92 / 0.65);
-  --shadow-book: 0 46px 90px -38px rgb(34 30 43 / 0.55);
+  --shadow-soft: 0 30px 70px -30px rgb(15 23 42 / 0.14);
+  --shadow-card: 0 14px 44px -16px rgb(15 23 42 / 0.1);
+  --shadow-gold: 0 18px 50px -18px rgb(245 158 11 / 0.4);
+  --shadow-gold-strong: 0 22px 64px -20px rgb(245 158 11 / 0.55);
+  --shadow-book: 0 46px 90px -38px rgb(15 23 42 / 0.35);
 
   --animate-spin-slow: spin 26s linear infinite;
   --animate-spin-slower: spin 60s linear infinite;
@@ -334,7 +334,7 @@
 }
 
 .text-shimmer {
-  background: linear-gradient(110deg, #a3823f 0%, #f4e3b2 30%, #c2a05c 50%, #fff8e0 70%, #a3823f 100%);
+  background: linear-gradient(110deg, #d97706 0%, #fcd34d 30%, #f59e0b 50%, #fef3c7 70%, #d97706 100%);
   background-size: 200% auto;
   -webkit-background-clip: text;
   background-clip: text;
@@ -349,8 +349,8 @@
 
 .bg-grid {
   background-image:
-    linear-gradient(rgb(34 30 43 / 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(34 30 43 / 0.05) 1px, transparent 1px);
+    linear-gradient(rgb(15 23 42 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(15 23 42 / 0.05) 1px, transparent 1px);
   background-size: 34px 34px;
 }
 
@@ -432,7 +432,7 @@
   }
 
   ::selection {
-    background: rgb(214 58 140 / 0.16);
+    background: rgb(99 102 241 / 0.18);
     color: var(--color-ink);
   }
 
@@ -457,19 +457,19 @@
 @layer components {
   /* ---------- modern app surfaces (auth + dashboard) ---------- */
 
-  .mesh-auth {
-    background:
-      radial-gradient(1200px 620px at 8% -12%, rgb(99 102 241 / 0.95), transparent 62%),
-      radial-gradient(1000px 540px at 112% 24%, rgb(124 58 237 / 0.9), transparent 58%),
-      radial-gradient(900px 560px at 50% 125%, rgb(217 70 239 / 0.55), transparent 62%),
-      linear-gradient(160deg, #4f46e5 0%, #7c3aed 52%, #a21caf 100%);
-  }
+.mesh-auth {
+      background:
+        radial-gradient(1200px 620px at 8% -12%, rgb(99 102 241 / 0.95), transparent 62%),
+        radial-gradient(1000px 540px at 112% 24%, rgb(79 70 229 / 0.9), transparent 58%),
+        radial-gradient(900px 560px at 50% 125%, rgb(14 165 233 / 0.5), transparent 62%),
+        linear-gradient(160deg, #4f46e5 0%, #6366f1 52%, #0ea5e9 100%);
+    }
 
   .mesh-hero {
     background:
       radial-gradient(900px 420px at 0% 0%, rgb(255 255 255 / 0.16), transparent 55%),
-      radial-gradient(760px 420px at 100% 100%, rgb(217 70 239 / 0.35), transparent 58%),
-      linear-gradient(150deg, #4f46e5 0%, #7c3aed 55%, #9333ea 100%);
+      radial-gradient(760px 420px at 100% 100%, rgb(14 165 233 / 0.3), transparent 58%),
+      linear-gradient(150deg, #4f46e5 0%, #6366f1 55%, #0ea5e9 100%);
   }
 
   .glass-app {
@@ -525,14 +525,14 @@
       box-shadow:
         0 0 0 1px rgb(255 255 255 / 0.6),
         0 18px 50px -24px rgb(99 102 241 / 0.35),
-        0 8px 28px -18px rgb(139 92 246 / 0.4),
+        0 8px 28px -18px rgb(79 70 229 / 0.4),
         inset 0 1px 0 rgb(255 255 255 / 0.9);
     }
     50% {
       box-shadow:
         0 0 0 1px rgb(255 255 255 / 0.75),
         0 24px 62px -20px rgb(99 102 241 / 0.55),
-        0 14px 42px -14px rgb(217 70 239 / 0.5),
+        0 14px 42px -14px rgb(139 92 246 / 0.5),
         inset 0 1px 0 rgb(255 255 255 / 0.95);
     }
   }
@@ -543,7 +543,7 @@
   }
 
   .timeline-gradient {
-    background: linear-gradient(90deg, #6366f1, #8b5cf6 45%, #d946ef 80%, #6366f1);
+    background: linear-gradient(90deg, #6366f1, #0ea5e9 45%, #8b5cf6 80%, #6366f1);
     background-size: 200% 100%;
     animation: timeline-flow 3s linear infinite;
   }
@@ -576,12 +576,12 @@
     margin-top: -5px;
     border-radius: 9999px;
     background: #fff;
-    box-shadow: 0 0 12px 4px rgb(139 92 246 / 0.85);
+    box-shadow: 0 0 12px 4px rgb(99 102 241 / 0.85);
     animation: comet 2.6s linear infinite;
   }
 
   .gold-text {
-    background: linear-gradient(115deg, #a3823f 0%, #e8d5a8 45%, #c2a05c 75%, #8f7234 100%);
+    background: linear-gradient(115deg, #b45309 0%, #fcd34d 45%, #f59e0b 75%, #d97706 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -590,12 +590,12 @@
   .gold-text-shimmer {
     background: linear-gradient(
       115deg,
-      #a3823f 0%,
-      #e8d5a8 28%,
-      #f7ecd2 42%,
-      #e8d5a8 56%,
-      #c2a05c 74%,
-      #8f7234 100%
+      #b45309 0%,
+      #fcd34d 28%,
+      #fef3c7 42%,
+      #fcd34d 56%,
+      #f59e0b 74%,
+      #d97706 100%
     );
     background-size: 220% auto;
     -webkit-background-clip: text;
@@ -607,10 +607,10 @@
   .indigo-text-shimmer {
     background: linear-gradient(
       115deg,
-      #4f46e5 0%,
-      #8b5cf6 26%,
-      #c084fc 42%,
-      #8b5cf6 58%,
+      #6366f1 0%,
+      #0ea5e9 26%,
+      #8b5cf6 42%,
+      #0ea5e9 58%,
       #6366f1 72%,
       #4f46e5 100%
     );
@@ -622,7 +622,7 @@
   }
 
   .brand-text {
-    background: linear-gradient(120deg, #6e5ae0 0%, #b23fd0 45%, #d63a8c 75%, #e06b9f 100%);
+    background: linear-gradient(120deg, #6366f1 0%, #8b5cf6 45%, #0ea5e9 75%, #38bdf8 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -632,7 +632,7 @@
     font-family: var(--font-display);
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: rgb(34 30 43 / 0.045);
+    color: rgb(15 23 42 / 0.045);
     user-select: none;
     pointer-events: none;
   }
@@ -647,7 +647,7 @@
   }
 
   .text-outline {
-    -webkit-text-stroke: 1px rgb(34 30 43 / 0.18);
+    -webkit-text-stroke: 1px rgb(15 23 42 / 0.18);
     color: transparent;
   }
 
@@ -664,7 +664,7 @@
   }
 
   .glass-dark {
-    background: rgb(23 19 31 / 0.5);
+    background: rgb(11 18 32 / 0.5);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgb(255 255 255 / 0.12);
@@ -675,12 +675,12 @@
     border-radius: 9999px;
     filter: blur(70px);
     animation: aurora 16s ease-in-out infinite alternate;
-    will-change: transform, opacity;
+    will-change: transform;
   }
 
   .rays {
     background: repeating-conic-gradient(
-      rgb(233 213 178 / 0.5) 0deg 4deg,
+      rgb(252 211 77 / 0.4) 0deg 4deg,
       transparent 4deg 26deg
     );
     animation: spin 60s linear infinite;
@@ -805,8 +805,8 @@
     bottom: 0.4rem;
     border-radius: 0.3rem;
     background:
-      linear-gradient(90deg, rgb(243 237 224 / 0.95), rgb(233 226 210 / 0.95));
-    box-shadow: -0.5rem 0.15rem 0.7rem rgb(34 30 43 / 0.3);
+      linear-gradient(90deg, rgb(248 250 253 / 0.97), rgb(241 244 250 / 0.97));
+    box-shadow: -0.5rem 0.15rem 0.7rem rgb(15 23 42 / 0.3);
     transform: translateZ(-0.55rem);
   }
   .book3d .page3d::before {
@@ -816,7 +816,7 @@
     left: 0;
     right: 0;
     height: 0.18rem;
-    background: linear-gradient(90deg, rgb(194 160 92 / 0.85), rgb(223 198 141 / 0.5));
+    background: linear-gradient(90deg, rgb(245 158 11 / 0.85), rgb(252 211 77 / 0.5));
   }
   .book3d .spine3d {
     position: absolute;
@@ -883,5 +883,83 @@
       var(--color-gold-light) 50%,
       var(--color-gold) 100%
     );
+  }
+
+  /* Fixedsize pinned galleries can skip offscreen render entirely — no CLS
+     because their height is explicit, so the browser skips layout/paint until
+     the section approaches the viewport. */
+  [data-locked] {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 800px;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: 3rem;
+    padding: 0 1.75rem;
+    border-radius: 9999px;
+    font-family: var(--font-display);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease,
+      border-color 0.3s ease,
+      transform 0.3s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--color-ink);
+    color: var(--color-ivory);
+  }
+  .btn-primary:hover {
+    background: var(--color-brand-deep);
+  }
+
+  .btn-gold {
+    background: var(--color-gold);
+    color: #fff;
+  }
+  .btn-gold:hover {
+    background: var(--color-gold-deep);
+  }
+
+  .btn-outline {
+    border-color: rgb(15 23 42 / 0.18);
+    color: var(--color-ink);
+    background: transparent;
+  }
+  .btn-outline:hover {
+    background: var(--color-ink);
+    color: var(--color-ivory);
+    border-color: var(--color-ink);
+  }
+
+  .btn-light {
+    background: rgb(255 255 255 / 0.92);
+    color: var(--color-ink);
+    border-color: rgb(255 255 255 / 0.6);
+  }
+  .btn-light:hover {
+    background: #fff;
+  }
+
+  .btn:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: rgb(99 102 241 / 0.22);
+    color: var(--color-ink);
   }
 }

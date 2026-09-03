@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   }
 
   const email = parsed.data.email.toLowerCase();
-  const rl = await rateLimitDb(clientKey(request, `forgot:${email}`), 5, 60 * 60 * 1000);
+  const rl = await rateLimitDb(await clientKey(request, `forgot:${email}`), 5, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many requests. Try again in about an hour." },
@@ -41,9 +41,18 @@ export async function POST(request: Request) {
   await ensureIndexesAndAdmin();
   const user = await db.collection("users").findOne({ email });
 
-  // Always respond identically whether or not the account exists (no user enumeration).
+  // Always respond identically whether or not the account exists (no user
+  // enumeration): same status and the same body shape. We deliberately do NOT
+  // surface `delivered`/`devLink`/HMAC differences that would leak whether the
+  // email is registered.
+  const genericBody = () =>
+    NextResponse.json({
+      ok: true,
+      smtpConfigured: emailConfigured(),
+    });
+
   if (!user) {
-    return NextResponse.json({ ok: true });
+    return genericBody();
   }
 
   const userId = String(user._id);
@@ -60,12 +69,7 @@ export async function POST(request: Request) {
     usedAt: null,
   });
 
-  const sent = await sendResetEmail({ to: email, name: user.name, token });
+  await sendResetEmail({ to: email, name: user.name, token });
 
-  return NextResponse.json({
-    ok: true,
-    delivered: sent.ok,
-    devLink: sent.devLink ?? null,
-    smtpConfigured: emailConfigured(),
-  });
+  return genericBody();
 }

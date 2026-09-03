@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -48,8 +48,8 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
           "group inline-flex h-10 items-center gap-2 rounded-full border px-4 font-display text-[0.72rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md transition-all duration-300",
           dark
             ? "border-gold/40 bg-gold/10 text-gold-light hover:-translate-y-0.5 hover:bg-gold/20"
-            : "border-ink/15 bg-ivory/70 text-ink hover:-translate-y-0.5 hover:border-indigo-400/60 hover:text-indigo-600",
-          variant === "dark" ? "focus-visible:outline-gold" : "focus-visible:outline-indigo-500"
+            : "border-ink/15 bg-ivory/70 text-ink hover:-translate-y-0.5 hover:border-brand/60 hover:text-brand-deep",
+          variant === "dark" ? "focus-visible:outline-gold" : "focus-visible:outline-brand/80"
         )}
       >
         Sign in
@@ -71,7 +71,7 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
         "group inline-flex h-11 items-center gap-2.5 rounded-full border py-1 pl-1 pr-4 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5",
         dark
           ? "border-gold/40 bg-gold/10 hover:bg-gold/20 focus-visible:outline-gold"
-          : "border-ink/15 bg-ivory/70 hover:border-indigo-400/60 focus-visible:outline-indigo-500"
+          : "border-ink/15 bg-ivory/70 hover:border-brand/60 focus-visible:outline-brand/80"
       )}
     >
       <span
@@ -81,7 +81,7 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
             ? "bg-white"
             : dark
               ? "bg-gradient-to-br from-gold-light to-gold-deep"
-              : "bg-gradient-to-br from-indigo-500 to-violet-600"
+              : "bg-gradient-to-br from-brand/80 to-brand-deep"
         )}
       >
         {image ? (

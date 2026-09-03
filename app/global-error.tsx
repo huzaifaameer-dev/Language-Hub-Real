@@ -97,12 +97,12 @@ export default function GlobalError({
               padding: "0 32px",
               border: 0,
               borderRadius: 999,
-              background: "linear-gradient(90deg,#6366f1,#8b5cf6)",
+              background: "linear-gradient(90deg,#4f46e5,#6366f1)",
               color: "#fff",
               fontWeight: 700,
               fontSize: 15,
               cursor: "pointer",
-              boxShadow: "0 14px 30px -12px rgba(99,102,241,0.75)",
+              boxShadow: "0 14px 30px -12px rgba(79,70,229,0.75)",
               outline: "none",
             }}
           >

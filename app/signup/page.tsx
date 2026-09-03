@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { Check, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { Check, Eye, EyeOff, Lock, Mail, Ticket, User } from "lucide-react";
 
 import { AuthShell, Field } from "@/components/auth/AuthShell";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
@@ -24,7 +24,18 @@ const PASSWORD_RULES = [
 ];
 
 export default function SignupPage() {
+  return (
+    <Suspense fallback={<div aria-hidden className="min-h-screen" />}>
+      <SignupForm />
+    </Suspense>
+  );
+}
+
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const refCode = (searchParams.get("ref") ?? "").trim().toUpperCase();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,7 +60,7 @@ export default function SignupPage() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, referralCode: refCode || undefined }),
       });
       const data = await res.json();
 
@@ -84,20 +95,29 @@ export default function SignupPage() {
       kicker="Join the Hub"
       title={
         <>
-          Create your <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent">voice.</span>
+          Create your <span className="bg-gradient-to-r from-brand-deep to-brand-magenta bg-clip-text text-transparent">voice.</span>
         </>
       }
       subtitle="A free account lets you apply to a course and track your application live."
       footer={
         <>
           Already have an account?{" "}
-          <Link href="/login" className="font-bold text-indigo-600 underline-offset-4 hover:underline">
+          <Link href="/login" className="font-bold text-brand-deep underline-offset-4 hover:underline">
             Sign in
           </Link>
         </>
       }
     >
       <form onSubmit={submit} className="flex flex-col gap-4">
+        {refCode ? (
+          <div className="flex items-center gap-3 rounded-xl border border-gold/30 bg-gold/10 px-4 py-3">
+            <Ticket className="h-5 w-5 shrink-0 text-gold-deep" />
+            <div className="text-[0.85rem] text-ink">
+              <p className="font-bold text-gold-deep">Referral discount applied</p>
+              <p className="text-ink-2">Code <code className="rounded bg-white px-1.5 py-0.5 font-mono text-[0.78rem] font-bold text-brand-deep">{refCode}</code> · 10% off on your course</p>
+            </div>
+          </div>
+        ) : null}
         <Field
           label="Full Name"
           id="signup-name"
@@ -137,7 +157,7 @@ export default function SignupPage() {
                 type="button"
                 onClick={() => setShowPass((v) => !v)}
                 aria-label={showPass ? "Hide password" : "Show password"}
-                className="grid h-9 w-9 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                className="grid h-9 w-9 place-items-center rounded-lg text-ink-3 transition-colors hover:bg-cream hover:text-ink"
               >
                 {showPass ? <EyeOff className="h-4.5 w-4.5" strokeWidth={1.8} /> : <Eye className="h-4.5 w-4.5" strokeWidth={1.8} />}
               </button>
@@ -154,7 +174,7 @@ export default function SignupPage() {
                     "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-mono text-[0.62rem] font-bold transition-colors",
                     r.ok
                       ? "bg-emerald-500/12 text-emerald-600"
-                      : "bg-slate-100 text-slate-400"
+                      : "bg-cream text-ink-3"
                   )}
                 >
                   {r.ok ? <Check className="h-3 w-3" strokeWidth={3} /> : <span aria-hidden>·</span>}
@@ -174,7 +194,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={busy}
-          className="group mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-12px_rgb(99_102_241/0.85)] hover:brightness-[1.05] disabled:opacity-60"
+          className="group mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-deep to-brand-deep font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-12px_rgb(99_102_241/0.6)] hover:brightness-[1.05] disabled:opacity-60"
         >
           {busy ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
