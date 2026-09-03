@@ -26,6 +26,7 @@ const cspHeader = `
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
+    frame-src https://www.youtube.com https://www.youtube-nocookie.com;
     worker-src 'self';
 `;
 
