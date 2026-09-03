@@ -1,62 +1,47 @@
-"use client";
-
-import { useCallback, useEffect, useState } from "react";
-import { KineticIntro } from "@/components/intro/KineticIntro";
+import { IntroGate } from "@/components/intro/IntroGate";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Hero } from "@/components/hero/Hero";
-import { Transformation } from "@/components/transformation/Transformation";
+import { ProgramMarquee } from "@/components/hero/ProgramMarquee";
+import { Stats } from "@/components/about/Stats";
 import { Journey } from "@/components/journey/Journey";
 import { About } from "@/components/about/About";
+import { Features } from "@/components/philosophy/Features";
 import { Courses } from "@/components/courses/Courses";
-import { Bookshelf } from "@/components/resources/Bookshelf";
-import { Expression } from "@/components/expression/Expression";
-import { Voice } from "@/components/voice/Voice";
-import { WhyHub } from "@/components/philosophy/WhyHub";
-import { JaveriaSection } from "@/components/javeria/JaveriaSection";
-import { Hours } from "@/components/hours/Hours";
-import { FinalScene } from "@/components/final/FinalScene";
+import { CoursePricing } from "@/components/courses/CoursePricing";
+import { Reviews } from "@/components/reviews/Reviews";
+import { FaqSection } from "@/components/faq/FaqSection";
+import { CtaBanner } from "@/components/contact/CtaBanner";
 import { Footer } from "@/components/footer/Footer";
-import { Cursor } from "@/components/ui/Cursor";
-import { useBodyScrollLock } from "@/lib/hooks";
-import { destroyLenis, initLenis } from "@/lib/lenis";
-import { initScrollSystem } from "@/lib/scroll";
+import { LiveEnrollmentBanner } from "@/components/social-proof/LiveEnrollmentBanner";
+import { ACADEMY, TESTIMONIALS } from "@/lib/content";
 
+/** Aggregate rating grounded in the testimonials we actually publish. */
+const ratingJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  name: ACADEMY.name,
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: 5,
+    bestRating: 5,
+    worstRating: 1,
+    ratingCount: TESTIMONIALS.length,
+    reviewCount: TESTIMONIALS.length,
+  },
+};
+
+/**
+ * Server component: the marketing page is pre-rendered to static HTML.
+ * Interactive pieces (intro, nav, per-section motion, live seats/reviews) are
+ * client islands — the sections themselves do not ship JS.
+ */
 export function Site() {
-  const [ready, setReady] = useState(false);
-  const [introDone, setIntroDone] = useState(false);
-  useBodyScrollLock(!introDone);
-
-  const handleComplete = useCallback(() => {
-    try {
-      window.localStorage.setItem("lh:intro-seen", "1");
-    } catch {}
-    setIntroDone(true);
-    window.dispatchEvent(new Event("lh:intro-done"));
-  }, []);
-
-  useEffect(() => {
-    const raf = window.requestAnimationFrame(() => {
-      let seen = false;
-      try {
-        seen = window.localStorage.getItem("lh:intro-seen") === "1";
-      } catch {}
-      if (seen) setIntroDone(true);
-      setReady(true);
-    });
-    return () => window.cancelAnimationFrame(raf);
-  }, []);
-
-  useEffect(() => {
-    if (introDone) {
-      initScrollSystem();
-      initLenis();
-    } else {
-      destroyLenis();
-    }
-  }, [introDone]);
-
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingJsonLd) }}
+      />
       <a
         href="#main"
         className="sr-only z-[130] rounded-full bg-ink px-5 py-2 text-sm text-ivory focus:not-sr-only focus:fixed focus:left-4 focus:top-4"
@@ -64,26 +49,24 @@ export function Site() {
         Skip to content
       </a>
 
-      {ready && !introDone && <KineticIntro onComplete={handleComplete} />}
-
-      <Cursor />
-      <Navbar />
-
-      <main id="main" inert={!introDone}>
-        <Hero />
-        <Transformation />
-        <Journey />
-        <About />
-        <Courses />
-        <Bookshelf />
-        <Expression />
-        <Voice />
-        <WhyHub />
-        <JaveriaSection />
-        <Hours />
-        <FinalScene />
+      <IntroGate>
+        <Navbar />
+        <main id="main">
+          <Hero />
+          <ProgramMarquee />
+          <LiveEnrollmentBanner className="mt-6" />
+          <Stats />
+          <Journey />
+          <About />
+          <Features />
+          <Courses />
+          <CoursePricing />
+          <Reviews />
+          <FaqSection />
+          <CtaBanner />
+        </main>
         <Footer />
-      </main>
+      </IntroGate>
     </>
   );
 }

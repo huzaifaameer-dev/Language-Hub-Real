@@ -2,8 +2,7 @@
 
 import { MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const NUMBER = (process.env.NEXT_PUBLIC_ACADEMY_WHATSAPP ?? "").replace(/[^\d]/g, "");
+import { whatsappLink } from "@/lib/content";
 
 /**
  * WhatsApp-first call-to-action. Renders nothing until the studio WhatsApp
@@ -11,8 +10,12 @@ const NUMBER = (process.env.NEXT_PUBLIC_ACADEMY_WHATSAPP ?? "").replace(/[^\d]/g
  * "923001234567"), so the site degrades gracefully before deployment.
  */
 export function WhatsAppCta({ variant = "hero" }: { variant?: "hero" | "footer" }) {
-  if (!NUMBER) return null;
-  const href = `https://wa.me/${NUMBER}`;
+  const href = whatsappLink(
+    variant === "footer"
+      ? "Assalam o alaikum! Language Hub ke baare mein jaanna tha."
+      : "Assalam o alaikum! Main Language Hub mein enroll karna chahta/aaraha hoon."
+  );
+  if (!href) return null;
 
   if (variant === "footer") {
     return (

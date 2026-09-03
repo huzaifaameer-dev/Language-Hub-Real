@@ -1,216 +1,179 @@
 "use client";
 
-import { useEffect, useRef, useState, type ComponentType } from "react";
-import {
-  motion,
-  useMotionValueEvent,
-  useScroll,
-  useSpring,
-  useTransform,
-  useVelocity,
-  type MotionValue,
-} from "framer-motion";
-import { SpokenScene } from "@/components/courses/SpokenScene";
-import { IeltsScene } from "@/components/courses/IeltsScene";
-import { PteScene } from "@/components/courses/PteScene";
-import { DuolingoScene } from "@/components/courses/DuolingoScene";
-import { useMediaQuery, usePrefersReducedMotion } from "@/lib/hooks";
-import { scrollToId } from "@/lib/lenis";
-import { cn } from "@/lib/utils";
-import { useLang } from "@/lib/i18n";
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { ArrowRight, Users } from "lucide-react";
+import { SectionHeader } from "@/components/ui/SectionHeader";
+import { COURSE_CARDS, COURSE_FEATURES } from "@/lib/content";
+import { courseSlug } from "@/lib/course-data";
+import { useLang } from "@/components/LanguageProvider";
 
-interface SceneProps {
-  progress: MotionValue<number> | null;
-  start: number;
-  end: number;
+interface LiveSeat {
+  name: string;
+  seatsTotal: number;
+  seatsUsed: number;
+  seatsLeft: number;
 }
 
-const PANELS = 5;
-const SCENES: { k: number; Scene: ComponentType<SceneProps> }[] = [
-  { k: 1, Scene: SpokenScene },
-  { k: 2, Scene: IeltsScene },
-  { k: 3, Scene: PteScene },
-  { k: 4, Scene: DuolingoScene },
-];
-
-const DOTS = [
-  { label: "Intro", tone: "#6e5ae0" },
-  { label: "Spoken English", tone: "#6e5ae0" },
-  { label: "IELTS", tone: "#2bb3d8" },
-  { label: "PTE", tone: "#d63a8c" },
-  { label: "Duolingo", tone: "#2e9e6b" },
-];
-
-function SceneSlot({ k, progress }: { k: number; progress: MotionValue<number> }) {
-  const p = useTransform(
-    progress,
-    [k / PANELS + 0.008, (k + 1) / PANELS - 0.008],
-    [0, 1],
-    { clamp: true }
-  );
-  // Depth treatment: panels away from the resting point dim, scale down and
-  // drift slightly against the travel direction — gives the gallery real
-  // parallax depth instead of a flat slide.
-  const pos = useTransform(progress, (v) => v * PANELS - k);
-  const abs = useTransform(pos, (v) => Math.min(1, Math.abs(v)));
-  const depthScale = useTransform(abs, [0, 1], [1, 0.93]);
-  const depthOpacity = useTransform(abs, [0, 1], [1, 0.45]);
-  const parallax = useTransform(pos, (v) => v * -70);
-  const { Scene } = SCENES[k - 1];
-  return (
-    <motion.div
-      className="relative h-full w-screen shrink-0"
-      style={{ scale: depthScale, opacity: depthOpacity }}
-    >
-      <motion.div className="h-full w-full" style={{ x: parallax }}>
-        <Scene progress={p} start={0} end={1} />
-      </motion.div>
-    </motion.div>
-  );
-}
+type SeatMap = Record<string, LiveSeat>;
 
 export function Courses() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const desktop = useMediaQuery("(min-width: 1024px)");
-  const reduced = usePrefersReducedMotion();
-  const pinned = desktop && !reduced;
-  const [maxX, setMaxX] = useState(0);
-  const [dot, setDot] = useState(0);
-  const { t } = useLang();
+  const [seats, setSeats] = useState<SeatMap | null>(null);
+  const { dict, lang } = useLang();
+  const isUr = lang === "ur";
 
   useEffect(() => {
-    if (!pinned) return;
-    const el = trackRef.current;
-    if (!el) return;
-    const update = () =>
-      setMaxX(Math.max(0, el.offsetWidth - (el.parentElement?.clientWidth ?? 0)));
-    const raf = window.requestAnimationFrame(update);
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    window.addEventListener("resize", update);
+    let on = true;
+    fetch("/api/courses", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!on || !data?.courses) return;
+        const map: SeatMap = {};
+        for (const c of data.courses as LiveSeat[]) {
+          map[c.name] = c;
+        }
+        setSeats(map);
+      })
+      .catch(() => {});
     return () => {
-      window.cancelAnimationFrame(raf);
-      ro.disconnect();
-      window.removeEventListener("resize", update);
+      on = false;
     };
-  }, [pinned]);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"],
-  });
-
-  // Step the gallery one panel at a time: it stops on each course, the
-  // course's animation plays out fully, then a spring carries it to the next.
-  const step = useTransform(scrollYProgress, (v) =>
-    Math.min(PANELS - 1, Math.max(0, Math.floor(v * PANELS)))
-  );
-  const stepX = useTransform(step, (s) => -maxX * (s / (PANELS - 1)));
-  const x = useSpring(stepX, { stiffness: 165, damping: 27, mass: 1 });
-
-  // Velocity-aware skew: the track tilts a touch while travelling between
-  // courses and settles flat as it comes to rest.
-  const xV = useVelocity(x);
-  const skewRaw = useTransform(xV, [-2600, 2600], [3.2, -3.2], { clamp: true });
-  const skewX = useSpring(skewRaw, { stiffness: 230, damping: 32 });
-
-  useMotionValueEvent(scrollYProgress, "change", (v) => {
-    const idx = Math.min(PANELS - 1, Math.max(0, Math.round(v * (PANELS - 1))));
-    setDot(idx);
-  });
-
-  const intro = (
-    <div className="relative flex h-[100svh] min-h-[640px] w-screen shrink-0 flex-col items-center justify-center overflow-hidden px-6 py-20 text-center sm:px-12">
-      <div className="pointer-events-none absolute inset-0 bg-ivory" />
-      <div className="pointer-events-none absolute inset-0 grain" />
-      <div className="aurora-blob left-[-14%] top-[-16%] h-[48vh] w-[48vh] bg-brand/15" />
-      <div className="aurora-blob bottom-[-20%] right-[-12%] h-[50vh] w-[50vh] bg-brand-magenta/12" />
-
-      <motion.div
-        className="relative z-10 flex flex-col items-center"
-        initial={{ opacity: 0, y: 34 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
-      >
-        <p className="mb-6 flex items-center gap-4 font-display text-[0.66rem] font-bold uppercase tracking-[0.42em] text-gold-deep">
-          <span aria-hidden="true" className="h-px w-10 bg-gold/60" />
-          {t("coursesEyebrow")}
-          <span aria-hidden="true" className="h-px w-10 bg-gold/60" />
-        </p>
-        <h2 className="font-display text-[clamp(2.4rem,7vw,5.6rem)] font-extrabold leading-[1.02] tracking-[-0.03em] text-ink">
-          {t("coursesTitleA")}
-          <br />
-          <span className="brand-text">{t("coursesTitleB")}</span>
-        </h2>
-        <p className="mt-7 max-w-lg text-balance text-[1.02rem] leading-relaxed text-ink-2">
-          {t("coursesIntro")}
-        </p>
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
-          {DOTS.slice(1).map((d) => (
-            <span
-              key={d.label}
-              className="rounded-full border border-ink/12 px-4 py-1.5 font-display text-[0.68rem] font-bold uppercase tracking-[0.18em]"
-              style={{ color: d.tone }}
-            >
-              {d.label}
-            </span>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => scrollToId("resources")}
-          className="mt-10 inline-flex h-[3.1rem] items-center gap-3 rounded-full bg-ink px-8 font-display text-[0.92rem] font-bold text-ivory transition-all duration-500 hover:bg-brand-deep"
-        >
-          {t("coursesCta")}
-          <span className="inline-block transition-transform duration-500 group-hover:translate-y-0.5">↓</span>
-        </button>
-      </motion.div>
-    </div>
-  );
+  }, []);
 
   return (
     <section
-      ref={sectionRef}
       id="courses"
       data-section
-      className={cn("relative", pinned ? "h-[700vh]" : "bg-ivory")}
+      className="relative overflow-hidden bg-[#f7f8fc] px-6 py-24 sm:px-12"
       aria-label="Courses"
     >
-      <div className={cn("relative overflow-hidden bg-ivory", pinned && "sticky top-0 h-screen")}>
-        <motion.div
-          ref={trackRef}
-          data-track
-          data-cursor="explore"
-          className="flex h-full w-max"
-          style={{ x: pinned ? x : undefined, skewX: pinned ? skewX : undefined, flexDirection: pinned ? "row" : "column" }}
-          aria-label="Course gallery — scroll to explore"
-        >
-          {intro}
-          {SCENES.map(({ k, Scene }) =>
-            pinned ? (
-              <SceneSlot key={k} k={k} progress={scrollYProgress} />
+      <div className="mx-auto max-w-6xl">
+        <SectionHeader
+          eyebrow={dict["courses.eyebrow"]}
+          title={
+            isUr ? (
+              <>{dict["courses.title1"]} <span className="brand-text">{dict["courses.title2"]}</span></>
             ) : (
-              <Scene key={k} progress={null} start={0} end={1} />
+              <>
+                Four ways to <span className="brand-text">move forward.</span>
+              </>
             )
-          )}
-        </motion.div>
+          }
+          subtitle={dict["courses.subtitle"]}
+        />
 
-        {pinned && (
-          <div className="absolute bottom-8 left-1/2 z-20 flex -translate-x-1/2 items-center gap-4">
-            {DOTS.map((d, i) => (
-              <span
-                key={d.label}
-                className={cn(
-                  "h-2 rounded-full transition-all duration-500",
-                  i === dot ? "w-7 opacity-100" : "w-2 opacity-40"
-                )}
-                style={{ backgroundColor: d.tone }}
-                aria-hidden="true"
-              />
-            ))}
-          </div>
-        )}
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {COURSE_CARDS.map((card, i) => {
+            const live = seats?.[card.info.name];
+            const seatLeft = live?.seatsLeft;
+            return (
+              <motion.article
+                key={card.info.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                className="group flex flex-col overflow-hidden rounded-2xl border border-ink/[0.07] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-28px_rgb(15_23_42/0.25)]"
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-1 w-full"
+                  style={{ backgroundColor: card.accent }}
+                />
+                <div className="flex flex-1 flex-col p-7">
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className="inline-block self-start rounded-md px-2.5 py-1 font-display text-[0.6rem] font-bold uppercase tracking-[0.18em]"
+                      style={{ backgroundColor: `${card.accent}18`, color: card.accent }}
+                    >
+                      {card.info.duration}
+                    </span>
+                    {typeof seatLeft === "number" && (
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-display text-[0.6rem] font-bold uppercase tracking-[0.12em] ${
+                          seatLeft <= 3
+                            ? "bg-rose-50 text-rose-600"
+                            : "bg-emerald-50 text-emerald-600"
+                        }`}
+                      >
+                        <Users className="h-3 w-3" strokeWidth={2.2} />
+                        {seatLeft <= 0 ? "Waitlist" : seatLeft <= 3 ? "Only few seats" : `${seatLeft} seats left`}
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="mt-4 font-display text-[1.35rem] font-extrabold tracking-tight text-ink">
+                    {card.info.name}
+                  </h3>
+                  <p className="mt-1 font-serif text-[0.92rem] italic text-ink-3">
+                    {card.info.tagline}
+                  </p>
+
+                  {live ? (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between font-mono text-[0.6rem] uppercase tracking-widest text-ink-3">
+                        <span>{dict["courses.seatsFilled"]}</span>
+                        <span className="text-ink-2">
+                          {live.seatsUsed}/{live.seatsTotal}
+                        </span>
+                      </div>
+                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-ink/[0.07]">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${Math.min(100, (live.seatsUsed / Math.max(1, live.seatsTotal)) * 100)}%`,
+                            backgroundColor: card.accent,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+
+                  <ul className="mt-5 flex flex-col gap-2.5 border-t border-ink/[0.06] pt-5">
+                    {(COURSE_FEATURES[card.info.name] ?? []).slice(0, 3).map((f) => (
+                      <li key={f} className="flex items-start gap-2.5 text-[0.86rem] text-ink-2">
+                        <span
+                          aria-hidden="true"
+                          className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: card.accent }}
+                        />
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-auto pt-6">
+                    <div className="flex items-center justify-between border-t border-ink/[0.06] pt-5">
+                      <div>
+                        <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.18em] text-ink-3">
+                          From
+                        </p>
+                        <p className="font-display text-xl font-extrabold text-ink">
+                          {card.feeLabel}
+                          <span className="text-[0.7rem] font-semibold text-ink-3">/mo</span>
+                        </p>
+                      </div>
+                      <Link
+                        href={card.href}
+                        className="group/link inline-flex items-center gap-2 font-display text-[0.78rem] font-bold text-brand-deep hover:text-ink"
+                      >
+                        Apply
+                        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" />
+                      </Link>
+                      <Link
+                        href={`/courses/${courseSlug(card.info.name)}`}
+                        className="inline-flex items-center font-mono text-[0.66rem] text-ink-3 transition-colors hover:text-brand-deep"
+                      >
+                        {dict["courses.details"]} →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </motion.article>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

@@ -1,478 +1,271 @@
 "use client";
 
-import { useLayoutEffect, useRef, type CSSProperties } from "react";
 import { motion } from "framer-motion";
-import { gsap, pinStartAtTop } from "@/lib/scroll";
-import { useIsTouch, useMediaQuery, usePrefersReducedMotion } from "@/lib/hooks";
+import { ArrowRight, PlayCircle, ShieldCheck, Sparkles, Star, TrendingUp } from "lucide-react";
+import { HERO_WORDS } from "@/lib/content";
+import { BookDemoButton } from "@/components/contact/BookDemoButton";
+import { useLang } from "@/components/LanguageProvider";
 import { scrollToId } from "@/lib/lenis";
-import { Magnetic } from "@/components/ui/Magnetic";
-import { Particles } from "@/components/ui/Particles";
-import { WhatsAppCta } from "@/components/ui/WhatsAppCta";
-import { cn } from "@/lib/utils";
-import { useLang } from "@/lib/i18n";
-
-const WORDS = [
-  { text: "SPEAK", left: "5%", top: "17%", size: "clamp(0.75rem,1.8vw,1.45rem)", tx: "19vw", ty: "-6vh", tone: "text-brand" },
-  { text: "WRITE", left: "87%", top: "13%", size: "clamp(0.75rem,1.8vw,1.45rem)", tx: "-17vw", ty: "-4vh", tone: "text-brand-cyan" },
-  { text: "THINK", left: "7%", top: "76%", size: "clamp(0.75rem,1.8vw,1.45rem)", tx: "17vw", ty: "-10vh", tone: "text-brand-magenta" },
-  { text: "LEARN", left: "85%", top: "73%", size: "clamp(0.75rem,1.8vw,1.45rem)", tx: "-19vw", ty: "-6vh", tone: "text-brand-fern" },
-  { text: "EXPRESS", left: "80%", top: "43%", size: "clamp(0.75rem,1.8vw,1.45rem)", tx: "-15vw", ty: "0vh", tone: "text-gold-deep" },
-];
-
-const SPARKS = Array.from({ length: 14 }, (_, i) => {
-  const a = (i / 14) * Math.PI * 2;
-  const r = 24 + ((i * 7) % 13);
-  return {
-    left: `${50 + Math.cos(a) * r}%`,
-    top: `${48 + Math.sin(a) * r * 0.72}%`,
-    tone: i % 3 === 0 ? "#c2a05c" : i % 3 === 1 ? "#6e5ae0" : "#2bb3d8",
-    delay: ((i * 0.09) % 0.55).toFixed(2),
-    dx: Math.round(Math.cos(a) * (40 + ((i * 13) % 50))),
-    dy: Math.round(Math.sin(a) * (40 + ((i * 13) % 50))),
-  };
-});
-
-const charSpans = (text: string, className?: string) =>
-  text.split("").map((ch, i) => (
-    <span key={`${text}-${i}`} data-char className={cn("inline-block will-change-transform", className)}>
-      {ch}
-    </span>
-  ));
 
 export function Hero() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const restRef = useRef(true);
-  const isTouch = useIsTouch();
-  const reduced = usePrefersReducedMotion();
-  const wide = useMediaQuery("(min-width: 1024px)");
-  const motionActive = wide && !isTouch && !reduced;
-  const { t } = useLang();
-
-  useLayoutEffect(() => {
-    if (!motionActive) return;
-    const section = sectionRef.current;
-    const stage = stageRef.current;
-    if (!section || !stage) return;
-
-    const ctx = gsap.context(() => {
-      const words = gsap.utils.toArray<HTMLElement>("[data-word]");
-      const line1 = gsap.utils.toArray<HTMLElement>("[data-line-1] [data-char]");
-      const line2 = gsap.utils.toArray<HTMLElement>("[data-line-2] [data-char]");
-      const eyebrow = stage.querySelector("[data-eyebrow]");
-      const meta = stage.querySelector("[data-meta]");
-      const cta = stage.querySelectorAll("[data-cta]");
-      const cue = stage.querySelector("[data-cue]");
-      const side = stage.querySelector("[data-side]");
-      const statement = stage.querySelector("[data-statement]");
-      const glow = stage.querySelector("[data-glow]");
-      const celebrate = stage.querySelector("[data-celebrate]");
-
-      // ---- Welcome entrance: plays when the intro curtain lifts (time-based),
-      // so the hero comes alive the moment the page opens — never empty. ----
-      const ent = gsap.timeline({ defaults: { ease: "power3.out" }, paused: true });
-      ent.fromTo(
-        words,
-        { opacity: 0, scale: 0.75, y: 40 },
-        { opacity: 0.65, scale: 1, y: 0, duration: 1, stagger: 0.05 },
-        0
-      )
-        .fromTo(
-          eyebrow,
-          { opacity: 0, y: 18 },
-          { opacity: 1, y: 0, duration: 0.8 },
-          0.1
-        )
-        .fromTo(
-          line1,
-          { yPercent: 115, opacity: 0, rotateX: -45 },
-          { yPercent: 0, opacity: 1, rotateX: 0, duration: 1.1, stagger: 0.035, ease: "expo.out" },
-          0.18
-        )
-        .fromTo(
-          line2,
-          { yPercent: 115, opacity: 0, rotateX: -45 },
-          { yPercent: 0, opacity: 1, rotateX: 0, duration: 1.1, stagger: 0.035, ease: "expo.out" },
-          0.34
-        )
-        .fromTo(meta, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8 }, 0.5)
-        .fromTo(cta, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.12 }, 0.6)
-        .fromTo(cue, { opacity: 0 }, { opacity: 1, duration: 0.8 }, 0.75)
-        .fromTo(glow, { opacity: 0.12, scale: 0.8 }, { opacity: 0.35, scale: 1, duration: 1.6 }, 0.6)
-        .fromTo(celebrate, { opacity: 0 }, { opacity: 1, duration: 0.2 }, 1.35)
-        .to(celebrate, { opacity: 0, duration: 0.9 }, 3.4);
-
-      const playWelcome = () => {
-        stage.querySelectorAll<HTMLElement>(".spark").forEach((s) => {
-          s.style.animationPlayState = "running";
-        });
-        if (window.scrollY > 10) {
-          ent.progress(1);
-          return;
-        }
-        if (!ent.isActive()) ent.play();
-      };
-      window.addEventListener("lh:intro-done", playWelcome, { once: true });
-      if (!document.querySelector("main")?.hasAttribute("inert")) playWelcome();
-
-      // ---- Scroll narrative: the title flies apart, then hands over to the
-      // Transformation section. Scrubbed to the pin. ----
-      const tl = gsap.timeline({
-        defaults: { ease: "power2.out" },
-        scrollTrigger: {
-          trigger: section,
-          start: pinStartAtTop(section),
-          end: "+=340%",
-          pin: stage,
-          scrub: 0.8,
-          anticipatePin: 1,
-          refreshPriority: 1,
-          onUpdate: (self) => {
-            const p = self.progress;
-            if (p > 0.02 && ent.progress() < 1) ent.progress(1);
-            if (p > 0.08) {
-              restRef.current = false;
-            } else if (p < 0.01 && !restRef.current) {
-              restRef.current = true;
-              gsap.delayedCall(1.1, () => {
-                if (window.scrollY <= self.start + 4) {
-                  gsap.set(words, { opacity: 0.65, scale: 1 });
-                  gsap.set(line1, { opacity: 1, x: 0, y: 0, yPercent: 0, rotateX: 0, filter: "none" });
-                  gsap.set(line2, { opacity: 1, scale: 1, y: 0, filter: "none" });
-                  gsap.set(meta, { opacity: 1, y: 0 });
-                  gsap.set(cta, { opacity: 1, y: 0 });
-                  gsap.set(cue, { opacity: 1 });
-                  gsap.set(side, { opacity: 1 });
-                  gsap.set(statement, { opacity: 0, y: 0, filter: "blur(0px)" });
-                  gsap.set(glow, { opacity: 0.35, scale: 1 });
-                  gsap.set(stage, { clearProps: "backgroundColor" });
-                }
-              });
-            }
-          },
-        },
-      });
-
-      tl.fromTo(
-        words,
-        { x: 0, y: 0 },
-        {
-          x: (i) => WORDS[i].tx,
-          y: (i) => WORDS[i].ty,
-          duration: 2.2,
-          ease: "expo.inOut",
-          immediateRender: false,
-        },
-        0
-      )
-        .to(glow, { opacity: 0.5, scale: 1.35, duration: 2 }, 0.1);
-
-      tl.fromTo(
-        line1,
-        { x: 0, y: 0, opacity: 1, filter: "blur(0px)" },
-        {
-          x: (i) => (i % 2 === 0 ? -34 : 34),
-          y: -64,
-          opacity: 0,
-          filter: "blur(8px)",
-          duration: 1.3,
-          stagger: 0.02,
-          ease: "power2.in",
-          immediateRender: false,
-        },
-        1.4
-      )
-        .fromTo(
-          words,
-          { opacity: 0.65, scale: 1 },
-          {
-            opacity: 0,
-            scale: 0.55,
-            duration: 1.2,
-            stagger: 0.04,
-            ease: "power2.in",
-            immediateRender: false,
-          },
-          1.5
-        )
-        .to(line2, { scale: 1.16, duration: 1.5, ease: "expo.inOut" }, 1.4)
-        .to(glow, { opacity: 0.9, scale: 1.7, duration: 1.6 }, 1.6);
-
-      tl.fromTo(
-        line2,
-        { opacity: 1, y: 0, scale: 1.16 },
-        {
-          opacity: 0,
-          y: -40,
-          scale: 1.22,
-          filter: "blur(10px)",
-          duration: 1.3,
-          stagger: 0.012,
-          ease: "power2.in",
-          immediateRender: false,
-        },
-        2.9
-      )
-        .fromTo(
-          statement,
-          { opacity: 0, y: 80, filter: "blur(14px)" },
-          { opacity: 1, y: 0, filter: "blur(0px)", duration: 1.6, ease: "expo.out" },
-          3.1
-        )
-        .fromTo(meta, { opacity: 1, y: 0 }, { opacity: 0, y: -20, duration: 1, immediateRender: false }, 3.2)
-        .fromTo(cta, { opacity: 1, y: 0 }, { opacity: 0, y: -24, duration: 1, immediateRender: false }, 3.3)
-        .fromTo(cue, { opacity: 1 }, { opacity: 0, duration: 0.8, immediateRender: false }, 3.2)
-        .fromTo(side, { opacity: 1 }, { opacity: 0, duration: 0.8, immediateRender: false }, 3.2)
-        .to(glow, { opacity: 0.25, scale: 2, duration: 1.8 }, 3.3)
-        .to(stage, { backgroundColor: "#f4efe6", duration: 2, ease: "none" }, 3.2);
-
-      // Frame-out: fade the closing statement away as the pin hands off.
-      tl.fromTo(
-        statement,
-        { opacity: 1, y: 0, filter: "blur(0px)" },
-        { opacity: 0, y: -40, filter: "blur(10px)", duration: 1.1, ease: "power2.in", immediateRender: false },
-        5.9
-      );
-
-      const layers = [
-        { el: stage.querySelector("[data-line-1]"), depth: 7 },
-        { el: stage.querySelector("[data-line-2]"), depth: 11 },
-        { el: stage.querySelector("[data-statement]"), depth: 8 },
-        { el: stage.querySelector("[data-meta]"), depth: 6 },
-        { el: stage.querySelector("[data-cta]"), depth: 9 },
-      ].filter((l): l is { el: HTMLElement; depth: number } => l.el !== null);
-      const quicks = layers.map((l) => ({
-        qx: gsap.quickTo(l.el, "xPercent", { duration: 0.8, ease: "power2.out" }),
-        qy: gsap.quickTo(l.el, "yPercent", { duration: 0.8, ease: "power2.out" }),
-        depth: l.depth,
-      }));
-      const wordLayer = stage.querySelector("[data-word-layer]");
-      const wordQx = wordLayer ? gsap.quickTo(wordLayer, "x", { duration: 1.1, ease: "power2.out" }) : null;
-      const wordQy = wordLayer ? gsap.quickTo(wordLayer, "y", { duration: 1.1, ease: "power2.out" }) : null;
-
-      const onMove = (e: MouseEvent) => {
-        const nx = e.clientX / window.innerWidth - 0.5;
-        const ny = e.clientY / window.innerHeight - 0.5;
-        for (let i = 0; i < quicks.length; i++) {
-          const q = quicks[i];
-          q.qx(nx * q.depth * 0.16);
-          q.qy(ny * q.depth * 0.13);
-        }
-        wordQx?.(nx * 18);
-        wordQy?.(ny * 12);
-      };
-      stage.addEventListener("mousemove", onMove);
-    }, section);
-
-    return () => ctx.revert();
-  }, [motionActive]);
-
-  const entrance = (delay: number) => ({
-    initial: { opacity: 0, y: 30 },
-    animate: { opacity: 1, y: 0 },
-    transition: {
-      duration: 0.9,
-      delay,
-      ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-    },
-  });
+  const { lang, dict } = useLang();
+  const isUr = lang === "ur";
 
   return (
     <section
       id="home"
       data-section
-      ref={sectionRef}
-      className="relative bg-ivory"
+      className="relative overflow-hidden bg-[#f7f8fc]"
       aria-label="Welcome to Language Hub"
     >
-      <div
-        ref={stageRef}
-        className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-ivory px-6"
-      >
-        <div className="aurora-blob left-[-12%] top-[-18%] h-[52vh] w-[52vh] bg-brand/20" />
-        <div className="aurora-blob bottom-[-22%] right-[-12%] h-[56vh] w-[56vh] bg-brand-magenta/15" />
-        <div className="aurora-blob left-[55%] top-[45%] h-[40vh] w-[40vh] bg-brand-cyan/10" />
-        <div data-glow className="pointer-events-none absolute left-1/2 top-1/2 h-[68vmin] w-[68vmin] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgb(110_90_224/0.1),transparent_65%)] opacity-30" />
+      {/* Decorative background mesh */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-40 -top-40 h-[38rem] w-[38rem] rounded-full bg-gradient-to-br from-brand/[0.12] to-brand-magenta/[0.1] blur-3xl" />
+        <div className="absolute -bottom-48 -right-32 h-[34rem] w-[34rem] rounded-full bg-gradient-to-tr from-gold/[0.15] to-orange-200/[0.1] blur-3xl" />
+        <div className="absolute left-1/2 top-1/3 h-40 w-40 rounded-full bg-brand-cyan/[0.1] blur-3xl" />
         <div
-          data-celebrate
-          className="pointer-events-none absolute inset-0 opacity-0"
-          aria-hidden="true"
-        >
-          {SPARKS.map((s, i) => (
-            <span
-              key={i}
-              className="spark"
-              style={
-                {
-                  left: s.left,
-                  top: s.top,
-                  background: s.tone,
-                  animationDelay: `${0.05 + s.delay}s`,
-                  animationPlayState: "paused",
-                  "--sx": `${s.dx}px`,
-                  "--sy": `${s.dy}px`,
-                } as CSSProperties
-              }
-            />
-          ))}
-        </div>
-        <div className="pointer-events-none absolute inset-0 grain" />
-        <Particles count={46} color="110, 90, 224" speed={0.14} />
-        <Particles count={26} color="194, 160, 92" speed={0.2} />
+          className="absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgb(99 102 241 / 0.05) 1px, transparent 1px), linear-gradient(90deg, rgb(99 102 241 / 0.05) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+            maskImage: "radial-gradient(ellipse at center, black 30%, transparent 80%)",
+            WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 80%)",
+          }}
+        />
+      </div>
 
-        <div
-          data-word-layer
-          className="pointer-events-none absolute inset-0 hidden lg:block"
-          aria-hidden="true"
-        >
-          {WORDS.map((w, i) => (
-            <span
-              key={w.text}
-              data-word
-              className={cn(
-                "absolute font-display font-extrabold uppercase tracking-[0.14em]",
-                w.tone,
-                isTouch ? "animate-floaty opacity-85" : motionActive && "opacity-0"
-              )}
-              style={{
-                left: w.left,
-                top: w.top,
-                fontSize: w.size,
-                animationDelay: isTouch ? `${i * 0.7}s` : undefined,
-                animationDuration: isTouch ? "12s" : undefined,
-              }}
-            >
-              {w.text}
-            </span>
-          ))}
-        </div>
+      <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-6 pb-24 pt-36 sm:px-8 sm:pt-40 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:pb-28">
+        {/* LEFT — copy (always visible, no entrance animation dependency) */}
+        <div className="flex max-w-2xl flex-col items-start">
+          <div className="inline-flex items-center gap-2 rounded-full border border-brand/15 bg-white/80 px-4 py-1.5 text-[0.72rem] font-semibold text-brand-deep shadow-sm backdrop-blur">
+            <Sparkles className="h-3.5 w-3.5 text-gold-deep" />
+            {dict["hero.eyebrow"] || "Hub of Language Excellence"}
+            <span className="ml-1 rounded-full bg-brand/[0.08] px-2 py-0.5 text-[0.6rem] font-bold text-brand-deep">EST. 8+ yrs</span>
+          </div>
 
-        <motion.div
-          {...entrance(0.15)}
-          className="relative z-10 flex max-w-4xl flex-col items-center text-center"
-        >
-          <p
-            data-eyebrow
-            className={cn(
-              "mb-6 flex items-center gap-4 font-display text-[0.68rem] font-bold uppercase tracking-[0.42em] text-gold-deep",
-              motionActive && "opacity-0"
+          <h1 className="mt-6 font-display text-[clamp(2.6rem,5.6vw,4.6rem)] font-extrabold leading-[1.04] tracking-[-0.03em] text-ink" dir={isUr ? "rtl" : "ltr"}>
+            {isUr ? (
+              <>
+                <span className="brand-text">{dict["hero.headline.english"]}</span>{" "}
+                {dict["hero.headline.a"]} {dict["hero.headline.b"]}{" "}
+                <span className="text-brand-deep">{dict["hero.headline.c"]}</span>
+              </>
+            ) : (
+              <>
+                Master{" "}
+                <span className="relative inline-block">
+                  <span className="brand-text">English</span>
+                  <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none" aria-hidden>
+                    <path d="M3 9C50 3 150 3 197 8" stroke="url(#hhero)" strokeWidth="4" strokeLinecap="round" />
+                    <defs>
+                      <linearGradient id="hhero" x1="0" y1="0" x2="200" y2="0">
+                        <stop stopColor="#6366f1" />
+                        <stop offset="1" stopColor="#f59e0b" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </span>{" "}
+                and speak with{" "}
+                <span className="text-brand-deep">confidence</span>.
+              </>
             )}
-          >
-            <span aria-hidden="true" className="h-px w-10 bg-gold/60" />
-            {t("tagline")}
-            <span aria-hidden="true" className="h-px w-10 bg-gold/60" />
-          </p>
-
-          <h1 className="font-display font-extrabold leading-[1.02] tracking-[-0.03em]">
-            <span
-              data-line-1
-              className="block whitespace-nowrap text-[clamp(1.7rem,6.6vw,5.2rem)] text-ink"
-              aria-label="MASTER THE LANGUAGE."
-            >
-              {charSpans("MASTER THE ")}
-              {charSpans("LANGUAGE.", "brand-text")}
-            </span>
-            <span
-              data-line-2
-              className="mt-1 block whitespace-nowrap text-[clamp(1.7rem,6.6vw,5.2rem)] text-ink/85"
-              aria-label="FIND YOUR VOICE."
-            >
-              {charSpans("FIND YOUR ")}
-              {charSpans("VOICE.", "gold-text-shimmer")}
-            </span>
           </h1>
 
-          <div
-            data-meta
-            className={cn(
-              "mt-8 flex flex-wrap items-center justify-center gap-2.5",
-              motionActive && "opacity-0"
-            )}
-          >
-            {["Spoken English", "IELTS", "PTE", "Duolingo"].map((course) => (
+          <p className="mt-6 max-w-xl text-[1.08rem] leading-relaxed text-ink-2" dir={isUr ? "rtl" : "ltr"}>
+            {dict["hero.subtitle"]}
+            <span className="font-semibold text-ink"> Ms. Javeria Malik</span>.
+          </p>
+
+          <div className="mt-9 flex flex-wrap items-center gap-4">
+            <BookDemoButton variant="solid" />
+            <button
+              type="button"
+              onClick={() => scrollToId("courses")}
+              className="group inline-flex h-12 items-center gap-2 rounded-full border border-ink/15 bg-white/80 px-7 font-display text-[0.9rem] font-bold text-ink transition-all duration-300 hover:-translate-y-0.5 hover:border-ink hover:shadow-lg"
+            >
+              <PlayCircle className="h-5 w-5 text-brand-deep" strokeWidth={1.8} />
+              Explore Courses
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </button>
+          </div>
+
+          {/* trust row */}
+          <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-2.5">
+                {["H", "A", "B", "F"].map((c, i) => (
+                  <span
+                    key={i}
+                    className="grid h-9 w-9 place-items-center rounded-full border-2 border-white bg-gradient-to-br from-brand to-brand-magenta text-xs font-bold text-white"
+                  >
+                    {c}
+                  </span>
+                ))}
+              </div>
+              <div className="text-[0.78rem]">
+                <div className="flex items-center gap-1 text-gold" aria-hidden>
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <span key={i} className="text-[0.7rem]">★</span>
+                  ))}
+                </div>
+                <p className="font-semibold text-ink-2">600+ students guided</p>
+              </div>
+            </div>
+            <div className="hidden h-10 w-px bg-ink/10 sm:block" />
+            <div className="flex items-center gap-2.5">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+                <ShieldCheck className="h-5 w-5" strokeWidth={1.8} />
+              </span>
+              <p className="text-[0.85rem] font-semibold text-ink-2">Certified IELTS · PTE · DET coaching</p>
+            </div>
+          </div>
+
+          {/* course chips */}
+          <div className="mt-9 flex flex-wrap items-center gap-2.5">
+            {HERO_WORDS.map((course, i) => (
               <span
                 key={course}
-                className="rounded-full border border-ink/12 bg-white/60 px-4 py-1.5 font-display text-[0.7rem] font-bold uppercase tracking-[0.18em] text-ink-2"
+                className="inline-flex items-center gap-2 rounded-full border px-4 py-2 font-display text-[0.7rem] font-bold tracking-wide"
+                style={{
+                  borderColor: i % 2 === 0 ? "rgb(99 102 241 / 0.25)" : "rgb(245 158 11 / 0.3)",
+                  color: i % 2 === 0 ? "rgb(79 70 229)" : "rgb(180 83 9)",
+                  backgroundColor: i % 2 === 0 ? "rgb(99 102 241 / 0.04)" : "rgb(245 158 11 / 0.05)",
+                }}
               >
                 {course}
               </span>
             ))}
           </div>
-
-          <div
-            data-cta
-            className={cn(
-              "mt-9 flex flex-wrap items-center justify-center gap-4",
-              motionActive && "opacity-0"
-            )}
-          >
-            <Magnetic>
-              <button
-                type="button"
-                onClick={() => scrollToId("journey")}
-                className="group inline-flex h-[3.2rem] items-center gap-3 rounded-full bg-ink px-8 font-display text-[0.95rem] font-bold text-ivory shadow-[0_18px_44px_-18px_rgb(34_30_43/0.6)] transition-all duration-500 hover:bg-brand-deep hover:shadow-[0_20px_50px_-18px_rgb(110_90_224/0.6)]"
-              >
-                {t("heroCtaJourney")}
-                <span className="inline-block transition-transform duration-500 group-hover:translate-x-1.5">
-                  →
-                </span>
-              </button>
-            </Magnetic>
-            <Magnetic>
-              <button
-                type="button"
-                onClick={() => scrollToId("courses")}
-                className="inline-flex h-[3.2rem] items-center rounded-full border border-ink/20 bg-transparent px-8 font-display text-[0.95rem] font-bold text-ink transition-all duration-500 hover:border-brand/60 hover:bg-brand/[0.04] hover:text-brand-deep"
-              >
-                {t("heroCtaCourses")}
-              </button>
-            </Magnetic>
-            <WhatsAppCta />
-          </div>
-        </motion.div>
-
-        <div
-          data-statement
-          className={cn(
-            "pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-5 px-6 text-center",
-            motionActive ? "opacity-0" : (isTouch || reduced) && "hidden"
-          )}
-        >
-          <p className="font-display text-[clamp(1.5rem,4.4vw,3.4rem)] font-extrabold leading-tight tracking-[-0.02em] text-ink">
-            {t("statementTitleA")}{" "}
-            <span className="font-serif italic tracking-normal text-brand-magenta">
-              {t("statementTitleB")}
-            </span>
-          </p>
-          <span aria-hidden="true" className="h-px w-24 gold-underline" />
-          <p className="max-w-md font-serif text-[1.05rem] italic leading-relaxed text-ink-3">
-            {t("statementBody")}
-          </p>
         </div>
 
-        <motion.div
-          {...entrance(1.4)}
-          data-cue
-          className={cn(
-            "absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2.5",
-            motionActive && "opacity-0"
-          )}
-        >
-          <span className="font-display text-[0.6rem] font-bold uppercase tracking-[0.4em] text-ink-3">
-            {t("heroScrollCue")}
-          </span>
-          <span className="relative flex h-11 w-7 items-start justify-center rounded-full border border-ink/20 p-1.5">
-            <span className="h-2 w-1 rounded-full bg-brand animate-bob" />
-          </span>
-        </motion.div>
+        {/* RIGHT — custom SVG illustration (always visible) */}
+        <div className="relative mx-auto w-full max-w-xl">
+          <div className="relative">
+            {/* main illustration card */}
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-white shadow-[0_40px_90px_-40px_rgb(15_23_42/0.4)]">
+              <div
+                aria-hidden
+                className="absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(120% 120% at 0% 0%, rgb(99 102 241 / 0.12), transparent 50%), radial-gradient(120% 120% at 100% 100%, rgb(245 158 11 / 0.12), transparent 50%)",
+                }}
+              />
+              <HeroIllustration />
+            </div>
 
-        <span
-          data-side
-          className="absolute right-6 top-1/2 hidden -translate-y-1/2 rotate-90 font-display text-[0.6rem] font-bold uppercase tracking-[0.5em] text-ink/30 xl:block"
-        >
-          {t("heroSideCue")}
-        </span>
+            {/* floating mini-cards (content always visible; only float animates) */}
+            <motion.div
+              animate={{ y: [0, -12, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute -left-5 -top-5 flex items-center gap-2 rounded-2xl border border-ink/[0.06] bg-white px-4 py-3 shadow-[0_18px_40px_-20px_rgb(15_23_42/0.4)]"
+            >
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand/[0.1] text-brand-deep">
+                <TrendingUp className="h-5 w-5" strokeWidth={1.8} />
+              </span>
+              <div className="text-ink">
+                <p className="font-display text-sm font-extrabold text-ink">Band 8+</p>
+                <p className="text-[0.68rem] font-semibold text-ink-3">IELTS average</p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              animate={{ y: [0, 12, 0] }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+              className="absolute -bottom-5 -right-3 flex items-center gap-2 rounded-2xl border border-ink/[0.06] bg-white px-4 py-3 shadow-[0_18px_40px_-20px_rgb(15_23_42/0.4)]"
+            >
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-50 text-emerald-600">
+                <Star className="h-5 w-5" strokeWidth={1.8} />
+              </span>
+              <div className="text-ink">
+                <p className="font-display text-sm font-extrabold text-ink">+90% fluency</p>
+                <p className="text-[0.68rem] font-semibold text-ink-3">learner progress</p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </div>
     </section>
+  );
+}
+
+/** Custom inline SVG illustration — a learner in a lively English class scene. */
+function HeroIllustration() {
+  return (
+    <svg viewBox="0 0 600 480" className="relative block h-auto w-full" role="img" aria-label="Illustration of a live English lesson">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#eef1ff" />
+          <stop offset="100%" stopColor="#fff7ed" />
+        </linearGradient>
+        <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#f3f4ff" />
+        </linearGradient>
+        <linearGradient id="btn" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#6366f1" />
+          <stop offset="100%" stopColor="#8b5cf6" />
+        </linearGradient>
+      </defs>
+
+      <rect width="600" height="480" rx="32" fill="url(#sky)" />
+      <g opacity="0.5">
+        <circle cx="510" cy="90" r="120" fill="#fef3c7" />
+        <circle cx="80" cy="420" r="110" fill="#e0e7ff" />
+      </g>
+
+      <g>
+        <rect x="70" y="70" width="140" height="34" rx="17" fill="white" stroke="#e2e8f0" />
+        <path d="M95 96 l-8 14 18 -6 z" fill="white" stroke="#e2e8f0" />
+        <circle cx="100" cy="87" r="4" fill="#6366f1" />
+        <circle cx="130" cy="87" r="4" fill="#6366f1" opacity="0.5" />
+        <circle cx="160" cy="87" r="4" fill="#6366f1" opacity="0.3" />
+      </g>
+      <g>
+        <rect x="400" y="60" width="150" height="34" rx="17" fill="white" stroke="#e2e8f0" />
+        <path d="M520 86 l14 14 -20 -2 z" fill="white" stroke="#e2e8f0" />
+        <rect x="420" y="75" width="58" height="6" rx="3" fill="#f59e0b" opacity="0.6" />
+        <rect x="486" y="75" width="44" height="6" rx="3" fill="#94a3b8" opacity="0.4" />
+      </g>
+
+      <g transform="translate(190 230)">
+        <rect x="-90" y="-70" width="180" height="120" rx="16" fill="url(#card)" stroke="#e2e8f0" />
+        <circle cx="0" cy="-28" r="22" fill="url(#btn)" />
+        <path d="M-10 -34 a22 22 0 0 1 20 0" fill="white" opacity="0.35" />
+        <text x="0" y="-24" textAnchor="middle" fill="white" fontSize="16" fontWeight="700">J</text>
+        <rect x="-56" y="4" width="112" height="11" rx="5.5" fill="#334155" />
+        <rect x="-44" y="22" width="88" height="8" rx="4" fill="#94a3b8" opacity="0.6" />
+      </g>
+
+      {[
+        { dx: 70, dy: 120 },
+        { dx: 400, dy: 120 },
+        { dx: 80, dy: 320 },
+        { dx: 410, dy: 330 },
+      ].map((p, i) => (
+        <g key={i} transform={`translate(${p.dx} ${p.dy})`}>
+          <circle r="22" fill={["#6366f1", "#f59e0b", "#10b981", "#8b5cf6"][i]} opacity="0.18" />
+          <circle cx="-6" cy="-6" r="18" fill={["#6366f1", "#f59e0b", "#10b981", "#8b5cf6"][i]} opacity="0.9" />
+          <path d="M-12 12 a18 18 0 0 1 12 -18" fill="white" opacity="0.3" />
+        </g>
+      ))}
+
+      <g transform="translate(320 400)">
+        <rect width="120" height="42" rx="12" fill="white" stroke="#e2e8f0" />
+        <rect x="14" y="16" width="92" height="8" rx="4" fill="#eef1f9" />
+        <rect x="14" y="16" width="66" height="8" rx="4" fill="url(#btn)" />
+      </g>
+
+      <g transform="translate(40 300)">
+        <circle r="24" fill="white" stroke="#e2e8f0" />
+        <path d="M-8 -6 h16 M0 -12 v16" stroke="#6366f1" strokeWidth="3" strokeLinecap="round" />
+      </g>
+      <g transform="translate(540 240)">
+        <circle r="24" fill="white" stroke="#e2e8f0" />
+        <path d="M-6 6 a8 8 0 0 0 12 0 M-12 4 a14 14 0 0 0 24 0" stroke="#f59e0b" strokeWidth="3" fill="none" strokeLinecap="round" />
+        <rect x="-2.5" y="-14" width="5" height="10" rx="2.5" fill="#f59e0b" />
+      </g>
+    </svg>
   );
 }
