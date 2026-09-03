@@ -45,3 +45,35 @@ export async function register(): Promise<void> {
     );
   }
 }
+
+/**
+ * Server-side error hook (Next 15.3+/16). Every unhandled error thrown while a
+ * route renders or a handler runs lands here, so we can persist it and page the
+ * alert webhook instead of only logging to the console. Edge-safe: node-only.
+ */
+export async function onRequestError(
+  err: unknown,
+  request: { method?: string; url?: string } | undefined,
+  context?: {
+    routePath?: string;
+    routeType?: string;
+    routerKind?: string;
+    revalidateReason?: string;
+  }
+): Promise<void> {
+  if (process.env.NEXT_RUNTIME !== "nodejs") return;
+
+  const { reportError } = await import("@/lib/reporting");
+  const route = context?.routePath ?? request?.url ?? "unknown-route";
+  const method = (request?.method ?? "").toUpperCase();
+
+  await reportError({
+    level: "error",
+    scope: "server",
+    message: (err instanceof Error ? err.message : String(err ?? "Server error")).slice(0, 2000),
+    stack: err instanceof Error ? (err.stack?.slice(0, 8000) ?? null) : null,
+    url: route,
+    tag: context?.routeType ?? "route",
+    detail: method ? `${method} ${route}` : route,
+  });
+}
