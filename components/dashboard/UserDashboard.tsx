@@ -222,10 +222,27 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
         if (data.certificates) setCertificates(data.certificates);
         if (data.assignments) setAssignments(data.assignments);
         const firstEnr = enrList[0];
-        if (firstEnr?.status === "ENROLLED" && !celebratedRef.current) {
-          celebratedRef.current = true;
-          setEnrolledCelebrated(true);
-          setTimeout(() => setEnrolledCelebrated(false), 5200);
+        if (firstEnr?.status === "ENROLLED" && firstEnr?.id) {
+          // Celebrate only once per enrollment (persisted), so the "Enrollment
+          // successful" moment does not replay on every visit/reload. A brand
+          // new enrollment (new id) gets its own celebration.
+          const celebrationKey = `lh:celebrated:${firstEnr.id}`;
+          let alreadyCelebrated = false;
+          try {
+            alreadyCelebrated = localStorage.getItem(celebrationKey) === "1";
+          } catch {
+            // ignore storage errors
+          }
+          if (!alreadyCelebrated && !celebratedRef.current) {
+            try {
+              localStorage.setItem(celebrationKey, "1");
+            } catch {
+              // storage unavailable — rely on the in-session ref guard
+            }
+            celebratedRef.current = true;
+            setEnrolledCelebrated(true);
+            setTimeout(() => setEnrolledCelebrated(false), 5200);
+          }
         }
         const courses = data.courses;
         if (courses?.length) {
