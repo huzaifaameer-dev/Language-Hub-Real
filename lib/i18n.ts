@@ -102,6 +102,46 @@ export const enDict: Dict = {
   "footer.terms": "Terms",
   "footer.refunds": "Refunds",
   "footer.whatsapp": "WhatsApp the studio",
+
+  // Journey
+  "journey.eyebrow": "Your Journey",
+  "journey.title1": "From quiet to",
+  "journey.title2": "confident.",
+  "journey.subtitle": "A clear four-step path that turns silent learners into confident communicators.",
+  "journey.stage1.word": "Learn",
+  "journey.stage1.body": "Absorb the sounds, rhythm and structure. Every lesson builds a stronger foundation.",
+  "journey.stage2.word": "Practice",
+  "journey.stage2.body": "Speak it out loud, make mistakes, try again. Fluency lives in friendly repetition.",
+  "journey.stage3.word": "Express",
+  "journey.stage3.body": "Put your ideas into words — with clarity, personality and your own voice.",
+  "journey.stage4.word": "Grow",
+  "journey.stage4.body": "Confidence compounds. Communication becomes natural. New doors begin to open.",
+
+  // Features / Philosophy
+  "features.eyebrow": "The Hub Difference",
+  "features.title1": "Why learners",
+  "features.title2": "choose us.",
+  "features.subtitle": "A method built around real communication, real people and real results — not textbooks alone.",
+  "features.f1.title": "Live Speaking",
+  "features.f1.desc": "Real conversation practice from day one — not just grammar drills.",
+  "features.f2.title": "Small Batches",
+  "features.f2.desc": "Personal attention in tight groups, so every student gets to speak.",
+  "features.f3.title": "Creative Expression",
+  "features.f3.desc": "Find the words and tone that are unmistakably you.",
+  "features.f4.title": "Test-Prep Ready",
+  "features.f4.desc": "IELTS, PTE & Duolingo — structured prep with mock-test rhythm.",
+  "features.f5.title": "Fast Progress",
+  "features.f5.desc": "A clear learn → practice → express path that compounds every week.",
+  "features.f6.title": "Flexible Hours",
+  "features.f6.desc": "Morning, evening and weekend batches — built around real life.",
+
+  // CTA banner
+  "cta.eyebrow": "Start today",
+  "cta.title1": "Your voice is ready.",
+  "cta.title2": "find it.",
+  "cta.subtitle": "Book a free demo class and experience how Language Hub turns nervous words into confident conversations.",
+  "cta.track": "Track your application",
+  "cta.replies": "replies fast",
 };
 
 /** Urdu UI strings. */
@@ -199,6 +239,46 @@ export const urDict: Dict = {
   "footer.terms": "شرائط",
   "footer.refunds": "ریفنڈ",
   "footer.whatsapp": "اسٹوڈیو کو واٹس ایپ کریں",
+
+  // Journey
+  "journey.eyebrow": "آپ کا سفر",
+  "journey.title1": "خاموشی سے",
+  "journey.title2": "اعتماد تک۔",
+  "journey.subtitle": "ایک واضح چار مرحلوں والا راستہ جو خاموش سیکھنے والوں کو پراعتماد بولنے والوں میں بدل دیتا ہے۔",
+  "journey.stage1.word": "سیکھیں",
+  "journey.stage1.body": "آواز، تال اور ساخت کو جذب کریں۔ ہر سبق ایک مضبوط بنیاد بناتا ہے۔",
+  "journey.stage2.word": "مشق کریں",
+  "journey.stage2.body": "بلند آواز سے بولیں، غلطیاں کریں، دوبارہ کوشش کریں۔ روانی دوستانہ تکرار میں ہے۔",
+  "journey.stage3.word": "اظہار کریں",
+  "journey.stage3.body": "اپنے خیالات کو الفاظ میں بدلیں — وضاحت، شخصیت اور اپنی آواز کے ساتھ۔",
+  "journey.stage4.word": "ترقی کریں",
+  "journey.stage4.body": "اعتماد بڑھتا ہے۔ گفتگو قدرتی بن جاتی ہے۔ نئے دروازے کھلنے لگتے ہیں۔",
+
+  // Features / Philosophy
+  "features.eyebrow": "ہب کا فرق",
+  "features.title1": "سیکھنے والے",
+  "features.title2": "ہمیں کیوں چنتے ہیں۔",
+  "features.subtitle": "ایک طریقہ جو حقیقی گفتگو، حقیقی لوگوں اور حقیقی نتائج پر بنایا گیا ہے — صرف کتابوں پر نہیں۔",
+  "features.f1.title": "لائیو گفتگو",
+  "features.f1.desc": "پہلے دن سے حقیقی گفتگو کی مشق — صرف گرامر مشق نہیں۔",
+  "features.f2.title": "چھوٹی کلاسیں",
+  "features.f2.desc": "چھوٹے گروہوں میں انفرادی توجہ، تاکہ ہر طالب علم بول سکے۔",
+  "features.f3.title": "تخلیقی اظہار",
+  "features.f3.desc": "وہ الفاظ اور لہجہ تلاش کریں جو بالکل آپ ہیں۔",
+  "features.f4.title": "ٹیسٹ کے لیے تیار",
+  "features.f4.desc": "آئی ایل ٹی ایس، پی ٹی ای اور ڈولنگو — منظم تیاری مذاق ٹیسٹ کے ساتھ۔",
+  "features.f5.title": "تیز ترقی",
+  "features.f5.desc": "سیکھیں → مشق کریں → اظہار کریں، ایک صاف راستہ جو ہر ہفتے بڑھتا ہے۔",
+  "features.f6.title": "لچکدار اوقات",
+  "features.f6.desc": "صبح، شام اور ویک اینڈ بیچ — حقیقی زندگی کے مطابق۔",
+
+  // CTA banner
+  "cta.eyebrow": "آج شروع کریں",
+  "cta.title1": "آپ کی آواز تیار ہے۔",
+  "cta.title2": "اسے تلاش کریں۔",
+  "cta.subtitle": "مفت ڈیمو کلاس بک کریں اور دیکھیں کہ لینگویج ہب گھبرائی ہوئی باتوں کو پراعتماد گفتگو میں کیسے بدلتا ہے۔",
+  "cta.track": "اپنی درخواست دیکھیں",
+  "cta.replies": "جلد جواب دیتا ہے",
 };
 
 export const DICTS: Record<Lang, Dict> = { en: enDict, ur: urDict };

@@ -1,3 +1,5 @@
+"use client";
+
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Reveal } from "@/components/ui/Reveal";
 import {
@@ -8,53 +10,23 @@ import {
   Languages,
   CalendarClock,
 } from "lucide-react";
+import { useLang } from "@/components/LanguageProvider";
 
-const FEATURES = [
-  {
-    icon: MessageCircle,
-    title: "Live Speaking",
-    desc: "Real conversation practice from day one — not just grammar drills.",
-    tone: "#6366f1",
-    tint: "bg-brand/[0.08] text-brand-deep",
-  },
-  {
-    icon: Users,
-    title: "Small Batches",
-    desc: "Personal attention in tight groups, so every student gets to speak.",
-    tone: "#0ea5e9",
-    tint: "bg-sky-50 text-sky-600",
-  },
-  {
-    icon: Lightbulb,
-    title: "Creative Expression",
-    desc: "Find the words and tone that are unmistakably you.",
-    tone: "#d63a8c",
-    tint: "bg-pink-50 text-pink-600",
-  },
-  {
-    icon: Languages,
-    title: "Test-Prep Ready",
-    desc: "IELTS, PTE & Duolingo — structured prep with mock-test rhythm.",
-    tone: "#f59e0b",
-    tint: "bg-amber-50 text-amber-600",
-  },
-  {
-    icon: Rocket,
-    title: "Fast Progress",
-    desc: "A clear learn → practice → express path that compounds every week.",
-    tone: "#10b981",
-    tint: "bg-emerald-50 text-emerald-600",
-  },
-  {
-    icon: CalendarClock,
-    title: "Flexible Hours",
-    desc: "Morning, evening and weekend batches — built around real life.",
-    tone: "#8b5cf6",
-    tint: "bg-violet-50 text-violet-600",
-  },
+const FEATURE_ICONS = [MessageCircle, Users, Lightbulb, Languages, Rocket, CalendarClock];
+const FEATURE_TONES = ["#6366f1", "#0ea5e9", "#d63a8c", "#f59e0b", "#10b981", "#8b5cf6"];
+const FEATURE_TINTS = [
+  "bg-brand/[0.08] text-brand-deep",
+  "bg-sky-50 text-sky-600",
+  "bg-pink-50 text-pink-600",
+  "bg-amber-50 text-amber-600",
+  "bg-emerald-50 text-emerald-600",
+  "bg-violet-50 text-violet-600",
 ];
 
 export function Features() {
+  const { dict, lang } = useLang();
+  const isUr = lang === "ur";
+
   return (
     <section
       id="why"
@@ -64,40 +36,50 @@ export function Features() {
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeader
-          eyebrow="The Hub Difference"
+          eyebrow={dict["features.eyebrow"]}
           title={
-            <>
-              Why learners <span className="brand-text">choose us.</span>
-            </>
+            isUr ? (
+              <>{dict["features.title1"]} <span className="brand-text">{dict["features.title2"]}</span></>
+            ) : (
+              <>
+                Why learners <span className="brand-text">choose us.</span>
+              </>
+            )
           }
-          subtitle="A method built around real communication, real people and real results — not textbooks alone."
+          subtitle={dict["features.subtitle"]}
         />
 
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f, i) => (
-            <Reveal
-              key={f.title}
-              delay={(i % 3) * 0.08}
-              duration={0.55}
-              hover={false}
-              className="group relative overflow-hidden rounded-3xl border border-ink/[0.07] bg-[#fafbfe] p-7 transition-all duration-300 hover:border-ink/12 hover:shadow-[0_28px_60px_-30px_rgb(15_23_42/0.3)]"
-            >
-              <span
-                aria-hidden
-                className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-gradient-to-r transition-transform duration-500 group-hover:scale-x-100"
-                style={{
-                  background: `linear-gradient(90deg, ${f.tone}, ${f.tone}88)`,
-                }}
-              />
-              <span className={`grid h-14 w-14 place-items-center rounded-2xl ${f.tint}`}>
-                <f.icon className="h-7 w-7" strokeWidth={1.6} />
-              </span>
-              <h3 className="mt-5 font-display text-xl font-extrabold tracking-tight text-ink">
-                {f.title}
-              </h3>
-              <p className="mt-2 text-[0.92rem] leading-relaxed text-ink-2">{f.desc}</p>
-            </Reveal>
-          ))}
+          {FEATURE_ICONS.map((Icon, i) => {
+            const title = dict[`features.f${i + 1}.title`];
+            const desc = dict[`features.f${i + 1}.desc`];
+            const tone = FEATURE_TONES[i];
+            const tint = FEATURE_TINTS[i];
+            return (
+              <Reveal
+                key={title}
+                delay={(i % 3) * 0.08}
+                duration={0.55}
+                hover={false}
+                className="group relative overflow-hidden rounded-3xl border border-ink/[0.07] bg-[#fafbfe] p-7 transition-all duration-300 hover:border-ink/12 hover:shadow-[0_28px_60px_-30px_rgb(15_23_42/0.3)]"
+              >
+                <span
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-gradient-to-r transition-transform duration-500 group-hover:scale-x-100"
+                  style={{
+                    background: `linear-gradient(90deg, ${tone}, ${tone}88)`,
+                  }}
+                />
+                <span className={`grid h-14 w-14 place-items-center rounded-2xl ${tint}`}>
+                  <Icon className="h-7 w-7" strokeWidth={1.6} />
+                </span>
+                <h3 className="mt-5 font-display text-xl font-extrabold tracking-tight text-ink" dir={isUr ? "rtl" : "ltr"}>
+                  {title}
+                </h3>
+                <p className="mt-2 text-[0.92rem] leading-relaxed text-ink-2">{desc}</p>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>

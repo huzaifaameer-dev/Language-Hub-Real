@@ -127,15 +127,35 @@ export async function PATCH(request: Request) {
       .project({ userId: 1, email: 1, name: 1, subjects: 1, batch: 1 })
       .toArray();
 
-    for (const t of pendingDocs) {
-      if (t.subjects?.length && t.batch) {
-        const gate = await checkSeatAvailability(t.subjects, t.batch);
-        if (!gate.ok) {
-          return NextResponse.json(
-            { message: `${t.name}: ${gate.message}`, code: gate.code },
-            { status: gate.code === "BATCH_FULL" ? 409 : 400 }
-          );
+    // Run seat checks in parallel (independent reads) and short-circuit on the
+    // first failure so large selections don't serialise n sequential gates.
+    const results = await Promise.allSettled(
+      pendingDocs.map(async (t) => {
+        if (!(t.subjects?.length && t.batch)) {
+          return { id: t._id, name: t.name, passes: true };
         }
+        const gate = await checkSeatAvailability(t.subjects, t.batch);
+        const failed = !gate.ok;
+        return {
+          id: t._id,
+          name: t.name,
+          passes: !failed,
+          code: failed ? (gate as { code?: string }).code : undefined,
+          message: failed ? (gate as { message?: string }).message : undefined,
+        };
+      })
+    );
+
+    for (const r of results) {
+      if (r.status === "rejected") {
+        return NextResponse.json({ message: "Seat check failed. Please retry." }, { status: 500 });
+      }
+      if (!r.value.passes) {
+        const code = r.value.code ?? "BATCH_FULL";
+        return NextResponse.json(
+          { message: `${r.value.name}: ${r.value.message ?? "That batch is full."}`, code },
+          { status: code === "BATCH_FULL" ? 409 : 400 }
+        );
       }
     }
 
