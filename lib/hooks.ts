@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, type RefObject } from "react";
-import { animate, useInView, useMotionValue, useTransform, type MotionValue } from "framer-motion";
+import { useEffect, useState } from "react";
 
 /** True when the user prefers reduced motion. */
 export function usePrefersReducedMotion(): boolean {
@@ -87,70 +86,4 @@ export function useDocumentVisible(): boolean {
   }, []);
 
   return visible;
-}
-
-const EASE_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
-
-/**
- * Horizontal travel for a pinned gallery. Measures the real scrollable
- * distance (`track width − viewport`) so the layout always ends flush on the
- * final panel, regardless of screen size.
- */
-export function useHorizontalTrackX(
-  scrollYProgress: MotionValue<number>,
-  track: RefObject<HTMLElement | null>,
-  enabled: boolean
-): MotionValue<number> {
-  const [maxX, setMaxX] = useState(0);
-
-  useEffect(() => {
-    if (!enabled) return;
-    const el = track.current;
-    if (!el) return;
-    const update = () =>
-      setMaxX(Math.max(0, el.offsetWidth - (el.parentElement?.clientWidth ?? 0)));
-    const raf = window.requestAnimationFrame(update);
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    window.addEventListener("resize", update);
-    return () => {
-      window.cancelAnimationFrame(raf);
-      ro.disconnect();
-      window.removeEventListener("resize", update);
-    };
-  }, [enabled, track]);
-
-  return useTransform(scrollYProgress, [0, 1], [0, -maxX], { clamp: true });
-}
-
-/**
- * Scene progress source for horizontal galleries. When a `progress` motion
- * value is supplied (desktop horizontal mode) it maps `[start, end] → [0, 1]`.
- * Otherwise (stacked/touch mode) an internal value animates 0→1 when the scene
- * scrolls into view and resets when it leaves.
- */
-export function useSceneProgress(
-  progress: MotionValue<number> | null,
-  start: number,
-  end: number,
-  ref: RefObject<Element | null>
-): MotionValue<number> {
-  const internal = useMotionValue(0);
-  const isInView = useInView(ref, { margin: "-15% 0px -15% 0px" });
-
-  useEffect(() => {
-    if (progress) return;
-    if (isInView) {
-      const controls = animate(internal, 1, { duration: 1.5, ease: EASE_EXPO });
-      return () => controls.stop();
-    }
-    internal.set(0);
-  }, [isInView, progress, internal]);
-
-  return useTransform(
-    progress ?? internal,
-    progress ? [start, end] : [0, 1],
-    [0, 1],
-    { clamp: true }
-  );
 }

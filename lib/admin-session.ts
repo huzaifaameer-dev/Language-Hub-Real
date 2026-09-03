@@ -6,19 +6,15 @@ export const ADMIN_COOKIE = "hub_admin_token";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 function secret(): Buffer {
-  const value =
-    process.env.NEXTAUTH_SECRET ??
-    process.env.AUTH_SECRET ??
-    "language-hub-dev-admin-secret";
+  const value = process.env.NEXTAUTH_SECRET ?? process.env.AUTH_SECRET;
 
-  // Fail closed: in production a missing secret must never fall back to the
-  // repo-known dev value, or anyone could forge an admin cookie.
-  if (process.env.NODE_ENV === "production") {
-    if (!process.env.NEXTAUTH_SECRET && !process.env.AUTH_SECRET) {
-      throw new Error(
-        "NEXTAUTH_SECRET/AUTH_SECRET is required in production (admin token signing)."
-      );
-    }
+  // Fail closed in every environment: never fall back to a repo-known constant,
+  // or anyone who knows the repo could forge an admin cookie on any instance
+  // that is running without an explicit secret.
+  if (!value) {
+    throw new Error(
+      "NEXTAUTH_SECRET/AUTH_SECRET is required for admin token signing."
+    );
   }
   return Buffer.from(value);
 }

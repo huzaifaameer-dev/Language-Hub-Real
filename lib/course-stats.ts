@@ -1,58 +1,86 @@
 import { unstable_cache } from "next/cache";
-import type { CourseBatch } from "@/lib/course-data";
 import {
   ensureIndexesAndAdmin,
   getCoursesCollection,
   getEnrollmentsCollection,
 } from "@/lib/db";
 import type { CourseDoc } from "@/lib/db";
+import {
+  batchUsageFor,
+  courseSeatSummary,
+  seatsUsedFor,
+  seatViews,
+  type CourseBatch,
+  type CourseSeatSummary,
+  type EnrolledLike,
+  type SeatGateResult,
+  type SeatView,
+} from "@/lib/seat-math";
 
-/** Count ENROLLED enrollment docs per batch name. */
-export function batchUsageMap(enrolled: Array<{ batch: string }>): Map<string, number> {
-  const m = new Map<string, number>();
-  for (const e of enrolled) {
-    m.set(e.batch, (m.get(e.batch) ?? 0) + 1);
+export type {
+  CourseBatch,
+  CourseSeatSummary,
+  EnrolledLike,
+  SeatGateResult,
+  SeatView,
+};
+export { batchUsageFor, courseSeatSummary, seatsUsedFor, seatViews };
+
+/**
+ * One authoritative seat gate for both enrollment requests and admin seat
+ * confirmations. Verifies every selected subject is an active catalog course
+ * that hosts the requested batch, then rejects the approval that would push
+ * any of those batches past its capacity.
+ */
+export async function checkSeatAvailability(
+  subjects: string[],
+  batch: string
+): Promise<SeatGateResult> {
+  await ensureIndexesAndAdmin();
+  const [coursesCol, enrollmentsCol] = await Promise.all([
+    getCoursesCollection(),
+    getEnrollmentsCollection(),
+  ]);
+
+  const [courseDocs, enrolledDocs] = await Promise.all([
+    coursesCol.find({ active: true, name: { $in: subjects } }).toArray(),
+    enrollmentsCol.find({ status: "ENROLLED" }).project({ batch: 1, subjects: 1 }).toArray(),
+  ] as const);
+
+  for (const subject of subjects) {
+    const course = courseDocs.find((c) => c.name === subject);
+    if (!course) {
+      return {
+        ok: false,
+        code: "BATCH_UNKNOWN",
+        message: `${subject} is not an active course right now.`,
+      };
+    }
+    if (!(course.batches ?? []).some((b) => b.name === batch)) {
+      return {
+        ok: false,
+        code: "BATCH_UNKNOWN",
+        message: `${batch} is not a batch of ${course.name}.`,
+      };
+    }
   }
-  return m;
-}
 
-export interface SeatView {
-  name: string;
-  time: string;
-  seatsTotal: number;
-  seatsUsed: number;
-  seatsLeft: number;
-  full: boolean;
-}
-
-export function seatViews(batches: CourseBatch[], used: Map<string, number>): SeatView[] {
-  return batches.map((b) => {
-    const seatsUsed = used.get(b.name) ?? 0;
+  const used = batchUsageFor(enrolledDocs as EnrolledLike[]);
+  const full: string[] = [];
+  for (const c of courseDocs) {
+    const b = (c.batches ?? []).find((x) => x.name === batch);
+    if (b && seatsUsedFor(used, c.name, batch) >= b.seatsTotal) {
+      full.push(`${c.name} · ${b.name}`);
+    }
+  }
+  if (full.length > 0) {
     return {
-      name: b.name,
-      time: b.time,
-      seatsTotal: b.seatsTotal,
-      seatsUsed,
-      seatsLeft: Math.max(0, b.seatsTotal - seatsUsed),
-      full: seatsUsed >= b.seatsTotal,
+      ok: false,
+      code: "BATCH_FULL",
+      message: `That batch is full. Try another batch: ${full.join(", ")}`,
     };
-  });
-}
-
-export interface CourseSeatSummary {
-  seatsTotal: number;
-  seatsUsed: number;
-  seatsLeft: number;
-}
-
-export function courseSeatSummary(views: SeatView[]): CourseSeatSummary {
-  const seatsTotal = views.reduce((s, v) => s + v.seatsTotal, 0);
-  const seatsUsed = views.reduce((s, v) => s + v.seatsUsed, 0);
-  return {
-    seatsTotal,
-    seatsUsed,
-    seatsLeft: Math.max(0, seatsTotal - seatsUsed),
-  };
+  }
+  return { ok: true };
 }
 
 export interface PublicCatalogCourse {
@@ -84,14 +112,14 @@ export const getPublicCatalog = unstable_cache(
 
     const [courseDocs, enrolledDocs] = await Promise.all([
       coursesCol.find({ active: true }).sort({ order: 1 }).toArray(),
-      enrollmentsCol.find({ status: "ENROLLED" }).project({ batch: 1 }).toArray(),
+      enrollmentsCol.find({ status: "ENROLLED" }).project({ batch: 1, subjects: 1 }).toArray(),
     ] as const);
 
-    const used = batchUsageMap(enrolledDocs as { batch: string }[]);
+    const used = batchUsageFor(enrolledDocs as EnrolledLike[]);
 
     const courses: PublicCatalogCourse[] = courseDocs.map(
       (c: CourseDoc & { _id: unknown }) => {
-        const batches = seatViews(c.batches ?? [], used);
+        const batches = seatViews(c.batches ?? [], used, c.name);
         return {
           id: String(c._id),
           name: c.name,

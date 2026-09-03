@@ -128,18 +128,63 @@ export async function rateLimitDb(
   }
 }
 
-/** Pull a stable client identifier from a Request. */
-export function clientKey(request: Request, suffix = ""): string {
-  // First entry of x-forwarded-for is the real client when behind a proxy.
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip")?.trim() ??
-    request.headers.get("cf-connecting-ip")?.trim();
-  if (ip) return `${ip}:${suffix}`;
-  // No identity headers (plain dev/self-hosts): bound by user-agent family so
-  // a flood from one client does not lock out every anonymous user on the box.
+/**
+ * Pull a stable client identifier from a Request. Async because cookie
+ * verification runs a Web Crypto HMAC.
+ *
+ * Priority:
+ *   1. Trusted proxy IP (requires TRUST_PROXY=1 behind a real proxy).
+ *   2. The signed `lh_client` cookie (minted by the middleware) — stable across
+ *      UA rotation and survives NAT sharing, so rotating the User-Agent can no
+ *      longer reset anonymous limit buckets.
+ *   3. Fallback: a hash of the User-Agent + an in-memory random salt. This
+ *      bounds damage when neither identity is available, but deployment should
+ *      run a reverse proxy with TRUST_PROXY=1 for the authoritative client IP.
+ */
+let uaSalt = 0;
+if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
+  const buf = new Uint8Array(4);
+  crypto.getRandomValues(buf);
+  uaSalt = new DataView(buf.buffer).getUint32(0, true);
+}
+
+export async function clientKey(request: Request, suffix = ""): Promise<string> {
+  // Only trust client hop headers (x-forwarded-for etc.) when BOTH an explicit
+  // opt-in is set AND the deploy is actually behind that trusted proxy. On a
+  // directly-reachable server the header is attacker-controlled — trusting it
+  // would let anyone rotate their key and bypass every rate limit.
+  const trustProxy =
+    process.env.TRUST_PROXY === "1" || process.env.TRUST_PROXY === "true";
+
+  if (trustProxy) {
+    // First entry of x-forwarded-for is the real client when behind a proxy.
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip")?.trim() ??
+      request.headers.get("cf-connecting-ip")?.trim();
+    if (ip) return `${ip}:${suffix}`;
+  }
+
+  // Signed per-client cookie: real browsers carry it (minted by the middleware),
+  // so a UA change no longer resets the bucket for them.
+  try {
+    const { verifyClientId, CLIENT_COOKIE_NAME } = await import("@/lib/client-id");
+    const cookieHeader = request.headers.get("cookie");
+    const cookie = cookieHeader
+      ?.split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith(`${CLIENT_COOKIE_NAME}=`));
+    const id = cookie ? await verifyClientId(cookie.slice(CLIENT_COOKIE_NAME.length + 1)) : null;
+    if (id) return `c:${id}:${suffix}`;
+  } catch {
+    // cookie layer is best-effort — fall through to the UA fallback
+  }
+
+  // No trusted identity: bound by user-agent family so a flood from one client
+  // does not lock out every anonymous user on the box. Salted per-process so
+  // bucket keys differ across restarts (old in-memory windows cannot be replayed).
   const ua = request.headers.get("user-agent") ?? "";
-  let h = 0;
+  let h = uaSalt;
   for (let i = 0; i < ua.length; i += 1) h = (h * 31 + ua.charCodeAt(i)) | 0;
-  return `ua:${h.toString(16)}:${suffix}`;
+  return `ua:${(h >>> 0).toString(16)}:${suffix}`;
 }

@@ -32,7 +32,29 @@ function enr(partial: Partial<AdminEnrollment> & { createdAt: string }): AdminEn
   };
 }
 
-const counts = { users: 3, courses: 4, notifications: 5 };
+const counts = {
+  users: 3,
+  courses: 4,
+  notifications: 5,
+  paymentsTotal: 0,
+  appsTotal: 4,
+  appsPending: 1,
+  appsApproved: 2,
+  appsRejected: 1,
+  enrsPending: 1,
+  enrsAwaiting: 0,
+  enrsProof: 0,
+  enrsEnrolled: 1,
+  enrsRejected: 1,
+};
+
+const emptyCounts = {
+  ...counts,
+  appsTotal: 0,
+  appsPending: 0,
+  appsApproved: 0,
+  appsRejected: 0,
+};
 
 describe("deriveAdminStats", () => {
   afterEach(() => {
@@ -69,10 +91,39 @@ describe("deriveAdminStats", () => {
     expect(s.users).toBe(3);
     expect(s.courses).toBe(4);
     expect(s.notifications).toBe(5);
+    expect(s.total).toBe(4);
+    expect(s.pending).toBe(1);
+    expect(s.approved).toBe(2);
+    expect(s.rejected).toBe(1);
+    expect(s.enrPending).toBe(1);
+    expect(s.enrEnrolled).toBe(1);
+    expect(s.enrRejected).toBe(1);
+  });
+
+  it("uses the full-table counts even when the capped lists undercount", () => {
+    const bigCounts = {
+      ...counts,
+      appsTotal: 500,
+      appsPending: 12,
+      appsApproved: 400,
+      appsRejected: 88,
+      enrsPending: 30,
+      enrsEnrolled: 200,
+      enrsRejected: 15,
+    };
+    const s = deriveAdminStats([], [], bigCounts);
+    expect(s.total).toBe(500);
+    expect(s.pending).toBe(12);
+    expect(s.approved).toBe(400);
+    expect(s.rejected).toBe(88);
+    expect(s.enrPending).toBe(30);
+    expect(s.enrEnrolled).toBe(200);
+    expect(s.enrRejected).toBe(15);
+    expect(s.approvalRate).toBe(Math.round((400 / 500) * 100));
   });
 
   it("approvalRate is 0 when there are no applications", () => {
-    const s = deriveAdminStats([], [], counts);
+    const s = deriveAdminStats([], [], emptyCounts);
     expect(s.approvalRate).toBe(0);
   });
 

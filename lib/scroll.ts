@@ -25,10 +25,3 @@ export function initScrollSystem() {
     document.fonts?.ready.then(() => ScrollTrigger.refresh()).catch(() => undefined);
   }
 }
-
-export function pinStartAtTop(target: Element) {
-  return () => {
-    const r = target.getBoundingClientRect();
-    return r.top + window.scrollY;
-  };
-}
