@@ -314,6 +314,7 @@ export function ensureInit(): Promise<void> {
         db.collection("users").createIndex({ role: 1 }),
         db.collection("applications").createIndex({ userId: 1 }),
         db.collection("applications").createIndex({ status: 1 }),
+        db.collection("applications").createIndex({ email: 1 }),
         db.collection("applications").createIndex({ createdAt: -1 }),
         db.collection("enrollments").createIndex({ userId: 1 }),
         db.collection("enrollments").createIndex({ status: 1 }),

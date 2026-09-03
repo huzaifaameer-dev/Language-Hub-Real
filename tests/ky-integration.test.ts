@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createHmac } from "node:crypto";
 
 import {
   createDedupTracker,
@@ -294,5 +295,54 @@ describe("whatsapp sendWaText (mocked fetch + config gating)", () => {
     const res = await WhatsApp.sendWaText({ to: "+923001234567", text: "hi" });
     expect(res.ok).toBe(false);
     expect(res.error).toContain("fetch failed");
+  });
+});
+
+describe("konnect verifyKonnectWebhook (HMAC signature)", () => {
+  let Konnect: typeof import("../lib/konnect");
+  const SECRET = "s3cr3t-webhook-key";
+  const PAYLOAD = '{"orderId":"ORD-1","status":"SUCCESS"}';
+
+  afterEach(() => restoreEnv());
+
+  it("rejects when no webhook secret is configured (fail closed)", async () => {
+    setEnv({ KONNECT_WEBHOOK_SECRET: undefined, KONNECT_SECRET_KEY: undefined });
+    // Module reads env lazily inside verifyKonnectWebhook, so a fresh import is fine.
+    Konnect = await import("../lib/konnect");
+    expect(Konnect.verifyKonnectWebhook(PAYLOAD, "whatever")).toBe(false);
+  });
+
+  it("rejects a mismatch signature", async () => {
+    setEnv({ KONNECT_WEBHOOK_SECRET: SECRET });
+    Konnect = await import("../lib/konnect");
+    expect(Konnect.verifyKonnectWebhook(PAYLOAD, "bad-signature=")).toBe(false);
+  });
+
+  it("accepts a valid base64 HMAC-SHA256 signature", async () => {
+    setEnv({ KONNECT_WEBHOOK_SECRET: SECRET });
+    Konnect = await import("../lib/konnect");
+    const sig = createHmac("sha256", SECRET).update(PAYLOAD).digest("base64");
+    expect(Konnect.verifyKonnectWebhook(PAYLOAD, sig)).toBe(true);
+  });
+
+  it("accepts a valid hex HMAC-SHA256 signature", async () => {
+    setEnv({ KONNECT_WEBHOOK_SECRET: SECRET });
+    Konnect = await import("../lib/konnect");
+    const sig = createHmac("sha256", SECRET).update(PAYLOAD).digest("hex");
+    expect(Konnect.verifyKonnectWebhook(PAYLOAD, sig)).toBe(true);
+  });
+
+  it("accepts a sha256-prefixed hex signature", async () => {
+    setEnv({ KONNECT_WEBHOOK_SECRET: SECRET });
+    Konnect = await import("../lib/konnect");
+    const sig = `sha256=${createHmac("sha256", SECRET).update(PAYLOAD).digest("hex")}`;
+    expect(Konnect.verifyKonnectWebhook(PAYLOAD, sig)).toBe(true);
+  });
+
+  it("falls back to KONNECT_SECRET_KEY when webhook secret is absent", async () => {
+    setEnv({ KONNECT_WEBHOOK_SECRET: undefined, KONNECT_SECRET_KEY: SECRET });
+    Konnect = await import("../lib/konnect");
+    const sig = createHmac("sha256", SECRET).update(PAYLOAD).digest("base64");
+    expect(Konnect.verifyKonnectWebhook(PAYLOAD, sig)).toBe(true);
   });
 });

@@ -6,12 +6,16 @@
  * domestic conversions than Stripe card-only flow.
  *
  * Environment variables:
- *   KONNECT_MERCHANT_ID  — merchant identifier from Konnect dashboard
- *   KONNECT_SECRET_KEY   — API secret / auth token
- *   KONNECT_API_URL      — base URL (default: https://api.konnect.one/api/v1)
- *   KONNECT_RETURN_URL   — where the user lands after payment (set dynamically)
- *   KONNECT_WEBHOOK_URL  — Konnect sends payment status here
+ *   KONNECT_MERCHANT_ID     — merchant identifier from Konnect dashboard
+ *   KONNECT_SECRET_KEY      — API secret / auth token
+ *   KONNECT_API_URL         — base URL (default: https://api.konnect.one/api/v1)
+ *   KONNECT_RETURN_URL      — where the user lands after payment (set dynamically)
+ *   KONNECT_WEBHOOK_URL     — Konnect sends payment status here
+ *   KONNECT_WEBHOOK_SECRET  — secret used to sign webhook callbacks (fallback:
+ *                             KONNECT_SECRET_KEY when not set)
  */
+
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 const KONNECT_API_URL =
   (process.env.KONNECT_API_URL ?? "https://api.konnect.one/api/v1").replace(/\/+$/, "");
@@ -147,15 +151,42 @@ export async function verifyKonnectPayment(
   }
 }
 
-/** Verify Konnect webhook signature (if provided). */
+/**
+ * Verify a Konnect webhook HMAC signature.
+ *
+ * Konnect signs each webhook callback with an HMAC-SHA256 of the raw request
+ * body, keyed by the merchant secret. The digest is sent in the
+ * `x-konnect-signature` header (optionally prefixed `sha256=`), usually base64
+ * or hex encoded.
+ *
+ * We try both encodings and compare in constant time to avoid leaking timing
+ * information. If no webhook secret is configured we fail CLOSED (reject) so
+ * payment confirmations can never be spoofed by a party that guessed the
+ * endpoint; set `KONNECT_WEBHOOK_SECRET` (or `KONNECT_SECRET_KEY`) in prod.
+ */
 export function verifyKonnectWebhook(
-  _payload: string,
-  _signature: string | null
+  payload: string,
+  signature: string | null
 ): boolean {
-  // Konnect webhook verification — implement per their docs once
-  // merchant credentials are live. For now, return true and rely on
-  // paymentId verification as the trust anchor.
-  void _payload;
-  void _signature;
-  return true;
+  const secret =
+    process.env.KONNECT_WEBHOOK_SECRET ?? process.env.KONNECT_SECRET_KEY ?? "";
+  if (!secret || !signature) return false;
+
+  const expected = createHmac("sha256", secret).update(payload, "utf8").digest();
+  // Crisp digest bytes.
+  if (safeEqual(expected, Buffer.from(signature, "base64"))) return true;
+  if (safeEqual(expected, Buffer.from(signature, "hex"))) return true;
+
+  // Some gateways prefix the hex digest with a scheme, e.g. "sha256=abc…".
+  const bare = signature.replace(/^sha256[=:]\s*/i, "");
+  if (bare !== signature && safeEqual(expected, Buffer.from(bare, "hex"))) {
+    return true;
+  }
+  return false;
+}
+
+/** Constant-time buffer comparison (length-safe). */
+function safeEqual(a: Buffer, b: Buffer): boolean {
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }

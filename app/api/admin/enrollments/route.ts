@@ -7,6 +7,12 @@ import { checkSeatAvailability } from "@/lib/course-stats";
 import { publishEvent } from "@/lib/realtime";
 import { notify } from "@/lib/notifications";
 import { sendDecisionEmail } from "@/lib/email";
+import {
+  actionToStatus,
+  emailSubjectFor,
+  notificationFor,
+  type EnrollmentAction,
+} from "@/lib/enrollment-actions";
 import { z } from "zod";
 
 const PatchSchema = z.object({
@@ -112,12 +118,7 @@ export async function PATCH(request: Request) {
   await ensureIndexesAndAdmin();
   const enrollments = await getEnrollmentsCollection();
 
-  const statusMap: Record<string, EnrollmentStatus> = {
-    REQUEST_PAYMENT: "AWAITING_PAYMENT",
-    CONFIRM: "ENROLLED",
-    REJECT: "REJECTED",
-  };
-  const status = statusMap[action];
+  const status = actionToStatus(action as EnrollmentAction);
 
   // Bulk CONFIRM requires checking seat availability for each record.
   if (action === "CONFIRM" && validIds.length > 1) {
@@ -185,7 +186,7 @@ export async function PATCH(request: Request) {
           name: t.name,
           kind: "enrollment",
           approved: true,
-          subject: "Your enrollment is confirmed",
+          subject: emailSubjectFor("CONFIRM"),
           message,
           href: "/dashboard",
         }).catch(() => {});
@@ -259,26 +260,11 @@ export async function PATCH(request: Request) {
     if (action === "CONFIRM") revalidateTag("catalog", { expire: 0 });
 
     if (target?.userId) {
-      const notifyMap: Record<string, { title: string; body: string }> = {
-        REQUEST_PAYMENT: {
-          title: "Complete your payment to enroll",
-          body:
-            paymentInstructions ||
-            "We asked you to complete your payment. Check your dashboard for details.",
-        },
-        CONFIRM: {
-          title: "Enrollment confirmed",
-          body: "Your seat is locked in. Your bookshelf is ready.",
-        },
-        REJECT: {
-          title: "Enrollment request declined",
-          body: message || "Your enrollment request was declined.",
-        },
-      };
+      const copy = notificationFor(action as EnrollmentAction, paymentInstructions, message);
       await notify(String(target.userId), {
         kind: "enrollment",
-        title: notifyMap[action].title,
-        message: notifyMap[action].body,
+        title: copy.title,
+        message: copy.body,
         href: "/dashboard",
       });
     }
@@ -289,12 +275,7 @@ export async function PATCH(request: Request) {
         name: target.name,
         kind: "enrollment",
         approved: action === "CONFIRM",
-        subject:
-          action === "CONFIRM"
-            ? "Your enrollment is confirmed"
-            : action === "REQUEST_PAYMENT"
-              ? "Action needed: complete your payment"
-              : "Your enrollment request was declined",
+        subject: emailSubjectFor(action as EnrollmentAction),
         message,
         href: "/dashboard",
       }).catch(() => {});
@@ -326,20 +307,11 @@ export async function PATCH(request: Request) {
   await Promise.all(
     affected.map((t) => {
       if (!t.userId) return undefined;
-      const notifyMap: Record<string, { title: string; body: string }> = {
-        REQUEST_PAYMENT: {
-          title: "Complete your payment to enroll",
-          body: paymentInstructions || "We asked you to complete your payment.",
-        },
-        REJECT: {
-          title: "Enrollment request declined",
-          body: message || "Your enrollment request was declined.",
-        },
-      };
+      const copy = notificationFor(action as EnrollmentAction, paymentInstructions, message);
       return notify(String(t.userId), {
         kind: "enrollment",
-        title: notifyMap[action].title,
-        message: notifyMap[action].body,
+        title: copy.title,
+        message: copy.body,
         href: "/dashboard",
       });
     })
@@ -353,10 +325,7 @@ export async function PATCH(request: Request) {
         name: t.name,
         kind: "enrollment",
         approved: action === "CONFIRM",
-        subject:
-          action === "REQUEST_PAYMENT"
-            ? "Action needed: complete your payment"
-            : "Your enrollment request was declined",
+        subject: emailSubjectFor(action as EnrollmentAction),
         message,
         href: "/dashboard",
       }).catch(() => {});
