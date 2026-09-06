@@ -1,3 +1,5 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+
 /**
  * WhatsApp Business API integration.
  *
@@ -26,6 +28,29 @@ export function waConfigured(): boolean {
 
 export function waWebhookConfigured(): boolean {
   return !!WA_WEBHOOK_TOKEN;
+}
+
+/**
+ * Verify a Meta Cloud API webhook signature (`X-Hub-Signature-256`). The raw
+ * request body is HMAC-SHA256'd with the webhook token; `sha256=<digest>`
+ * compares constant-time. Returns false when the token is not configured (the
+ * caller decides whether that is acceptable).
+ */
+export function verifyWaSignature(
+  signatureHeader: string | null,
+  rawBody: string,
+  secret = WA_WEBHOOK_TOKEN
+): boolean {
+  if (!secret || !signatureHeader) return false;
+  const expected = `sha256=${createHmac("sha256", secret).update(rawBody).digest("hex")}`;
+  const a = Buffer.from(signatureHeader.trim());
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  try {
+    return timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
 }
 
 export interface WaTextMessage {

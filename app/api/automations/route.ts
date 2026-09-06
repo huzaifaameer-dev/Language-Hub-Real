@@ -12,6 +12,7 @@ import { notify, notifyAdmins } from "@/lib/notifications";
 import { sendWaText, waConfigured } from "@/lib/whatsapp";
 import { staleLearners, weekKey, nudgeCopy, digestCopy } from "@/lib/growth/streaks";
 import { completionPercent, makeCertificateId, shouldIssueCertificate, issueDate } from "@/lib/growth/certificate";
+import { runAgentRound } from "@/lib/ai/agent/engine";
 
 export const dynamic = "force-dynamic";
 
@@ -22,10 +23,24 @@ export const dynamic = "force-dynamic";
  * channels are guarded by their own config (SMTP / WhatsApp), in-app
  * notifications work without any external service.
  */
-export async function GET(request: Request) {
+/** Resolve the automation secret from header (preferred) or query param. */
+function automationSecretOk(request: Request): boolean {
   const secret = process.env.AUTOMATION_SECRET ?? "";
+  if (!secret) return true;
+  const auth = request.headers.get("authorization");
+  const headerTok =
+    auth?.startsWith("Bearer ") ? auth.slice(7) : request.headers.get("x-automation-secret");
   const url = new URL(request.url);
-  if (secret && url.searchParams.get("secret") !== secret) {
+  const queryTok = url.searchParams.get("secret");
+  const given = [headerTok, queryTok].map((t) => (t ?? "").trim()).find(Boolean);
+  if (!given) return false;
+  const a = Buffer.from(given);
+  const b = Buffer.from(secret);
+  return a.length === b.length && a.equals(b) && given === secret;
+}
+
+export async function GET(request: Request) {
+  if (!automationSecretOk(request)) {
     return NextResponse.json({ message: "Forbidden." }, { status: 403 });
   }
 
@@ -49,10 +64,10 @@ export async function GET(request: Request) {
   const users = db.collection("users");
 
   /* ---------- 1. Abandoned applications (users without an application) ---------- */
-  if (doEmail) {
+  {
     const candidates = await users
       .find({ role: { $ne: "ADMIN" }, createdAt: { $lte: new Date(now.getTime() - 3 * 86400000) } })
-      .project({ email: 1, name: 1, createdAt: 1 })
+      .project({ email: 1, name: 1, phone: 1, createdAt: 1 })
       .limit(2000)
       .toArray();
 
@@ -64,9 +79,23 @@ export async function GET(request: Request) {
       if (appCount > 0) continue;
       const key = `abandoned:${email.toLowerCase()}`;
       if (await dedup.alreadySent(key)) continue;
-      await sendAbandonedApplicationEmail({ to: email, name: u.name, daysAgo });
+
+      // WhatsApp first when a phone is on file, else email.
+      let sentTo: string | null = null;
+      const phone = String(u.phone ?? "").trim();
+      if (doWa && phone) {
+        const first = String(u.name ?? "there").split(" ")[0];
+        const body = `Salam ${first}! You created a Language Hub account but didn't apply yet — batched fill fast. Tap into your dashboard to pick a course and we'll hold your spot. 🙌`;
+        const res = await sendWaText({ to: phone, text: body });
+        if (res.ok) sentTo = phone;
+      }
+      if (!sentTo) {
+        if (!doEmail) continue;
+        await sendAbandonedApplicationEmail({ to: email, name: u.name, daysAgo });
+        sentTo = email;
+      }
       await dedup.markSent(key);
-      sent.push({ kind: "abandoned_application", to: email });
+      sent.push({ kind: "abandoned_application", to: sentTo });
     }
   }
 
@@ -322,5 +351,19 @@ export async function GET(request: Request) {
     sent.push({ kind: "auto_certificate", to: enr.email ?? enr.userId });
   }
 
-  return NextResponse.json({ ok: true, sent, count: sent.length });
+  /* ---------- 9. AI operations agent: applications → enroll → payments ---------- */
+  // The autonomous AI admin continues processing the business queues in the
+  // background on every cron tick — even when no admin panel is open.
+  let agent: { processed: number; ok: number; failed: number; held: number; disabled: boolean } = { processed: 0, ok: 0, failed: 0, held: 0, disabled: false };
+  try {
+    const round = await runAgentRound(14);
+    agent = { processed: round.processed, ok: round.ok, failed: round.failed, held: round.held, disabled: round.disabled };
+    if (round.skipped > 0 || round.held > 0 || round.processed > 0) {
+      sent.push({ kind: "ai_agent_round", to: `processed=${round.processed}` });
+    }
+  } catch {
+    // agent must never break the rest of the automation tick
+  }
+
+  return NextResponse.json({ ok: true, sent, count: sent.length, agent });
 }

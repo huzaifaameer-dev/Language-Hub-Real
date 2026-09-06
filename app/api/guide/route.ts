@@ -2,6 +2,7 @@ import { streamText } from "ai";
 import { NextResponse } from "next/server";
 
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
+import { guardAiUsage } from "@/lib/ai/guard";
 import { aiConfigured, getChatModel } from "@/lib/ai/config";
 import { sseEvent, SSE_HEADERS } from "@/lib/ai/sse";
 import { guideSystemPrompt } from "@/lib/guide/persona";
@@ -18,6 +19,13 @@ export async function POST(request: Request) {
   if (!rl.ok) {
     return NextResponse.json(
       { message: "The guide is taking a short break. Please try again in a moment." },
+      { status: 429 }
+    );
+  }
+  const usage = await guardAiUsage(await clientKey(request, "guide"));
+  if (!usage.ok) {
+    return NextResponse.json(
+      { message: "You've reached today's guide limit. Come back tomorrow!" },
       { status: 429 }
     );
   }

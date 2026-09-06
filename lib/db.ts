@@ -387,6 +387,14 @@ export function ensureInit(): Promise<void> {
         db.collection("session_recaps").createIndex({ createdAt: -1 }),
         db.collection("session_recaps").createIndex({ course: 1 }),
         db.collection("applications").createIndex({ waitlistHoldUntil: 1 }),
+        db.collection("ai_agent_jobs").createIndex({ refKey: 1 }, { unique: true }),
+        db.collection("ai_agent_jobs").createIndex({ status: 1, createdAt: -1 }),
+        db.collection("ai_agent_jobs").createIndex({ kind: 1, updatedAt: -1 }),
+        db.collection("ai_agent_log").createIndex({ createdAt: -1 }),
+        db.collection("ai_agent_log").createIndex({ refKey: 1 }),
+        db.collection("applications").createIndex({ agentProcessedAt: 1 }),
+        db.collection("enrollments").createIndex({ agentProcessedAt: 1 }),
+        db.collection("ai_usage").createIndex({ updatedAt: 1 }, { expireAfterSeconds: 8 * 86400 }),
       ]);
 
       // Drop legacy redundant indexes from older schema versions (best-effort;
@@ -827,4 +835,58 @@ export interface SessionRecapDoc {
 export async function getSessionRecapsCollection() {
   const db = await getDb();
   return db.collection<SessionRecapDoc>("session_recaps");
+}
+
+/* ------------------------------------------------------------------ */
+/*  AI Operations Agent: job queue + audit log                        */
+/* ------------------------------------------------------------------ */
+
+/** One unit of work the AI agent owns (a decision/publish/ledger task). */
+export interface AiAgentJobDoc {
+  _id?: unknown;
+  /** job kind: APPLICATION / ENROLLMENT / PAYMENT / BLOG */
+  kind: string;
+  /** stable unique per source record, e.g. app:<id>, enr:<id>, blog:<weekly> */
+  refKey: string;
+  refId?: string | null;
+  status: "queued" | "running" | "done" | "skipped" | "failed";
+  decision?: {
+    action: string;
+    reason: string;
+    message?: string | null;
+    paymentInstructions?: string | null;
+    amount?: number;
+    method?: string | null;
+    note?: string | null;
+  } | null;
+  offline?: boolean;
+  model?: string | null;
+  error?: string | null;
+  processedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export async function getAiAgentJobsCollection() {
+  const db = await getDb();
+  return db.collection<AiAgentJobDoc>("ai_agent_jobs");
+}
+
+/** Immutable record of every action the AI agent took (decision + result). */
+export interface AiAgentLogDoc {
+  _id?: unknown;
+  jobId?: string | null;
+  kind: string;
+  action: string;
+  refKey: string;
+  detail?: string | null;
+  offline: boolean;
+  model?: string | null;
+  ok: boolean;
+  createdAt: Date;
+}
+
+export async function getAiAgentLogCollection() {
+  const db = await getDb();
+  return db.collection<AiAgentLogDoc>("ai_agent_log");
 }

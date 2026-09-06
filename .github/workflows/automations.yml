@@ -15,9 +15,11 @@ jobs:
           AUTOMATION_SECRET: ${{ secrets.AUTOMATION_SECRET }}
         run: |
           # TODO: Replace ACADEMY_PRODUCTION_URL with your real production domain,
-          # e.g. https://www.languagehub.example. Keep the secret query param.
+          # e.g. https://www.languagehub.example. Secret is sent via header
+          # (never in the URL, so it cannot leak into proxy/access logs).
           ACADEMY_PRODUCTION_URL="https://your-domain.example"
           curl -fsS \
             -H "User-Agent: github-actions-cron" \
-            "$ACADEMY_PRODUCTION_URL/api/automations?secret=$AUTOMATION_SECRET" \
+            -H "Authorization: Bearer $AUTOMATION_SECRET" \
+            "$ACADEMY_PRODUCTION_URL/api/automations" \
             || echo "automations run reported a non-2xx status"

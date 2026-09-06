@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { sendWaText, waConfigured } from "@/lib/whatsapp";
+import { sendWaText, waConfigured, verifyWaSignature, waWebhookConfigured } from "@/lib/whatsapp";
 import { getDb } from "@/lib/db";
 import { notifyAdmins } from "@/lib/notifications";
+import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { nextWaReply, initialReply, type WaFlowState } from "@/lib/growth/wa-flow";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,11 @@ export const dynamic = "force-dynamic";
  * POST — inbound messages → stateful onboarding flow (course → batch → name)
  *        with keyword fallback, lead funnel into `whatsapp_leads`, and a demo
  *        booking created when the funnel completes.
+ *
+ * Security: when WA_WEBHOOK_TOKEN is set, every POST must carry a valid
+ * `X-Hub-Signature-256` (HMAC of the raw body) or it is rejected with 401.
+ * Per-phone + per-client rate limits and an admin-notify throttle stop
+ * spammers from flooding the panel or burning WhatsApp credits.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -28,17 +34,31 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  // Accept and acknowledge even when not configured, so providers don't retry.
-  const payload = await request.json().catch(() => null);
-  if (!payload) return NextResponse.json({ received: true });
+  const raw = await request.text().catch(() => "");
 
-  const entries = payload.entry as Array<{ changes: Array<{ value: { messages?: unknown[]; contacts?: unknown[] } }> }> | undefined;
+  // Signature gate (only when a webhook token is configured).
+  if (waWebhookConfigured()) {
+    const signature = request.headers.get("x-hub-signature-256");
+    if (!verifyWaSignature(signature, raw)) {
+      return NextResponse.json({ received: false }, { status: 401 });
+    }
+  }
+
+  // Bound inbound volume per sender + per client.
+  const clientKeyId = await clientKey(request, "wa-webhook");
+  const rlClient = await rateLimitDb(clientKeyId, 120, 60 * 60 * 1000);
+  if (!rlClient.ok) return NextResponse.json({ received: true }, { status: 429 });
+
+  const entries = (JSON.parse(raw || "{}") as { entry?: unknown }).entry as Array<{ changes: Array<{ value: { messages?: unknown[]; contacts?: unknown[] } }> }> | undefined;
   const messages = entries?.[0]?.changes?.[0]?.value?.messages ?? [];
 
   for (const msg of messages as Array<{ from?: string; text?: { body?: string } }>) {
     const from = msg.from ?? "";
     const text = msg.text?.body ?? "";
     if (!from || !text) continue;
+
+    const rlPhone = await rateLimitDb(`wa:${from}`, 40, 60 * 60 * 1000);
+    if (!rlPhone.ok) continue;
 
     const db = await getDb();
     const leads = db.collection<{
@@ -96,12 +116,7 @@ export async function POST(request: Request) {
             createdAt: new Date(),
             updatedAt: new Date(),
           });
-          await notifyAdmins({
-            kind: "wa-demo",
-            title: "WhatsApp demo request",
-            message: `${patch.flow.name} · ${demoLabel} · ${from}`,
-            href: "/admin-panel",
-          });
+          await notifyAdminsThrottled(from, patch.flow.name ?? undefined, demoLabel);
         } catch {}
       }
     } else {
@@ -125,14 +140,25 @@ export async function POST(request: Request) {
     }
 
     if (lead) {
-      await notifyAdmins({
-        kind: "whatsapp-lead",
-        title: `WhatsApp lead: ${replyCat ?? "new"}`,
-        message: `${from}: "${text.slice(0, 120)}"`,
-        href: "/admin-panel",
-      });
+      await notifyAdminsThrottled(from, undefined, `${replyCat ?? "new"} · "${text.slice(0, 90)}"`);
     }
   }
 
   return NextResponse.json({ received: true });
+}
+
+/** Notify admins at most a few times per phone per hour (anti-notification-spam). */
+async function notifyAdminsThrottled(
+  phone: string,
+  name?: string,
+  label?: string
+): Promise<void> {
+  const rl = await rateLimitDb(`wa-notify:${phone}`, 6, 60 * 60 * 1000);
+  if (!rl.ok) return;
+  await notifyAdmins({
+    kind: "whatsapp-lead",
+    title: `WhatsApp lead ${name ? `· ${name}` : ""}`,
+    message: label ? `${phone}: ${label}` : `New conversation from ${phone}`,
+    href: "/admin-panel",
+  });
 }

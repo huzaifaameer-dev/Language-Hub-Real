@@ -66,7 +66,9 @@ module.exports = {
           { key: "Cross-Origin-Resource-Policy", value: "same-site" },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), browsing-topics=(), interest-cohort=()",
+            // microphone=(self) keeps Aina's voice input working on this site
+            // (SpeechRecognition needs it); everything else stays locked down.
+            value: "camera=(), microphone=(self), geolocation=(), browsing-topics=(), interest-cohort=()",
           },
           { key: "X-DNS-Prefetch-Control", value: "on" },
           { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },

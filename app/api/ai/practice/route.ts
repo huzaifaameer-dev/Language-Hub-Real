@@ -2,6 +2,7 @@ import { streamText } from "ai";
 import { NextResponse } from "next/server";
 
 import { clientKey, rateLimitDb } from "@/lib/rate-limit";
+import { guardAiUsage } from "@/lib/ai/guard";
 import { aiConfigured, getChatModel } from "@/lib/ai/config";
 import { sseEvent, SSE_HEADERS } from "@/lib/ai/sse";
 import {
@@ -21,6 +22,10 @@ export async function POST(request: Request) {
   const rl = await rateLimitDb(await clientKey(request, "practice"), 40, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json({ message: "Practice limit reached. Try again in a bit." }, { status: 429 });
+  }
+  const usage = await guardAiUsage(await clientKey(request, "practice"));
+  if (!usage.ok) {
+    return NextResponse.json({ message: "You've hit today's practice limit. Great effort — back tomorrow!" }, { status: 429 });
   }
 
   let body: unknown;
