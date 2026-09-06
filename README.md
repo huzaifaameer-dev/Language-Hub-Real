@@ -61,11 +61,26 @@ static fallback catalog).
 npm run dev        # dev server
 npm run build      # production build (webpack)
 npm run start      # serve the production build
+npm run start:standalone  # run the zero-node_modules standalone server
 npm run lint       # eslint
 npm run typecheck  # tsc --noEmit
 npm test           # vitest unit suite (tests/)
 npm run test:e2e   # Playwright (e2e/) against a running dev/build server
+npm run gen:api-docs # regenerate docs/API.md route inventory
 ```
+
+**Data scripts** (safe for local/dev):
+
+```bash
+node scripts/seed-demo.mjs   # demo users / applications / enrollment / demo booking
+node scripts/reset-db.mjs    # DROP ALL collections -> fresh bootstrap
+```
+
+## Documentation
+
+- `RUNBOOK.md` — ops runbook: env matrix, deploy, cron, backups, monitoring.
+- `docs/API.md` — 74-route HTTP API inventory (auto-generated).
+- `docs/SCHEMA.md` — MongoDB collection reference.
 
 ## Project layout (highlights)
 

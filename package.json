@@ -10,7 +10,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "gen:api-docs": "node scripts/gen-api-docs.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.59",

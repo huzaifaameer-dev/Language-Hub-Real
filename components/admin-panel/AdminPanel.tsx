@@ -323,7 +323,7 @@ export function AdminPanel({
               <p className="font-display text-[0.82rem] font-extrabold tracking-[0.04em] text-slate-900">
                 LH<span className="indigo-text-shimmer">·OPS</span>
               </p>
-              <p className="font-mono text-[0.55rem] uppercase tracking-[0.3em] text-slate-400">
+              <p className="font-mono text-[0.55rem] uppercase tracking-[0.3em] text-slate-500">
                 admin control suite
               </p>
             </div>
@@ -409,10 +409,10 @@ export function AdminPanel({
                   "relative flex h-11 items-center gap-3 overflow-hidden rounded-2xl px-2.5 text-start transition-all duration-300",
                   active
                     ? "bg-gradient-to-r from-brand-deep to-brand-deep text-white shadow-[0_12px_24px_-10px_rgb(79_70_229/0.8)]"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 )}
               >
-                <Icon className={cn("h-[1.15rem] w-[1.15rem] shrink-0", active ? "text-white" : "text-slate-400")} strokeWidth={1.9} />
+                <Icon className={cn("h-[1.15rem] w-[1.15rem] shrink-0", active ? "text-white" : "text-slate-500")} strokeWidth={1.9} />
                 <span className="whitespace-nowrap font-display text-[0.78rem] font-bold opacity-0 transition-opacity duration-300 group-hover/dock:opacity-100">
                   {t.label}
                 </span>

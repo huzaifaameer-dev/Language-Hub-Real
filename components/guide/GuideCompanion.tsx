@@ -554,8 +554,10 @@ export function GuideCompanion() {
               className="no-scrollbar max-h-36 space-y-2.5 overflow-y-auto px-4 pb-1"
             >
               {messages.length === 0 && !streaming ? (
-                <p className="pt-2 text-center font-mono text-[0.56rem] font-bold uppercase tracking-[0.18em] text-ink-3">
-                  ···
+                <p className="pt-2 text-center text-[0.78rem] text-ink-3">
+                  {mode === "practice"
+                    ? "Pick a topic above and start your first practice turn — I'll respond right away."
+                    : "Aina is here. Ask about courses, fees, the placement test — or tap a suggestion below."}
                 </p>
               ) : null}
               {messages.map((m) => (
