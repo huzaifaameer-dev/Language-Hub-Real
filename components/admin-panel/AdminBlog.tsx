@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Check, Eye, EyeOff, ImagePlus, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SectionTitle, SearchBox, StatusPill } from "./ui";
+import { AdminBlogAi } from "./AdminBlogAi";
 
 interface BlogRow {
   id: string;
@@ -86,6 +87,9 @@ export function AdminBlog() {
 
   return (
     <section className="flex flex-col gap-5">
+      {/* AI generate → preview → publish */}
+      <AdminBlogAi />
+
       <div className="flex flex-wrap items-end justify-between gap-4">
         <SectionTitle kicker="Content · blog" title="Blog Posts" />
         <button

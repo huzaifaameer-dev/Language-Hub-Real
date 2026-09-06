@@ -38,6 +38,30 @@ export async function register(): Promise<void> {
       setInterval(tick, intervalMs);
       console.log(`[automations] in-process cron enabled (every ${Math.round(intervalMs / 60000)}m)`);
     }
+
+    // ---- Autonomous AI admin: ALWAYS ON while the server runs ----
+    // The agent behaves like a human worker: it watches the business queues
+    // (applications, enrollments, payment proofs, demo bookings, blog) and
+    // clears them continuously — no manual "Run" needed. Set
+    // AI_AGENT_ENABLED=0 to pause, or AI_AGENT_INTERVAL_MS to tune the cadence.
+    const agentMs = Number(process.env.AI_AGENT_INTERVAL_MS ?? 10 * 60 * 1000);
+    const agentTick = async () => {
+      try {
+        const { runAgentRound } = await import("@/lib/ai/agent/engine");
+        const r = await runAgentRound(25);
+        if (r.disabled) return;
+        if (r.processed > 0 || r.failed > 0) {
+          console.log(
+            `[ai-agent] round: ${r.processed} job(s) → ${r.ok} done · ${r.held} clarify · ${r.skipped} skipped · ${r.failed} failed`
+          );
+        }
+      } catch (err) {
+        console.error("[ai-agent] tick failed:", err instanceof Error ? err.message : err);
+      }
+    };
+    setTimeout(agentTick, 1000 * 15);
+    setInterval(agentTick, agentMs);
+    console.log(`[ai-agent] autonomous admin running (every ${Math.round(agentMs / 60000)}m)`);
   } catch (err) {
     console.error(
       "[instrumentation] DB init deferred to first request:",

@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   BadgeCheck,
   BookOpen,
+  Bot,
   CalendarClock,
   Clock,
   CreditCard,
@@ -42,12 +43,14 @@ import { AdminPayments } from "./AdminPayments";
 import { AdminBlog } from "./AdminBlog";
 import { AdminAuditLog } from "./AdminAuditLog";
 import { AdminAi } from "./AdminAi";
+import { AdminAgent } from "./AdminAgent";
 import { AdminStatCard, GlassPanel, ProgressRing, StatusPill } from "./ui";
 import { AdminAnalyticsCharts } from "./AdminAnalyticsCharts";
 
-type Tab = "overview" | "applications" | "enrollments" | "payments" | "blog" | "audit" | "courses" | "users" | "demos" | "testimonials" | "ai";
+type Tab = "agent" | "overview" | "applications" | "enrollments" | "payments" | "blog" | "audit" | "courses" | "users" | "demos" | "testimonials" | "ai";
 
 const TABS: { key: Tab; label: string; icon: LucideIcon }[] = [
+  { key: "agent", label: "AI Agent", icon: Bot },
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "applications", label: "Applications", icon: FileText },
   { key: "enrollments", label: "Enrollments", icon: GraduationCap },
@@ -80,7 +83,7 @@ export function AdminPanel({
   enrollments: AdminEnrollment[];
   users: AdminUser[];
 }) {
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useState<Tab>("agent");
   const [appList, setAppList] = useState(applications);
   const [enrList, setEnrList] = useState(enrollments);
   const [countsState, setCountsState] = useState<AdminCounts>(counts);
@@ -461,6 +464,7 @@ export function AdminPanel({
               {tab === "courses" ? <AdminCourses /> : null}
               {tab === "users" ? <AdminUsers items={users} /> : null}
               {tab === "ai" ? <AdminAi /> : null}
+              {tab === "agent" ? <AdminAgent /> : null}
             </motion.div>
           </AnimatePresence>
         </div>

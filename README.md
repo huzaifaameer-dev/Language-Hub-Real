@@ -106,3 +106,23 @@ e2e/                    # Playwright: smoke, happy-path, admin
   deprecation warning.
 - The intro, Aina's first greeting and all heavy animations respect
   `prefers-reduced-motion`; the intro is skippable.
+
+### Ops / running notes
+
+- **Start the production build:** `npm run build && npm run start`
+  (`next start`) or `npm run start:standalone` for the zero-node_modules
+  standalone output. `next start` warns under `output: standalone` — the
+  standalone server is the intended production path.
+- **Dev vs build share `.next`:** a running `next dev` can clobber production
+  artifacts (`BUILD_ID`, `.next/dev/types`). Stop the dev server before
+  `npm run build`, and if a build fails on stale generated type files, remove
+  `.next` + `tsconfig.tsbuildinfo` and rebuild.
+- **Frontend must restart to pick changes:** `next dev` compiles on the fly but
+  server-only instrumentation (the autonomous AI interval, DB init) and
+  `next.config.js` header changes (CSP/Permissions-Policy) require a full
+  restart of the dev server.
+- **Dependency watch list:** `next-auth` is on `^5.0.0-beta` and Next is on the
+  16.x line — pin upgrades deliberately; `three` is pinned (see above) until
+  `@react-three/fiber` ships Timer on stable.
+- **Cron secrets:** the GitHub Actions timer calls `/api/automations` with the
+  secret in an `Authorization: Bearer` header (never the URL).

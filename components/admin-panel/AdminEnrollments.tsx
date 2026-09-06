@@ -313,6 +313,12 @@ export function AdminEnrollments({
                   <img
                     src={e.paymentProof}
                     alt={`Payment proof from ${e.name}`}
+                    onError={(ev) => {
+                      // A proof that no longer exists (e.g. after a data reset)
+                      // must not leave a broken image icon in the panel.
+                      const el = ev.currentTarget;
+                      el.style.display = "none";
+                    }}
                     className="max-h-64 w-full rounded-lg object-contain bg-white"
                   />
                 </div>

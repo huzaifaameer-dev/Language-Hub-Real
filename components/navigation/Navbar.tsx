@@ -285,6 +285,21 @@ export function Navbar() {
                 reducedMotion={!!reduceMotion}
               />
             ))}
+
+            {/* Blog — full page, always visible */}
+            <Link
+              href="/blog"
+              aria-current={pathname?.startsWith("/blog") ? "page" : undefined}
+              className={cn(
+                "hidden items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-[0.82rem] font-bold transition-all duration-300 lg:inline-flex",
+                pathname?.startsWith("/blog")
+                  ? "bg-brand/[0.09] text-brand-deep"
+                  : "text-ink-2 hover:bg-brand/[0.06] hover:text-brand-deep"
+              )}
+            >
+              <BookOpen className="h-4 w-4" strokeWidth={2} />
+              {dict["nav.blog"] ?? "Blog"}
+            </Link>
           </div>
 
           {/* Right actions */}
@@ -408,6 +423,28 @@ export function Navbar() {
                       <ArrowRight className="h-5 w-5 text-ink/25" strokeWidth={2} />
                     </motion.button>
                   ))}
+
+                  {/* Blog — visible in the mobile menu */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.25 + PAGES.length * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    <Link
+                      href="/blog"
+                      onClick={() => setMenuOpen(false)}
+                      className={cn(
+                        "flex w-full items-center justify-between py-3 font-display text-lg font-bold tracking-tight transition-colors",
+                        pathname?.startsWith("/blog") ? "text-brand-deep" : "text-ink hover:text-brand-deep"
+                      )}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <BookOpen className="h-5 w-5 text-ink/40" strokeWidth={1.8} />
+                        {dict["nav.blog"] ?? "Blog"}
+                      </span>
+                      <ArrowRight className="h-5 w-5 text-ink/25" strokeWidth={2} />
+                    </Link>
+                  </motion.div>
                 </div>
 
                 <div className="mt-3 border-t border-ink/[0.06] pt-4">

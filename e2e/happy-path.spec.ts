@@ -56,7 +56,8 @@ test("signup -> apply -> admin approve -> enroll -> admin confirm", async ({
     "application confirmation dialog"
   ).toBeVisible({ timeout: 25_000 });
 
-  // 3 —— admin unlocks the panel (UI), then approves via the real admin API
+  // 3 —— admin unlocks the panel (UI), then confirms the AI's autonomous
+  // decision. The agent approves instantly, so we poll the APPROVED queue.
   const admin = await browser.newContext({ baseURL });
   const ap = await admin.newPage();
   await ap.goto("/admin-panel");
@@ -74,23 +75,23 @@ test("signup -> apply -> admin approve -> enroll -> admin confirm", async ({
   expect(token, "admin token cookie is set").toBeTruthy();
   const adminHeaders = { cookie: `hub_admin_token=${token}` };
 
-  const appsRes = await request.get("/api/admin/applications?status=PENDING", {
-    headers: adminHeaders,
-  });
-  expect(
-    appsRes.ok(),
-    `GET applications -> ${appsRes.status()}: ${await appsRes.text()}`
-  ).toBeTruthy();
-  const { applications } = (await appsRes.json()) as {
-    applications: Array<{ id: string; email: string; status: string }>;
-  };
-  const app = applications.find((a) => a.email === EMAIL);
-  expect(app, "application reaches the admin queue").toBeTruthy();
-  const approveRes = await request.patch("/api/admin/applications", {
-    headers: adminHeaders,
-    data: { id: app!.id, action: "APPROVE", message: "Welcome to Language Hub!" },
-  });
-  expect(approveRes.ok(), `approve failed: ${approveRes.statusText()}`).toBeTruthy();
+  // Poll until the AI agent has autonomously approved the application.
+  let app: { id: string; email: string; status: string } | undefined;
+  for (let i = 0; i < 20 && !app; i += 1) {
+    const appsRes = await request.get("/api/admin/applications?status=APPROVED", {
+      headers: adminHeaders,
+    });
+    expect(
+      appsRes.ok(),
+      `GET applications -> ${appsRes.status()}: ${await appsRes.text()}`
+    ).toBeTruthy();
+    const { applications } = (await appsRes.json()) as {
+      applications: Array<{ id: string; email: string; status: string }>;
+    };
+    app = applications.find((a) => a.email === EMAIL);
+    if (!app) await new Promise((r) => setTimeout(r, 600));
+  }
+  expect(app, "AI agent autonomously approved the application").toBeTruthy();
 
   // 4 —— user enrolls (dashboard live-syncs the approval)
   await expect(
@@ -108,21 +109,26 @@ test("signup -> apply -> admin approve -> enroll -> admin confirm", async ({
     timeout: 25_000,
   });
 
-  // 5 —— admin confirms the seat via the real admin API
-  const enrsRes = await request.get("/api/admin/enrollments?status=PENDING", {
-    headers: adminHeaders,
-  });
-  expect(
-    enrsRes.ok(),
-    `GET enrollments -> ${enrsRes.status()}: ${await enrsRes.text()}`
-  ).toBeTruthy();
-  const { enrollments } = (await enrsRes.json()) as {
-    enrollments: Array<{ id: string; email: string; status: string }>;
-  };
-  const enr = enrollments.find((e) => e.email === EMAIL);
-  expect(enr, "enrollment reaches the admin queue").toBeTruthy();
+  // 5 —— admin confirms via the real admin API. The AI already auto-requested
+  // payment on enrollment creation, so we poll the awaiting-payment queue.
+  let enr: { id: string; email: string; status: string } | undefined;
+  for (let i = 0; i < 20 && !enr; i += 1) {
+    const enrsRes = await request.get("/api/admin/enrollments?status=AWAITING_PAYMENT", {
+      headers: adminHeaders,
+    });
+    expect(
+      enrsRes.ok(),
+      `GET enrollments -> ${enrsRes.status()}: ${await enrsRes.text()}`
+    ).toBeTruthy();
+    const { enrollments } = (await enrsRes.json()) as {
+      enrollments: Array<{ id: string; email: string; status: string }>;
+    };
+    enr = enrollments.find((e) => e.email === EMAIL);
+    if (!enr) await new Promise((r) => setTimeout(r, 600));
+  }
+  expect(enr, "AI agent auto-requested payment on the enrollment").toBeTruthy();
 
-  // Mirror the real admin flow: request payment, then confirm the seat.
+  // Mirror the real admin flow: (re)request payment idempotently, then confirm.
   const reqPayRes = await request.patch("/api/admin/enrollments", {
     headers: adminHeaders,
     data: {

@@ -343,8 +343,24 @@ export function GuideCompanion() {
     setOpen(true);
     const script = guideScripts(lang).greeting;
     setMessages((prev) => [...prev, { id: nextId(), role: "assistant", text: script }]);
+    // Respect the user's saved voice preference: when they muted the guide
+    // once, greetings arrive as a text bubble instead of talking out loud.
     queueVoice(script);
   }, [lang, queueVoice]);
+
+  // Hydrate the persistent voice preference (courtesy: one mute remembers it).
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      let m = false;
+      try {
+        m = localStorage.getItem("lh:guide-muted") === "1";
+      } catch {}
+      mutedRef.current = m;
+      setMuted(m);
+      if (m) speechRef.current.setMuted(true);
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, []);
 
   // Auto-greet: wait until the brand intro is done, then open and say hello.
   useEffect(() => {
@@ -412,6 +428,9 @@ export function GuideCompanion() {
       const next = !prev;
       mutedRef.current = next;
       speechRef.current.setMuted(next);
+      try {
+        localStorage.setItem("lh:guide-muted", next ? "1" : "0");
+      } catch {}
       return next;
     });
   };
