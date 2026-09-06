@@ -1,17 +1,17 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { signOut } from "next-auth/react";
 import {
+  Bot,
   CalendarDays,
   Camera,
   Check,
   ClipboardList,
   Clock,
   GraduationCap,
-  Home,
   LogOut,
   Mail,
   MapPin,
@@ -441,184 +441,230 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
     } catch {}
   };
 
-  return (
-    <div id="lh-dashboard" className="relative min-h-screen overflow-hidden bg-[#eef1f9] text-slate-900">
-      <div
-        aria-hidden="true"
-        className="bg-grid pointer-events-none absolute inset-0"
-        style={{
-          maskImage: "radial-gradient(ellipse at center, black 14%, transparent 68%)",
-          WebkitMaskImage: "radial-gradient(ellipse at center, black 14%, transparent 68%)",
-        }}
-      />
-      <div aria-hidden className="orb left-[-8%] top-[-6%] h-[44vh] w-[44vh] bg-indigo-400/30" />
-      <div aria-hidden className="orb right-[-10%] top-[8%] h-[40vh] w-[40vh] bg-violet-400/30" style={{ animationDelay: "-6s", animationDuration: "22s" }} />
-      <div aria-hidden className="orb bottom-[-14%] left-[14%] h-[46vh] w-[46vh] bg-fuchsia-400/25" style={{ animationDelay: "-12s", animationDuration: "26s" }} />
-      <div aria-hidden className="orb left-[42%] top-[40%] h-[30vh] w-[30vh] bg-sky-400/25" style={{ animationDelay: "-3s", animationDuration: "20s" }} />
+  const progressPercent =
+    progressData?.chapters?.length
+      ? Math.round((progressData.chapters.filter((c) => c.completed).length / progressData.chapters.length) * 100)
+      : 0;
 
+  const firstName = (displayName || name || "Learner").trim().split(/\s+/)[0];
+
+  return (
+    <div
+      id="lh-dashboard"
+      className="relative min-h-screen bg-slate-50 text-slate-900"
+      style={{
+        backgroundImage:
+          "radial-gradient(1100px 520px at 85% -10%, rgb(99 102 241 / 0.10), transparent 60%), radial-gradient(900px 480px at -10% 30%, rgb(139 92 246 / 0.08), transparent 55%)",
+      }}
+    >
       <motion.header
-        initial={{ y: -56, opacity: 0 }}
+        initial={{ y: -32, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease }}
-        className="sticky top-0 z-30 border-b border-white/60 bg-white/55 backdrop-blur-2xl"
+        transition={{ duration: 0.5, ease }}
+        className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl"
       >
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <Link
               href="/"
-              className="glass-dash flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/80 hover:shadow-[0_14px_30px_-10px_rgb(99_102_241/0.45)]"
+              className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 transition-shadow hover:ring-indigo-300"
               aria-label="Language Hub home"
             >
               <Logo size="xs" eager />
             </Link>
-            <div className="leading-tight">
-              <p className="font-display text-[0.58rem] font-bold uppercase tracking-[0.32em] text-indigo-600">My Account</p>
-              <p className="truncate font-display text-[0.95rem] font-extrabold tracking-[-0.01em]">{displayName}</p>
+            <div className="hidden leading-tight sm:block">
+              <p className="font-display text-[0.58rem] font-bold uppercase tracking-[0.32em] text-indigo-600">
+                Dashboard
+              </p>
+              <p className="max-w-[12rem] truncate font-display text-[0.95rem] font-extrabold tracking-[-0.01em]">
+                {displayName}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <Link
-              href="/"
-              className="hidden items-center gap-1.5 rounded-full border border-white/70 bg-white/60 px-4 py-2 font-display text-[0.75rem] font-bold text-slate-600 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/80 hover:text-indigo-600 sm:inline-flex"
+              href="/tutor"
+              className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-2 font-display text-[0.74rem] font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-400 hover:text-indigo-700 md:inline-flex"
             >
-              <Home className="h-3.5 w-3.5" strokeWidth={2} />
-              Home
+              <Bot className="h-3.5 w-3.5" strokeWidth={2} />
+              AI Tutor
+            </Link>
+            <Link
+              href="/ai-feedback"
+              className="hidden items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-2 font-display text-[0.74rem] font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-400 hover:text-violet-700 md:inline-flex"
+            >
+              <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
+              Feedback
             </Link>
             <NotificationsBell userId={userId} />
             <button
               onClick={() => setSettingsOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/60 px-4 py-2 font-display text-[0.75rem] font-bold text-slate-600 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300/80 hover:text-indigo-600"
+              aria-label="Settings"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-indigo-600"
             >
-              <Settings className="h-3.5 w-3.5" strokeWidth={2} />
-              <span className="hidden sm:inline">Settings</span>
+              <Settings className="h-4 w-4" strokeWidth={1.9} />
             </button>
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="inline-flex items-center gap-2 rounded-full border border-rose-200/80 bg-white/70 px-4 py-2 font-display text-[0.75rem] font-bold text-rose-600 shadow-sm backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50"
+              aria-label="Sign out"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
             >
-              <LogOut className="h-3.5 w-3.5" strokeWidth={2} />
-              Sign out
+              <LogOut className="h-4 w-4" strokeWidth={1.9} />
             </button>
           </div>
         </div>
       </motion.header>
 
-      <main className="relative z-10 mx-auto max-w-6xl px-5 py-10 sm:px-8">
-        {/* Journey timeline */}
-        <Rise>
-          <JourneyTimeline
-            hasApp={apps.length > 0}
-            approved={!!approvedApp}
-            enrolled={activeEnr?.status === "ENROLLED"}
-            pendingEnr={activeEnr?.status === "PENDING"}
-            joinedAt={joined}
-            appliedAt={apps[0]?.createdAt}
-            approvedAt={approvedApp?.createdAt}
-            enrolledAt={activeEnr?.createdAt}
-          />
-        </Rise>
-
-        {/* Profile card */}
-        <Rise delay={0.08}>
-<section className="glass-dash glow-breathe relative mb-8 flex flex-col gap-6 overflow-hidden rounded-[2rem] p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
-            <div aria-hidden className="pointer-events-none absolute -right-24 -top-28 h-60 w-60 rounded-full bg-violet-400/20 blur-3xl" />
-            <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-20 h-60 w-60 rounded-full bg-indigo-400/15 blur-3xl" />
-            <div className="relative flex items-center gap-5">
-              <div className="relative shrink-0">
-                <span aria-hidden className="absolute -inset-2 rounded-full opacity-80 blur-lg" style={{ background: "conic-gradient(from 0deg,#6366f1,#8b5cf6,#d946ef,#6366f1)", animation: "ring-spin 8s linear infinite" }} />
-                <span aria-hidden className="absolute -inset-3.5 rounded-full bg-indigo-400/25 blur-md" style={{ animation: "ring-spin 9s linear infinite reverse" }} />
-                <span className="relative grid h-20 w-20 overflow-hidden rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 ring-4 ring-white shadow-[0_10px_28px_-8px_rgb(99_102_241/0.5)] sm:h-24 sm:w-24">
-                  {avatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={avatar} alt={`Profile photo of ${displayName}`} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="grid h-full w-full place-items-center font-display text-3xl font-black text-white">
-                      {(displayName || name || "L").slice(0, 1).toUpperCase()}
-                    </span>
-                  )}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => fileRef.current?.click()}
-                  disabled={avatarBusy}
-                  aria-label="Upload profile photo"
-                  className="absolute -bottom-0.5 -right-0.5 grid h-9 w-9 place-items-center rounded-full border-2 border-white bg-slate-900 text-white shadow-lg transition-all duration-300 hover:scale-110 hover:bg-slate-700 disabled:opacity-60"
-                >
-                  <Camera className="h-4 w-4" strokeWidth={2} />
-                </button>
-                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
-              </div>
-              <div className="min-w-0">
-                <h1 className="truncate font-display text-2xl font-extrabold tracking-[-0.02em] sm:text-[1.7rem]">{displayName}</h1>
-                <p className="mt-1 flex items-center gap-1.5 truncate font-mono text-[0.82rem] text-slate-500">
+      <main className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Welcome hero */}
+        <section className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="relative shrink-0">
+              <span className="grid h-16 w-16 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md ring-2 ring-white sm:h-20 sm:w-20">
+                {avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={avatar} alt={`Profile photo of ${displayName}`} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="grid h-full w-full place-items-center font-display text-2xl font-black">
+                    {(displayName || name || "L").slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+              </span>
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={avatarBusy}
+                aria-label="Upload profile photo"
+                className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-slate-900 text-white shadow transition-all duration-300 hover:scale-110 hover:bg-slate-700 disabled:opacity-60"
+              >
+                <Camera className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
+            </div>
+            <div className="min-w-0">
+              <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.32em] text-indigo-600">My account</p>
+              <h1 className="mt-1 truncate font-display text-[1.55rem] font-extrabold tracking-[-0.02em] sm:text-[1.85rem]">
+                Welcome back, <span className="text-indigo-600">{firstName}</span>
+              </h1>
+              <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.85rem] text-slate-500">
+                <span className="flex items-center gap-1.5">
                   <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
                   {email}
-                </p>
-                <p className="mt-1 flex items-center gap-1.5 text-[0.88rem] text-slate-400">
+                </span>
+                <span aria-hidden className="hidden h-1 w-1 rounded-full bg-slate-300 sm:block" />
+                <span className="flex items-center gap-1.5">
                   <CalendarDays className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
                   {joined
-                    ? `Member since ${new Date(joined).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
+                    ? `Member since ${new Date(joined).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}`
                     : "Member"}
+                </span>
+              </p>
+              {avatarBusy ? (
+                <p className="mt-1 inline-flex items-center gap-2 font-mono text-[0.62rem] font-bold uppercase tracking-widest text-indigo-600">
+                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-indigo-500/30 border-t-indigo-500" />
+                  Uploading photo…
                 </p>
-                {avatarBusy ? (
-                  <p className="mt-1.5 inline-flex items-center gap-2 font-mono text-[0.62rem] font-bold uppercase tracking-widest text-indigo-600">
-                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-indigo-500/30 border-t-indigo-500" />
-                    Uploading photo…
-                  </p>
-                ) : avatarError ? (
-                  <p className="mt-1.5 font-mono text-[0.62rem] font-bold uppercase tracking-widest text-rose-600">
-                    ! {avatarError}
-                  </p>
-                ) : null}
-              </div>
+              ) : avatarError ? (
+                <p className="mt-1 font-mono text-[0.62rem] font-bold uppercase tracking-widest text-rose-600">
+                  ! {avatarError}
+                </p>
+              ) : null}
             </div>
+          </div>
 
-            <div className="relative flex gap-3 sm:gap-4">
-              <div className="glass-dash flex-1 rounded-2xl border-indigo-200/60 px-5 py-4 text-center sm:flex-none">
-                <p className="font-display text-[1.9rem] font-black leading-none text-indigo-600">{String(apps.length).padStart(2, "0")}</p>
-                <p className="mt-1 font-display text-[0.6rem] font-bold uppercase tracking-[0.24em] text-slate-500">Applications</p>
-              </div>
-              <div className="glass-dash flex-1 rounded-2xl border-violet-200/60 px-5 py-4 text-center sm:flex-none">
-                <p className="font-display text-[1.9rem] font-black leading-none text-violet-600">{String(enrs.length).padStart(2, "0")}</p>
-                <p className="mt-1 font-display text-[0.6rem] font-bold uppercase tracking-[0.24em] text-slate-500">Enrollments</p>
-              </div>
-            </div>
-          </section>
-        </Rise>
+          {/* Quick stats */}
+          <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatTile label="Applications" value={loading ? "…" : String(apps.length).padStart(2, "0")} accent="indigo" />
+            <StatTile label="Enrollments" value={loading ? "…" : String(enrs.length).padStart(2, "0")} accent="violet" />
+            <StatTile label="Course progress" value={loading ? "…" : `${progressPercent}%`} accent="emerald" />
+            <StatTile label="Live classes" value={loading ? "…" : String(upcomingClasses.length)} accent="sky" />
+          </dl>
+        </section>
+
+        {/* Journey stepper */}
+        <Stepper
+          hasApp={apps.length > 0}
+          approved={!!approvedApp}
+          enrolled={activeEnr?.status === "ENROLLED"}
+          pendingEnr={activeEnr?.status === "PENDING"}
+          joinedAt={joined}
+          appliedAt={apps[0]?.createdAt}
+          approvedAt={approvedApp?.createdAt}
+          enrolledAt={activeEnr?.createdAt}
+        />
+
+        {/* AI study tools */}
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <Link
+            href="/tutor"
+            className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:shadow-lg sm:p-6"
+          >
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600 transition-transform duration-300 group-hover:scale-105">
+              <Bot className="h-6 w-6" strokeWidth={1.8} />
+            </span>
+            <span className="min-w-0">
+              <span className="flex items-center gap-2 font-display text-[1.02rem] font-extrabold tracking-[-0.01em] text-slate-900">
+                AI English Tutor
+              </span>
+              <span className="mt-1 block text-[0.86rem] leading-relaxed text-slate-500">
+                Chat with your syllabus — grammar, IELTS/PTE strategy, courses &amp; FAQs, answered from Language Hub&apos;s material.
+              </span>
+              <span className="mt-2 inline-flex items-center gap-1.5 font-display text-[0.78rem] font-bold text-indigo-600">
+                Start chatting <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+              </span>
+            </span>
+          </Link>
+          <Link
+            href="/ai-feedback"
+            className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-lg sm:p-6"
+          >
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-600 transition-transform duration-300 group-hover:scale-105">
+              <Sparkles className="h-6 w-6" strokeWidth={1.8} />
+            </span>
+            <span className="min-w-0">
+              <span className="flex items-center gap-2 font-display text-[1.02rem] font-extrabold tracking-[-0.01em] text-slate-900">
+                AI Essay &amp; Speaking Feedback
+              </span>
+              <span className="mt-1 block text-[0.86rem] leading-relaxed text-slate-500">
+                Submit your writing or speaking transcript and get examiner-style grades, corrections and a weekly plan.
+              </span>
+              <span className="mt-2 inline-flex items-center gap-1.5 font-display text-[0.78rem] font-bold text-violet-600">
+                Get graded <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+              </span>
+            </span>
+          </Link>
+        </div>
 
         {/* Approved → enroll CTA */}
         {approvedApp && !activeEnr ? (
-          <Rise delay={0.1}>
-            <section className="glass-dash relative mb-8 flex flex-col items-start justify-between gap-4 overflow-hidden rounded-[2rem] border-indigo-200/60 p-6 sm:flex-row sm:items-center sm:p-7">
-              <div aria-hidden className="pointer-events-none absolute -left-16 -top-24 h-52 w-52 rounded-full bg-fuchsia-400/20 blur-3xl" />
-              <div className="relative flex items-start gap-4">
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-indigo-100 text-indigo-600">
-                  <GraduationCap className="h-6 w-6" strokeWidth={1.8} />
-                </span>
-                <div>
-                  <p className="font-display text-[1.15rem] font-extrabold tracking-[-0.01em]">
-                    Application <span className="text-emerald-600">approved.</span> Secure your seat.
-                  </p>
-                  <p className="mt-1.5 max-w-xl text-[0.92rem] leading-relaxed text-slate-500">
-                    Choose your subjects and batch, then confirm your enrollment to start classes with the books assigned to you.
-                  </p>
-                </div>
+          <section className="mt-6 flex flex-col items-start justify-between gap-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5 sm:flex-row sm:items-center sm:p-6">
+            <div className="flex items-start gap-4">
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white text-emerald-600 shadow-sm">
+                <GraduationCap className="h-6 w-6" strokeWidth={1.8} />
+              </span>
+              <div>
+                <p className="font-display text-[1.1rem] font-extrabold tracking-[-0.01em] text-slate-900">
+                  Application <span className="text-emerald-600">approved.</span> Secure your seat.
+                </p>
+                <p className="mt-1 max-w-xl text-[0.9rem] leading-relaxed text-slate-500">
+                  Choose your subjects and batch, then confirm your enrollment to start classes with the books assigned to you.
+                </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setEnrOpen(true)}
-                className="group inline-flex h-[3.1rem] shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-7 font-display text-[0.85rem] font-bold text-white shadow-[0_16px_36px_-14px_rgb(99_102_241/0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_-14px_rgb(99_102_241/0.8)]"
-              >
-                Proceed to Enrollment
-                <span className="inline-block transition-transform duration-500 group-hover:translate-x-1">→</span>
-              </button>
-            </section>
-          </Rise>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEnrOpen(true)}
+              className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-emerald-600 px-6 font-display text-[0.85rem] font-bold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-700"
+            >
+              Proceed to Enrollment <span className="inline-block transition-transform duration-300 hover:translate-x-1">→</span>
+            </button>
+          </section>
         ) : null}
 
-        <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {/* Left column */}
-          <section className="flex flex-col gap-8">
+          <section className="flex flex-col gap-6 lg:col-span-2">
             {activeEnr?.status === "ENROLLED" ? (
               <Rise>
                 <Bookshelf subjects={activeEnr.subjects} />
@@ -643,7 +689,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
                     <span aria-hidden className="h-px w-7 bg-indigo-500/40" /> Apply for a course
                   </p>
                   <h2 className="relative mt-2 font-display text-[1.7rem] font-extrabold tracking-[-0.02em]">
-                    START YOUR <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent">JOURNEY.</span>
+                    Start your <span className="text-indigo-600">journey.</span>
                   </h2>
                   <p className="relative mt-2 text-[0.92rem] text-slate-500">
                     Our team reviews every application within 12 hours. Fill the form once — track it live below.
@@ -746,15 +792,14 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
           </section>
 
           {/* Right column — status list */}
-          <section className="flex flex-col gap-8">
+          <section className="flex flex-col gap-6">
           <Rise delay={0.12}>
-            <section className="glass-dash relative flex flex-col overflow-hidden rounded-[2rem] p-6 sm:p-8">
-              <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-52 w-52 rounded-full bg-fuchsia-400/15 blur-3xl" />
+            <section className="glass-dash relative flex flex-col overflow-hidden rounded-3xl p-6 sm:p-7">
               <p className="relative flex items-center gap-3 font-display text-[0.6rem] font-bold uppercase tracking-[0.36em] text-indigo-600">
-                <span aria-hidden className="h-px w-7 bg-indigo-500/40" /> Track your journey
+                <span aria-hidden className="h-px w-7 bg-indigo-500/40" /> Track the status
               </p>
-              <h2 className="relative mt-2 font-display text-[1.7rem] font-extrabold tracking-[-0.02em]">
-                YOUR <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent">STATUS.</span>
+              <h2 className="relative mt-2 font-display text-[1.5rem] font-extrabold tracking-[-0.02em]">
+                My <span className="text-indigo-600">applications.</span>
               </h2>
 
               <div className="relative mt-6 flex flex-1 flex-col gap-4">
@@ -922,7 +967,32 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
 
 /* ------------------------------ sections ------------------------------ */
 
-function JourneyTimeline({
+/** Compact, professional stat tile for the dashboard hero. */
+function StatTile({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent: "indigo" | "violet" | "emerald" | "sky";
+}) {
+  const tones: Record<string, string> = {
+    indigo: "text-indigo-600",
+    violet: "text-violet-600",
+    emerald: "text-emerald-600",
+    sky: "text-sky-600",
+  };
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <dt className="font-mono text-[0.56rem] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</dt>
+      <dd className={`mt-1 font-display text-[1.5rem] font-extrabold leading-none ${tones[accent]}`}>{value}</dd>
+    </div>
+  );
+}
+
+/** Clean 4-step onboarding stepper (no comet / ping / glow). */
+function Stepper({
   hasApp,
   approved,
   enrolled,
@@ -944,154 +1014,91 @@ function JourneyTimeline({
   const fmt = (d?: string | null) =>
     d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : null;
 
-  const steps: { key: string; label: string; state: "done" | "wait" | "todo"; hint: string }[] = [
-    { key: "acct", label: "Account", state: "done", hint: fmt(joinedAt) ?? "Your home base" },
+  const steps: { key: string; label: string; state: "done" | "current" | "todo"; hint: string }[] = [
+    { key: "acct", label: "Account", state: "done", hint: fmt(joinedAt) ?? "Registered" },
     {
       key: "applied",
       label: "Applied",
       state: hasApp ? "done" : "todo",
-      hint: hasApp ? (fmt(appliedAt) ?? "Submitted") : "Not started yet",
+      hint: hasApp ? (fmt(appliedAt) ?? "Submitted") : "Not started",
     },
     {
       key: "approved",
       label: "Approved",
-      state: approved ? "done" : hasApp ? "wait" : "todo",
-      hint: approved ? (fmt(approvedAt) ?? "Approved") : hasApp ? "In review" : "Waiting your move",
+      state: approved ? "done" : hasApp ? "current" : "todo",
+      hint: approved ? (fmt(approvedAt) ?? "Approved") : hasApp ? "In review" : "Waiting",
     },
     {
       key: "enrolled",
       label: "Enrolled",
-      state: enrolled ? "done" : approved || pendingEnr ? "wait" : "todo",
+      state: enrolled ? "done" : approved || pendingEnr ? "current" : "todo",
       hint: enrolled
         ? (fmt(enrolledAt) ?? "Seat locked")
         : approved
           ? "Ready to enroll"
           : pendingEnr
             ? "Awaiting admin"
-            : "Locked out",
+            : "Next step",
     },
   ];
 
   const doneCount = steps.filter((s) => s.state === "done").length;
 
   return (
-    <section className="glass-dash relative mb-8 overflow-hidden rounded-[2rem] p-5 sm:p-7">
-      <div aria-hidden className="pointer-events-none absolute -right-28 -top-28 h-60 w-60 rounded-full bg-indigo-400/25 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-24 h-60 w-60 rounded-full bg-fuchsia-400/20 blur-3xl" />
-
-      <div className="relative flex flex-wrap items-center justify-between gap-3">
-        <p className="flex items-center gap-2.5 font-display text-[0.62rem] font-bold uppercase tracking-[0.32em] text-indigo-600">
-          <Sparkles className="h-4 w-4" strokeWidth={2} />
+    <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.3em] text-indigo-600">
           Your journey
         </p>
-        <span className="inline-flex items-center gap-2 rounded-full border border-indigo-200/70 bg-white/70 px-3.5 py-1.5 font-mono text-[0.62rem] font-bold uppercase tracking-[0.18em] text-indigo-700 backdrop-blur-md">
-          {doneCount === 4 ? (
-            <>FULLY ONBOARDED</>
-          ) : (
-            <>
-              {doneCount} / 4 steps complete
-            </>
-          )}
+        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-mono text-[0.6rem] font-bold uppercase tracking-[0.18em] text-slate-600">
+          {doneCount === 4 ? "Fully onboarded" : `${doneCount} / 4 steps`}
         </span>
       </div>
 
-      <div className="relative mt-9 flex items-start">
+      <ol className="mt-6 flex items-start">
         {steps.map((s, i) => (
-          <Fragment key={s.key}>
-            {i > 0 ? <TimelineConnector prev={steps[i - 1].state} next={s.state} /> : null}
-            <TimelineNode state={s.state} label={s.label} hint={s.hint} />
-          </Fragment>
+          <li key={s.key} className={cn("flex items-start", i > 0 && "flex-1")}>
+            {i > 0 ? (
+              <span
+                aria-hidden
+                className={cn(
+                  "mt-[1.05rem] h-0.5 flex-1",
+                  steps[i - 1].state === "done" ? "bg-indigo-500" : "bg-slate-200"
+                )}
+              />
+            ) : null}
+            <div className="flex w-20 flex-col items-center px-1 sm:w-24">
+              <span
+                className={cn(
+                  "relative grid h-9 w-9 shrink-0 place-items-center rounded-full border-2",
+                  s.state === "done"
+                    ? "border-indigo-500 bg-indigo-500 text-white"
+                    : s.state === "current"
+                      ? "border-amber-400 bg-amber-50 text-amber-600"
+                      : "border-slate-200 bg-white text-slate-300"
+                )}
+              >
+                {s.state === "done" ? (
+                  <Check className="h-4 w-4" strokeWidth={3} />
+                ) : s.state === "current" ? (
+                  <Clock className="h-4 w-4" strokeWidth={2} />
+                ) : (
+                  <span className="h-2 w-2 rounded-full bg-slate-300" />
+                )}
+              </span>
+              <p
+                className={cn(
+                  "mt-2 font-display text-[0.62rem] font-extrabold uppercase tracking-[0.14em]",
+                  s.state === "done" ? "text-indigo-600" : s.state === "current" ? "text-amber-600" : "text-slate-400"
+                )}
+              >
+                {s.label}
+              </p>
+              <p className="mt-0.5 text-center font-mono text-[0.56rem] leading-tight text-slate-400">{s.hint}</p>
+            </div>
+          </li>
         ))}
-      </div>
+      </ol>
     </section>
-  );
-}
-
-function TimelineConnector({
-  prev,
-  next,
-}: {
-  prev: "done" | "wait" | "todo";
-  next: "done" | "wait" | "todo";
-}) {
-  const lit = next === "done";
-  const partial = !lit && prev === "done";
-  return (
-    <div className="relative mt-[1.3rem] h-1.5 min-w-2 flex-1 rounded-full">
-      <span
-        aria-hidden
-        className={cn(
-          "absolute inset-0 rounded-full transition-colors duration-700",
-          lit ? "timeline-gradient opacity-90" : partial ? "bg-indigo-200" : "bg-slate-200/80"
-        )}
-      />
-      {lit ? <span aria-hidden className="comet" /> : null}
-    </div>
-  );
-}
-
-function TimelineNode({
-  state,
-  label,
-  hint,
-}: {
-  state: "done" | "wait" | "todo";
-  label: string;
-  hint: string;
-}) {
-  return (
-    <div className="w-16 shrink-0 px-0.5 sm:w-24">
-      <div className="relative flex justify-center">
-        <span
-          aria-hidden
-          className={cn(
-            "absolute -inset-2 rounded-2xl blur-lg",
-            state === "done" && "bg-indigo-500/40",
-            state === "wait" && "bg-amber-400/40",
-            state === "todo" && "bg-slate-400/25"
-          )}
-        />
-        <motion.span
-          initial={{ scale: 0, opacity: 0 }}
-          whileInView={{ scale: 1, opacity: 1 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.5, ease, delay: 0.1 }}
-          className={cn(
-            "relative grid h-12 w-12 place-items-center rounded-2xl border backdrop-blur-md",
-            state === "done" &&
-              "border-transparent bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-[0_10px_28px_-8px_rgb(99_102_241/0.85)]",
-            state === "wait" &&
-              "border-amber-300/80 bg-white/80 text-amber-600 shadow-[0_8px_24px_-10px_rgb(245_158_11/0.7)]",
-            state === "todo" &&
-              "border-white/80 bg-white/60 text-slate-400 shadow-[0_6px_18px_-10px_rgb(15_23_42/0.25)]"
-          )}
-        >
-          {state === "done" ? (
-            <Check className="h-5 w-5" strokeWidth={3} />
-          ) : state === "wait" ? (
-            <Clock className="h-5 w-5" strokeWidth={2} />
-          ) : (
-            <span className="h-2.5 w-2.5 rounded-full bg-slate-400/70" />
-          )}
-        </motion.span>
-        {state === "wait" ? (
-          <span aria-hidden className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-500 opacity-70" />
-            <span className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-white bg-amber-500" />
-          </span>
-        ) : null}
-      </div>
-      <p
-        className={cn(
-          "mt-3 text-center font-display text-[0.58rem] font-extrabold uppercase tracking-[0.16em] sm:text-[0.64rem]",
-          state === "done" ? "text-indigo-600" : state === "wait" ? "text-amber-600" : "text-slate-400"
-        )}
-      >
-        {label}
-      </p>
-      <p className="mt-1 px-0.5 text-center font-mono text-[0.56rem] leading-tight text-slate-400 sm:text-[0.6rem]">
-        {hint}
-      </p>
-    </div>
   );
 }

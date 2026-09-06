@@ -13,6 +13,8 @@ import {
   Trophy,
   Target,
   Mail,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import {
   PLACEMENT_QUESTIONS,
@@ -22,6 +24,31 @@ import {
 
 const TOTAL_TIME = 10 * 60; // 10 minutes in seconds
 const ease = [0.16, 1, 0.3, 1] as const;
+
+interface AiCategory {
+  category: string;
+  score: number;
+  verdict: string;
+  tip: string;
+}
+
+interface AiStudyPlan {
+  weeklyHours: number;
+  focusAreas: string[];
+  milestones: string[];
+}
+
+interface AiAnalysis {
+  level: "beginner" | "intermediate" | "advanced";
+  overallScore: number;
+  summary: string;
+  categories: AiCategory[];
+  strengths: string[];
+  improvements: string[];
+  recommendedCourse: string;
+  studyPlan: AiStudyPlan;
+  advice: string;
+}
 
 export function PlacementTestClient() {
   const [phase, setPhase] = useState<"welcome" | "quiz" | "results">("welcome");
@@ -34,6 +61,10 @@ export function PlacementTestClient() {
   const [email, setEmail] = useState("");
   const [emailSubmitted, setEmailSubmitted] = useState(false);
   const [name, setName] = useState("");
+  const [aiAnalysis, setAiAnalysis] = useState<AiAnalysis | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiOffline, setAiOffline] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const answersRef = useRef(answers);
 
@@ -107,6 +138,36 @@ export function PlacementTestClient() {
       // best-effort lead capture
     }
     setEmailSubmitted(true);
+  };
+
+  const runAiAnalysis = async () => {
+    if (aiBusy) return;
+    setAiBusy(true);
+    setAiError(null);
+    setAiAnalysis(null);
+    const finalAnswers = answersRef.current.map((a) => (a === null ? -1 : a));
+    try {
+      const res = await fetch("/api/ai/placement-analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          answers: finalAnswers,
+          name: name.trim() || undefined,
+          email: email.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(data.message ?? "Could not analyze your result.");
+      }
+      const data = (await res.json()) as { analysis: AiAnalysis; offline?: boolean };
+      setAiAnalysis(data.analysis);
+      setAiOffline(!!data.offline);
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "Could not analyze your result.");
+    } finally {
+      setAiBusy(false);
+    }
   };
 
   return (
@@ -430,6 +491,176 @@ export function PlacementTestClient() {
               </div>
             )}
 
+            {/* AI analysis */}
+            <div className="mt-8 w-full max-w-md">
+              {!aiAnalysis && !aiBusy ? (
+                <button
+                  type="button"
+                  onClick={() => void runAiAnalysis()}
+                  className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-brand/25 bg-gradient-to-r from-brand/10 via-brand/[0.06] to-brand-magenta/10 px-6 font-display text-[0.86rem] font-bold text-brand-deep transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-[0_18px_44px_-16px_rgb(110_90_224/0.5)]"
+                >
+                  <Sparkles className="h-4.5 w-4.5 transition-transform group-hover:rotate-12" />
+                  Analyze my result with AI
+                  <span className="rounded-full border border-brand/20 bg-white/70 px-2 py-0.5 font-mono text-[0.55rem] uppercase tracking-widest text-brand-deep/80">
+                    free
+                  </span>
+                </button>
+              ) : null}
+
+              {aiBusy ? (
+                <div className="flex flex-col items-center gap-3 rounded-2xl border border-brand/20 bg-brand/[0.04] p-8 text-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-brand-deep" />
+                  <p className="font-display text-[0.9rem] font-bold text-ink">
+                    Your AI tutor is building your study plan…
+                  </p>
+                  <p className="font-mono text-[0.62rem] uppercase tracking-widest text-ink-3">
+                    level · strengths · weekly plan
+                  </p>
+                </div>
+              ) : null}
+
+              {aiError ? (
+                <p className="rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 text-center font-mono text-[0.72rem] font-bold text-rose-600">
+                  {aiError}
+                </p>
+              ) : null}
+
+              {aiAnalysis ? (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease }}
+                  className="overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_20px_60px_-20px_rgb(15_23_42/0.14)]"
+                >
+                  <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-brand-deep to-brand-magenta px-6 py-5 text-white">
+                    <div>
+                      <p className="font-mono text-[0.58rem] font-black uppercase tracking-[0.3em] text-white/70">
+                        AI analysis
+                      </p>
+                      <h3 className="mt-0.5 font-display text-[1.15rem] font-extrabold">
+                        Your personalized study plan
+                      </h3>
+                    </div>
+                    <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/15">
+                      <Sparkles className="h-5 w-5" />
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-5 p-6">
+                    {aiOffline ? (
+                      <p className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2.5 font-mono text-[0.68rem] font-bold text-amber-700">
+                        ⚠ Offline mode — add an AI_API_KEY for richer, personalized analysis.
+                      </p>
+                    ) : null}
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="rounded-full bg-brand/10 px-4 py-1.5 font-display text-[0.82rem] font-extrabold capitalize text-brand-deep">
+                        {aiAnalysis.level}
+                      </span>
+                      <span className="rounded-full bg-ink/[0.05] px-4 py-1.5 font-display text-[0.82rem] font-extrabold text-ink">
+                        {aiAnalysis.overallScore}%
+                      </span>
+                      <span className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-1.5 font-display text-[0.78rem] font-bold text-emerald-700">
+                        {aiAnalysis.recommendedCourse}
+                      </span>
+                    </div>
+
+                    <p className="text-[0.88rem] leading-relaxed text-ink-2">{aiAnalysis.summary}</p>
+
+                    {/* Category bars */}
+                    <div>
+                      <h4 className="font-display text-[0.68rem] font-bold uppercase tracking-[0.2em] text-ink-3">
+                        Skill breakdown
+                      </h4>
+                      <div className="mt-3 flex flex-col gap-3">
+                        {aiAnalysis.categories.map((c) => (
+                          <div key={c.category}>
+                            <div className="flex items-center justify-between font-mono text-[0.62rem] uppercase tracking-widest text-ink-3">
+                              <span>{c.category.replace("-", " ")}</span>
+                              <span className="text-ink-2">{c.score}%</span>
+                            </div>
+                            <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-ink/[0.07]">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-brand/70 to-brand-magenta transition-all duration-700"
+                                style={{ width: `${c.score}%` }}
+                              />
+                            </div>
+                            <p className="mt-1 text-[0.78rem] text-ink-3">{c.tip}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Strengths / improvements */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4">
+                        <p className="font-display text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-emerald-700">
+                          Strengths
+                        </p>
+                        <ul className="mt-2.5 space-y-1.5">
+                          {aiAnalysis.strengths.slice(0, 3).map((s) => (
+                            <li key={s} className="flex gap-2 text-[0.82rem] leading-snug text-ink-2">
+                              <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                              {s}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+                        <p className="font-display text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-amber-700">
+                          Focus on
+                        </p>
+                        <ul className="mt-2.5 space-y-1.5">
+                          {aiAnalysis.improvements.slice(0, 3).map((s) => (
+                            <li key={s} className="flex gap-2 text-[0.82rem] leading-snug text-ink-2">
+                              <Target className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                              {s}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Study plan */}
+                    <div className="rounded-xl border border-ink/10 bg-[#faf8f4] p-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-display text-[0.68rem] font-bold uppercase tracking-[0.2em] text-ink-3">
+                          Your weekly rhythm
+                        </h4>
+                        <span className="rounded-full bg-brand-deep px-3 py-1 font-mono text-[0.62rem] font-black text-white">
+                          {aiAnalysis.studyPlan.weeklyHours} hrs/week
+                        </span>
+                      </div>
+                      {aiAnalysis.studyPlan.focusAreas.length > 0 ? (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {aiAnalysis.studyPlan.focusAreas.map((f) => (
+                            <span
+                              key={f}
+                              className="rounded-full border border-brand/20 bg-brand/[0.05] px-3 py-1 font-mono text-[0.6rem] font-bold text-brand-deep"
+                            >
+                              {f}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      <ol className="mt-3 space-y-2">
+                        {aiAnalysis.studyPlan.milestones.map((m, i) => (
+                          <li key={i} className="flex gap-2.5 text-[0.8rem] leading-snug text-ink-2">
+                            <span className="font-mono text-[0.7rem] font-black text-brand-deep">{i + 1}.</span>
+                            {m}
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+
+                    <blockquote className="border-l-4 border-brand/40 pl-4 text-[0.88rem] italic leading-relaxed text-ink-2">
+                      {aiAnalysis.advice}
+                    </blockquote>
+                  </div>
+                </motion.div>
+              ) : null}
+            </div>
+
             <button
               type="button"
               onClick={() => {
@@ -441,6 +672,10 @@ export function PlacementTestClient() {
                 setEmailSubmitted(false);
                 setEmail("");
                 setName("");
+                setAiAnalysis(null);
+                setAiBusy(false);
+                setAiError(null);
+                setAiOffline(false);
               }}
               className="mt-6 inline-flex h-11 items-center gap-2 rounded-full border border-ink/10 bg-white px-6 font-display text-[0.82rem] font-bold text-ink-2 transition-all hover:bg-ink hover:text-ivory"
             >

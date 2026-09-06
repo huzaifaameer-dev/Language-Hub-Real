@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, Play } from "lucide-react";
-import { TESTIMONIALS, SUCCESS_STORIES } from "@/lib/content";
+import { ArrowRight } from "lucide-react";
+import { TESTIMONIALS } from "@/lib/content";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { useLang } from "@/components/LanguageProvider";
 
@@ -39,8 +39,6 @@ export function Reviews() {
     };
   }, []);
 
-  const videoStories = SUCCESS_STORIES.filter((s) => s.videoProvider !== "none");
-
   return (
     <section
       id="reviews"
@@ -61,49 +59,6 @@ export function Reviews() {
           }
           subtitle={dict["reviews.subtitle"]}
         />
-
-        {/* Video testimonials row */}
-        {videoStories.length > 0 ? (
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {videoStories.map((s, i) => (
-              <motion.article
-                key={s.slug}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-                className="group overflow-hidden rounded-2xl border border-ink/[0.08] bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-30px_rgb(15_23_42/0.3)]"
-              >
-                <Link href={`/success-stories/${s.slug}`} className="block">
-                  <div className="relative aspect-video overflow-hidden bg-ink">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="grid h-14 w-14 place-items-center rounded-full bg-white/90 text-brand-deep shadow-xl transition-transform duration-300 group-hover:scale-110">
-                        <Play className="h-6 w-6 fill-current" strokeWidth={1.5} />
-                      </span>
-                    </div>
-                    <span className="absolute left-3 top-3 rounded-full bg-black/50 px-2.5 py-1 font-mono text-[0.58rem] font-bold uppercase tracking-widest text-white backdrop-blur-md">
-                      Video
-                    </span>
-                  </div>
-                  <div className="p-5">
-                    <p className="font-display text-[0.82rem] font-bold leading-snug text-ink">
-                      “{s.headline}”
-                    </p>
-                    <div className="mt-3 flex items-center gap-2.5">
-                      <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-brand/20 to-brand-magenta/20 font-display text-[0.7rem] font-extrabold text-brand-deep">
-                        {s.name.charAt(0)}
-                      </span>
-                      <div>
-                        <p className="font-display text-[0.72rem] font-bold text-ink">{s.name}</p>
-                        <p className="font-display text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink-3">{s.course}</p>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.article>
-            ))}
-          </div>
-        ) : null}
 
         <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {reviews.slice(0, 8).map((t, i) => (

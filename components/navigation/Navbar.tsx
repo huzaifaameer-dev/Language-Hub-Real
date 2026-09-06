@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
+  CalendarPlus,
+  Info,
+  MessageCircle,
+  Star,
   ArrowRight,
   ChevronDown,
   GraduationCap,
@@ -22,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { useBodyScrollLock } from "@/lib/hooks";
 import { FocusTrap, useEscapeKey } from "@/components/ui/FocusTrap";
 import { BookDemoButton } from "@/components/contact/BookDemoButton";
+import { DemoBooking } from "@/components/contact/DemoBooking";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ScrollProgress } from "@/components/ui/ScrollProgress";
 import { useLang } from "@/components/LanguageProvider";
@@ -61,10 +66,9 @@ function buildCourses(dict: Record<string, string>): CourseItem[] {
 }
 
 const PAGES = [
-  { id: "home", key: "nav.home" },
-  { id: "about", key: "nav.about" },
-  { id: "reviews", key: "nav.reviews" },
-  { id: "faq", key: "nav.faq" },
+  { id: "about", key: "nav.about", icon: Info },
+  { id: "reviews", key: "nav.reviews", icon: Star },
+  { id: "faq", key: "nav.faq", icon: MessageCircle },
 ] as const;
 
 export function Navbar() {
@@ -145,8 +149,8 @@ export function Navbar() {
         <nav
           aria-label="Primary"
           className={cn(
-            "mx-auto flex max-w-7xl items-center justify-between px-4 transition-all duration-500 sm:px-6",
-            scrolled ? "h-16" : "h-20"
+            "mx-auto flex max-w-7xl items-center justify-between px-4 transition-all duration-500 sm:px-6 lg:px-8",
+            scrolled ? "h-16" : "h-[4.6rem]"
           )}
           dir={isUr ? "rtl" : "ltr"}
         >
@@ -155,7 +159,7 @@ export function Navbar() {
             type="button"
             onClick={() => go("home")}
             aria-label="Language Hub — back to top"
-            className="group relative z-[60] flex shrink-0 items-center gap-3"
+            className="group relative z-[60] flex shrink-0 items-center gap-2.5"
           >
             <span className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white shadow-[0_6px_18px_-6px_rgb(15_23_42/0.28)] ring-1 ring-black/[0.05] transition-transform duration-300 group-hover:scale-105">
               <Logo size="xs" eager />
@@ -163,9 +167,6 @@ export function Navbar() {
             <span className="flex flex-col items-start leading-none">
               <span className="font-display text-[0.95rem] font-extrabold tracking-[0.08em] text-ink">
                 LANGUAGE<span className="gold-text"> HUB</span>
-              </span>
-              <span className="mt-1 hidden text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-ink-3 sm:block">
-                Excellence in English
               </span>
             </span>
           </button>
@@ -176,7 +177,7 @@ export function Navbar() {
               "hidden items-center gap-0.5 rounded-full px-1.5 py-1 lg:flex",
               "relative border transition-all duration-500",
               scrolled
-                ? "border-white/60 bg-white/80 shadow-[0_14px_40px_-18px_rgb(15_23_42/0.4)] backdrop-blur-xl"
+                ? "border-slate-200/80 bg-white/85 shadow-[0_18px_44px_-24px_rgb(79_70_229/0.3)] backdrop-blur-xl"
                 : "border-transparent bg-white/0"
             )}
           >
@@ -278,6 +279,7 @@ export function Navbar() {
               <NavLink
                 key={p.id}
                 label={dict[p.key] ?? p.key}
+                icon={p.icon}
                 active={active === p.id}
                 onClick={() => go(p.id)}
                 reducedMotion={!!reduceMotion}
@@ -290,17 +292,19 @@ export function Navbar() {
             <Link
               href="/placement-test"
               className={cn(
-                "hidden h-10 items-center gap-1.5 rounded-full px-4 font-display text-[0.78rem] font-bold transition-all duration-300 xl:inline-flex",
+                "hidden h-10 items-center gap-1.5 rounded-full px-4 font-display text-[0.78rem] font-bold transition-all duration-300 md:inline-flex",
                 pathname === "/placement-test"
-                  ? "bg-brand/[0.1] text-brand-deep"
-                  : "text-ink-2 hover:bg-ink/[0.04] hover:text-ink"
+                  ? "bg-gradient-to-r from-brand-deep to-brand-magenta text-white shadow-[0_10px_24px_-10px_rgb(124_58_237/0.7)]"
+                  : "bg-gradient-to-r from-brand-deep to-brand-magenta text-white shadow-[0_10px_24px_-10px_rgb(124_58_237/0.7)] hover:-translate-y-0.5 hover:brightness-110"
               )}
             >
-              {dict["nav.placement"] ?? "Placement Test"}
+              <Sparkles className="h-4 w-4" strokeWidth={2.2} />
+              <span className="hidden xl:inline">{dict["nav.placement"] ?? "Placement Test"}</span>
+              <span className="xl:hidden">{dict["nav.placement.short"] ?? "Free Test"}</span>
             </Link>
-            <BookDemoButton className="hidden h-10 px-5 text-[0.78rem] md:inline-flex" />
+            <BookDemoLink />
             <LanguageToggle />
-            <div className="hidden sm:block">
+            <div className="hidden md:block">
               <AuthNavButtons />
             </div>
             <button
@@ -405,6 +409,26 @@ export function Navbar() {
                     </motion.button>
                   ))}
                 </div>
+
+                <div className="mt-3 border-t border-ink/[0.06] pt-4">
+                  <Link
+                    href="/placement-test"
+                    onClick={() => setMenuOpen(false)}
+                    className={cn(
+                      "flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-brand-deep to-brand-magenta px-4 py-3.5 font-display text-base font-extrabold text-white transition-transform active:scale-[0.99]",
+                      pathname === "/placement-test" && "ring-2 ring-brand/30 ring-offset-2 ring-offset-ivory"
+                    )}
+                  >
+                    <span className="flex items-center gap-2.5">
+                      <Sparkles className="h-5 w-5" strokeWidth={2} />
+                      {dict["nav.placement"] ?? "Placement Test"}
+                    </span>
+                    <ArrowRight className="h-5 w-5" strokeWidth={2.2} />
+                  </Link>
+                  <p className="mt-2 px-1 font-mono text-[0.6rem] uppercase tracking-[0.2em] text-ink-3">
+                    Free · 10 min · instant AI results
+                  </p>
+                </div>
               </div>
 
               <motion.div
@@ -430,11 +454,13 @@ export function Navbar() {
 /** A single animated nav link with a shared gliding active pill. */
 function NavLink({
   label,
+  icon: Icon,
   active,
   onClick,
   reducedMotion,
 }: {
   label: string;
+  icon: typeof Info;
   active: boolean;
   onClick: () => void;
   reducedMotion: boolean;
@@ -444,7 +470,7 @@ function NavLink({
       type="button"
       onClick={onClick}
       className={cn(
-        "relative inline-flex items-center rounded-full px-3.5 py-2 font-display text-[0.78rem] font-bold tracking-[0.03em] transition-colors duration-300",
+        "relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-[0.78rem] font-bold tracking-[0.03em] transition-colors duration-300",
         active ? "text-brand-deep" : "text-ink-2 hover:text-ink"
       )}
     >
@@ -455,7 +481,27 @@ function NavLink({
           className="absolute inset-0 rounded-full bg-gradient-to-b from-brand/[0.14] to-brand/[0.06] ring-1 ring-brand/20"
         />
       )}
+      <Icon className={cn("h-3.5 w-3.5", active && "text-brand-deep")} strokeWidth={2} />
       <span className="relative z-10">{label}</span>
     </button>
+  );
+}
+
+/** Compact circular "book a demo" button (icon-only, opens the booking modal). */
+function BookDemoLink() {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Book a free demo class"
+        title="Book a free demo"
+        className="hidden h-10 w-10 items-center justify-center rounded-full border border-ink/10 bg-white/70 text-ink-2 shadow-sm backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/45 hover:text-brand-deep lg:inline-flex"
+      >
+        <CalendarPlus className="h-4.5 w-4.5" strokeWidth={1.9} />
+      </button>
+      <DemoBooking open={open} onClose={() => setOpen(false)} />
+    </>
   );
 }

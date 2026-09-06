@@ -376,6 +376,13 @@ export function ensureInit(): Promise<void> {
         db.collection("referral_redeems").createIndex({ redeemedAt: -1 }),
         db.collection("automation_sends").createIndex({ key: 1 }, { unique: true }),
         db.collection("automation_sends").createIndex({ sentAt: -1 }),
+        db.collection("ai_chunks").createIndex({ hash: 1 }, { unique: true }),
+        db.collection("ai_chunks").createIndex({ sourceId: 1 }),
+        db.collection("ai_chunks").createIndex({ updatedAt: 1 }),
+        db.collection("ai_analyses").createIndex({ createdAt: -1 }),
+        db.collection("ai_analyses").createIndex({ email: 1 }),
+        db.collection("ai_feedback").createIndex({ userId: 1, createdAt: -1 }),
+        db.collection("ai_reports").createIndex({ createdAt: -1 }),
       ]);
 
       // Drop legacy redundant indexes from older schema versions (best-effort;
@@ -660,6 +667,108 @@ export async function getReferralsCollection() {
 export async function getReferralRedeemsCollection() {
   const db = await getDb();
   return db.collection<ReferralRedeemDoc>("referral_redeems");
+}
+
+/* ------------------------------------------------------------------ */
+/*  AI: RAG knowledge chunks, placement analyses, feedback, reports    */
+/* ------------------------------------------------------------------ */
+
+/** One retrievable text chunk of the tutor knowledge base. */
+export interface AiChunkDoc {
+  _id?: unknown;
+  /** Content hash — unique key used to upsert without duplicates. */
+  hash: string;
+  /** Where the text came from: course / faq / blog / feature. */
+  source: string;
+  /** Stable identifier within the source (course name, faq index, blog slug). */
+  sourceId: string;
+  /** Corpus category: course, module, faq, blog, feature. */
+  kind: string;
+  /** Human-readable heading for the source chip in the chat UI. */
+  title: string;
+  /** The chunk text used as retrieval context. */
+  text: string;
+  /** Vector embedding (absent when the knowledge base is built without an AI key). */
+  embedding?: number[] | null;
+  updatedAt: Date;
+}
+
+export async function getAiChunksCollection() {
+  const db = await getDb();
+  return db.collection<AiChunkDoc>("ai_chunks");
+}
+
+/** Stored result of an AI placement-test analysis. */
+export interface AiAnalysisDoc {
+  _id?: unknown;
+  kind: "placement";
+  /** Lead email (when provided on the placement test). */
+  email?: string | null;
+  name?: string | null;
+  /** Raw input snapshot sent to the analyzer. */
+  input: Record<string, unknown>;
+  /** Structured analysis result. */
+  result: Record<string, unknown>;
+  /** Model id used, or null in offline mode. */
+  model?: string | null;
+  /** True when produced by the deterministic offline fallback. */
+  offline: boolean;
+  createdAt: Date;
+}
+
+export async function getAiAnalysesCollection() {
+  const db = await getDb();
+  return db.collection<AiAnalysisDoc>("ai_analyses");
+}
+
+/** AI essay / speaking feedback submitted by a learner. */
+export interface AiFeedbackDoc {
+  _id?: unknown;
+  userId: string;
+  kind: "essay" | "speaking";
+  /** Optional prompt/task (e.g. IELTS Task 2 essay question). */
+  taskPrompt?: string | null;
+  /** The submitted essay or speaking transcript. */
+  text: string;
+  /** Full AI feedback text. */
+  feedback: string;
+  /** Parsed grade/band when determinable (e.g. "Band 6.5"). */
+  grade?: string | null;
+  model?: string | null;
+  /** True when produced by the rule-based offline fallback. */
+  offline: boolean;
+  createdAt: Date;
+}
+
+export async function getAiFeedbackCollection() {
+  const db = await getDb();
+  return db.collection<AiFeedbackDoc>("ai_feedback");
+}
+
+/** AI-generated ops report (e.g. the weekly teacher-assistant summary). */
+export interface AiReportDoc {
+  _id?: unknown;
+  kind: "weekly";
+  /** Human label for the covered window, e.g. "7 days up to 5 Sep". */
+  period: string;
+  periodStart: Date;
+  periodEnd: Date;
+  /** The agent's narrative summary. */
+  text: string;
+  /** Structured metrics snapshot the agent gathered through tool calls. */
+  metrics: Record<string, unknown>;
+  model?: string | null;
+  /** Number of tool calls the agent actually performed (agentic demos/evals). */
+  toolCallsUsed?: number;
+  /** True when produced by the offline stats fallback. */
+  offline: boolean;
+  requestedBy: string;
+  createdAt: Date;
+}
+
+export async function getAiReportsCollection() {
+  const db = await getDb();
+  return db.collection<AiReportDoc>("ai_reports");
 }
 
 /** Generate a unique shareable referral code for a user. */

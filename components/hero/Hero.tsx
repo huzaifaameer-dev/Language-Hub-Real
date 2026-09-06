@@ -1,15 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, PlayCircle, ShieldCheck, Sparkles, Star, TrendingUp } from "lucide-react";
 import { HERO_WORDS } from "@/lib/content";
 import { BookDemoButton } from "@/components/contact/BookDemoButton";
+import { Typewriter } from "@/components/ui/Typewriter";
 import { useLang } from "@/components/LanguageProvider";
 import { scrollToId } from "@/lib/lenis";
 
 export function Hero() {
   const { lang, dict } = useLang();
   const isUr = lang === "ur";
+  const [showFounder, setShowFounder] = useState(isUr);
+  const [seenLang, setSeenLang] = useState(lang);
+
+  // Render-time reset: when switching back to English, hide the founder reveal
+  // so the typewriter replays cleanly.
+  if (seenLang !== lang) {
+    setSeenLang(lang);
+    if (!isUr) setShowFounder(false);
+  }
 
   return (
     <section
@@ -72,9 +83,32 @@ export function Hero() {
             )}
           </h1>
 
-          <p className="mt-6 max-w-xl text-[1.08rem] leading-relaxed text-ink-2" dir={isUr ? "rtl" : "ltr"}>
-            {dict["hero.subtitle"]}
-            <span className="font-semibold text-ink"> Ms. Javeria Malik</span>.
+          <p className="mt-6 min-h-[3.4rem] max-w-xl text-[1.08rem] leading-relaxed text-ink-2" dir={isUr ? "rtl" : "ltr"}>
+            {isUr ? (
+              <>
+                {dict["hero.subtitle"]}
+                <span className="font-semibold text-ink"> ایم ایس. جاویریا ملک</span>.
+              </>
+            ) : (
+              <>
+                <Typewriter
+                  key={dict["hero.subtitle"] ?? "sub"}
+                  text={dict["hero.subtitle"] ?? ""}
+                  speed={14}
+                  startDelay={450}
+                  className="text-ink-2"
+                  onDone={() => setShowFounder(true)}
+                />
+                <span
+                  className={`ml-2 inline-flex items-center gap-1 font-semibold text-ink transition-all duration-500 ${
+                    showFounder ? "translate-y-0 opacity-100" : "translate-y-1 opacity-0"
+                  }`}
+                >
+                  <span className="h-1 w-1 rounded-full bg-gold-deep" aria-hidden />
+                  Ms. Javeria Malik.
+                </span>
+              </>
+            )}
           </p>
 
           <div className="mt-9 flex flex-wrap items-center gap-4">

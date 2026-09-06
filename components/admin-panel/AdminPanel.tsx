@@ -1,9 +1,9 @@
 ﻿"use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   BadgeCheck,
   BookOpen,
@@ -14,14 +14,18 @@ import {
   FileText,
   GraduationCap,
   LayoutDashboard,
+  Library,
   LogOut,
-  Radar,
   RefreshCw,
+  Search,
   ShieldCheck,
+  Sparkles,
   Star,
   UserRoundPlus,
   Users,
+  X,
   XCircle,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
@@ -37,12 +41,13 @@ import { AdminTestimonials } from "./AdminTestimonials";
 import { AdminPayments } from "./AdminPayments";
 import { AdminBlog } from "./AdminBlog";
 import { AdminAuditLog } from "./AdminAuditLog";
+import { AdminAi } from "./AdminAi";
 import { AdminStatCard, GlassPanel, ProgressRing, StatusPill } from "./ui";
 import { AdminAnalyticsCharts } from "./AdminAnalyticsCharts";
 
-type Tab = "overview" | "applications" | "enrollments" | "payments" | "blog" | "audit" | "courses" | "users" | "demos" | "testimonials";
+type Tab = "overview" | "applications" | "enrollments" | "payments" | "blog" | "audit" | "courses" | "users" | "demos" | "testimonials" | "ai";
 
-const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
+const TABS: { key: Tab; label: string; icon: LucideIcon }[] = [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "applications", label: "Applications", icon: FileText },
   { key: "enrollments", label: "Enrollments", icon: GraduationCap },
@@ -52,7 +57,8 @@ const TABS: { key: Tab; label: string; icon: React.ElementType }[] = [
   { key: "demos", label: "Demo Bookings", icon: CalendarClock },
   { key: "testimonials", label: "Testimonials", icon: Star },
   { key: "users", label: "Students", icon: Users },
-  { key: "courses", label: "Courses", icon: GraduationCap },
+  { key: "courses", label: "Courses", icon: Library },
+  { key: "ai", label: "AI Reports", icon: Sparkles },
 ];
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -82,6 +88,7 @@ export function AdminPanel({
   const [freshApps, setFreshApps] = useState<Set<string>>(new Set());
   const [freshEnrs, setFreshEnrs] = useState<Set<string>>(new Set());
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [palette, setPalette] = useState(false);
   const router = useRouter();
 
   const stat = useMemo(
@@ -94,6 +101,18 @@ export function AdminPanel({
     apps: applications.filter((a) => a.status === "PENDING").length,
     enrs: enrollments.filter((e) => e.status === "PENDING").length,
   });
+
+  // Global shortcut: Ctrl/Cmd + K toggles the command palette.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPalette((p) => !p);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const pushToast = useCallback((title: string, kind: Toast["kind"]) => {
     const id = ++toastSeq;
@@ -224,16 +243,42 @@ export function AdminPanel({
     [refresh]
   );
 
+  const badgeFor = (key: Tab): number | null =>
+    key === "applications" && stat.pending > 0
+      ? stat.pending
+      : key === "enrollments" && stat.enrPending > 0
+        ? stat.enrPending
+        : null;
+
+  const goTab = (t: Tab) => {
+    setTab(t);
+    setPalette(false);
+  };
+
   return (
-    <div className="relative min-h-screen overflow-x-clip bg-[#faf8f4] text-ink">
-      {/* backdrop scenery */}
-      <div aria-hidden className="bg-grid pointer-events-none absolute inset-0 opacity-60" style={{ maskImage: "radial-gradient(ellipse at 30% 0%, black 0%, transparent 70%)", WebkitMaskImage: "radial-gradient(ellipse at 30% 0%, black 0%, transparent 70%)" }} />
-      <div aria-hidden className="orb left-[-6%] top-[6%] h-80 w-80 bg-brand/80/25" />
-      <div aria-hidden className="orb right-[-8%] top-[30%] h-96 w-96 bg-brand-deep/20" style={{ animationDelay: "-6s" }} />
-      <div aria-hidden className="orb bottom-[-10%] left-[24%] h-80 w-80 bg-brand-magenta/8" style={{ animationDelay: "-11s" }} />
+    <div id="lh-admin" className="relative min-h-screen overflow-x-clip bg-[#f3f4fb] text-slate-900">
+      {/* ambient backdrop */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(900px 460px at 12% -8%, rgb(99 102 241 / 0.14), transparent 60%), radial-gradient(1000px 520px at 105% 24%, rgb(217 70 239 / 0.08), transparent 55%), radial-gradient(700px 500px at 44% 110%, rgb(14 165 233 / 0.08), transparent 60%)",
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.35]"
+        style={{
+          backgroundImage: "radial-gradient(rgb(79 70 229 / 0.07) 1px, transparent 1px)",
+          backgroundSize: "26px 26px",
+          maskImage: "radial-gradient(ellipse at 20% 0%, black 5%, transparent 65%)",
+          WebkitMaskImage: "radial-gradient(ellipse at 20% 0%, black 5%, transparent 65%)",
+        }}
+      />
 
       {/* toasts */}
-      <div className="pointer-events-none fixed right-4 top-4 z-[60] flex w-[min(92vw,340px)] flex-col gap-2">
+      <div className="pointer-events-none fixed right-4 top-4 z-[70] flex w-[min(92vw,340px)] flex-col gap-2">
         {toasts.map((t) => (
           <motion.div
             key={t.id}
@@ -260,48 +305,120 @@ export function AdminPanel({
         ))}
       </div>
 
-      {/* SIDEBAR */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[15.5rem] flex-col border-r border-white/60 bg-white/45 backdrop-blur-2xl lg:flex">
-        <div className="flex items-center gap-3 border-b border-ink/8 px-6 py-5">
-          <Logo mode="chip" size="xs" />
-          <div className="leading-tight">
-            <p className="font-display text-[0.85rem] font-extrabold tracking-[0.06em] text-ink">
-              LH
-              <span className="indigo-text-shimmer">·OPS</span>
-            </p>
-            <p className="font-mono text-[0.55rem] uppercase tracking-[0.3em] text-ink-3">control suite</p>
+      {/* ======================= HEADER ======================= */}
+      <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-200 transition-shadow hover:ring-indigo-300"
+              aria-label="Language Hub home"
+            >
+              <Logo size="xs" eager />
+            </Link>
+            <div className="hidden leading-tight sm:block">
+              <p className="font-display text-[0.82rem] font-extrabold tracking-[0.04em] text-slate-900">
+                LH<span className="indigo-text-shimmer">·OPS</span>
+              </p>
+              <p className="font-mono text-[0.55rem] uppercase tracking-[0.3em] text-slate-400">
+                admin control suite
+              </p>
+            </div>
+          </div>
+
+          {/* Command search */}
+          <button
+            type="button"
+            onClick={() => setPalette(true)}
+            className="group hidden h-10 flex-1 max-w-md items-center gap-2 rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-start text-[0.82rem] text-slate-400 transition-all duration-300 hover:border-indigo-300 hover:bg-white md:flex"
+          >
+            <Search className="h-4 w-4 text-slate-400 transition-colors group-hover:text-indigo-500" strokeWidth={2} />
+            <span className="flex-1 truncate">Search sections…</span>
+            <kbd className="hidden shrink-0 rounded-md border border-slate-200 bg-white px-1.5 py-0.5 font-mono text-[0.6rem] font-bold text-slate-400 sm:inline-flex">
+              Ctrl K
+            </kbd>
+          </button>
+
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <LiveBadge live={live} syncTicker={syncing} />
+            <button
+              type="button"
+              onClick={() => refresh(false)}
+              disabled={syncing}
+              aria-label="Sync data"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-50"
+            >
+              <RefreshCw className={cn("h-4 w-4", syncing && "animate-spin")} />
+            </button>
+            <Link
+              href="/"
+              aria-label="Open site"
+              className="hidden h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-indigo-600 sm:grid"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Link>
+            <div className="hidden items-center gap-2.5 rounded-xl border border-slate-200 bg-white py-1 pl-1 pr-3 shadow-sm lg:flex">
+              <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-brand-deep to-brand-magenta font-display text-[0.8rem] font-black text-white">
+                {(adminEmail || "A").charAt(0).toUpperCase()}
+              </span>
+              <div className="leading-tight">
+                <p className="max-w-[9rem] truncate font-display text-[0.72rem] font-bold text-slate-800">
+                  {adminEmail}
+                </p>
+                <p className="flex items-center gap-1 font-mono text-[0.55rem] font-bold uppercase tracking-widest text-emerald-600">
+                  <span className="h-1 w-1 animate-pulse rounded-full bg-emerald-500" /> Root session
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                await fetch("/api/admin/logout", { method: "POST" });
+                router.push("/");
+                router.refresh();
+              }}
+              aria-label="Sign out"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-rose-200 bg-rose-50/60 text-rose-600 transition-all duration-300 hover:-translate-y-0.5 hover:bg-rose-100"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
+      </header>
 
-        <nav className="flex flex-1 flex-col gap-1.5 px-3 py-5">
+      {/* ======================= DESKTOP DOCK ======================= */}
+      <aside className="fixed left-4 top-1/2 z-40 hidden -translate-y-1/2 lg:block">
+        <nav
+          aria-label="Sections"
+          className="group/dock flex flex-col gap-1.5 rounded-3xl border border-slate-200/80 bg-white/85 p-2 shadow-[0_30px_70px_-30px_rgb(79_70_229/0.45)] backdrop-blur-xl transition-all duration-500 w-[3.4rem] hover:w-60"
+        >
           {TABS.map((t) => {
             const Icon = t.icon;
             const active = tab === t.key;
-            const badge =
-              (t.key === "applications" && stat.pending > 0)
-                ? stat.pending
-                : (t.key === "enrollments" && stat.enrPending > 0)
-                  ? stat.enrPending
-                  : null;
+            const badge = badgeFor(t.key);
             return (
               <button
                 key={t.key}
                 type="button"
-                onClick={() => setTab(t.key)}
+                onClick={() => goTab(t.key)}
+                aria-label={t.label}
                 className={cn(
-                  "group relative flex items-center gap-3 overflow-hidden rounded-xl px-4 py-3 text-start font-display text-[0.84rem] font-bold transition-all duration-300",
+                  "relative flex h-11 items-center gap-3 overflow-hidden rounded-2xl px-2.5 text-start transition-all duration-300",
                   active
-                    ? "bg-gradient-to-r from-brand-deep to-brand-deep text-white shadow-[0_14px_30px_-12px_rgb(110_90_224/0.8)]"
-                    : "text-ink-2 hover:bg-white/70 hover:text-ink"
+                    ? "bg-gradient-to-r from-brand-deep to-brand-deep text-white shadow-[0_12px_24px_-10px_rgb(79_70_229/0.8)]"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                 )}
               >
-                <Icon className={cn("h-4.5 w-4.5", active ? "text-white" : "text-ink-3")} strokeWidth={1.9} />
-                {t.label}
+                <Icon className={cn("h-[1.15rem] w-[1.15rem] shrink-0", active ? "text-white" : "text-slate-400")} strokeWidth={1.9} />
+                <span className="whitespace-nowrap font-display text-[0.78rem] font-bold opacity-0 transition-opacity duration-300 group-hover/dock:opacity-100">
+                  {t.label}
+                </span>
                 {badge ? (
                   <span
                     className={cn(
-                      "ml-auto grid min-w-6 place-items-center rounded-full px-1.5 py-0.5 font-mono text-[0.6rem] font-black",
-                      active ? "bg-white/25 text-white" : "bg-brand-deep text-white"
+                      "ml-auto grid min-w-5 place-items-center rounded-full px-1.5 py-0.5 font-mono text-[0.58rem] font-black",
+                      active ? "bg-white/25 text-white" : "bg-brand-deep text-white",
+                      "opacity-0 transition-opacity duration-300 group-hover/dock:opacity-100"
                     )}
                   >
                     {badge}
@@ -311,130 +428,68 @@ export function AdminPanel({
             );
           })}
         </nav>
-
-        <div className="border-t border-ink/8 px-6 py-5">
-          <p className="truncate font-mono text-[0.7rem] font-bold text-ink">{adminEmail}</p>
-          <div className="mt-2 flex items-center gap-2 font-mono text-[0.55rem] uppercase tracking-[0.24em] text-emerald-600">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-            Root session active
-          </div>
-        </div>
       </aside>
 
-      {/* MAIN */}
-      <div className="relative z-10 flex min-h-screen flex-1 flex-col lg:pl-[15.5rem]">
-        {/* TOPBAR */}
-        <header className="sticky top-0 z-20 border-b border-white/60 bg-[#faf8f4]/70 backdrop-blur-2xl">
-          <div className="flex items-center justify-between gap-4 px-5 py-3.5 lg:px-8">
-            <div className="flex items-center gap-3 lg:hidden">
-              <Logo mode="chip" size="xs" />
-            </div>
-            <div className="hidden items-center gap-2 font-mono text-[0.6rem] font-bold uppercase tracking-[0.3em] text-ink-2 lg:flex">
-              <Radar className="h-4 w-4 text-brand/80" />
-              <span>Language Hub · Operations</span>
-            </div>
-            <LiveBadge live={live} syncTicker={syncing} />
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => refresh(false)}
-                disabled={syncing}
-                className="inline-flex items-center gap-2 rounded-full border border-ink/12 bg-white/70 px-4 py-2 font-display text-[0.72rem] font-bold text-ink-2 transition-all hover:border-brand/45 hover:text-brand-deep disabled:opacity-50 backdrop-blur-md"
-              >
-                <RefreshCw className={cn("h-4 w-4", syncing && "animate-spin")} />
-                <span className="hidden sm:inline">Sync</span>
-              </button>
-              <Link
-                href="/"
-                className="hidden items-center gap-1.5 rounded-full border border-ink/12 bg-white/70 px-4 py-2 font-display text-[0.72rem] font-bold text-ink-2 transition-all hover:border-brand/45 hover:text-brand-deep sm:inline-flex"
-              >
-                <ExternalLink className="h-3.5 w-3.5" /> Site
-              </Link>
-              <button
-                type="button"
-                onClick={async () => {
-                  await fetch("/api/admin/logout", { method: "POST" });
-                  router.push("/");
-                  router.refresh();
-                }}
-                className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50/70 px-4 py-2 font-display text-[0.72rem] font-bold text-rose-600 transition-all hover:bg-rose-100"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden sm:inline">Sign out</span>
-              </button>
-            </div>
-          </div>
-        </header>
+      {/* ======================= MAIN ======================= */}
+      <main className="relative z-10 lg:pl-[5.25rem]">
+        <div className="mx-auto max-w-[90rem] px-4 pb-32 pt-7 sm:px-6 lg:px-8 lg:pb-16">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.35, ease }}
+            >
+              {tab === "overview" ? (
+                <Overview stats={stat} applications={appList} enrollments={enrList} onNavigate={goTab} />
+              ) : null}
 
-        <main className="flex flex-col gap-7 px-5 pb-28 pt-7 lg:px-8 lg:pb-10 lg:pt-9">
-          {tab === "overview" ? (
-            <Overview stats={stat} applications={appList} enrollments={enrList} onNavigate={setTab} />
-          ) : null}
+              {tab === "applications" ? (
+                <AdminApplications items={appList} onDecide={decideApp} freshIds={freshApps} />
+              ) : null}
 
-          {tab === "applications" ? (
-            <AdminApplications items={appList} onDecide={decideApp} freshIds={freshApps} />
-          ) : null}
+              {tab === "enrollments" ? (
+                <AdminEnrollments items={enrList} onDecide={decideEnr} freshIds={freshEnrs} />
+              ) : null}
 
-          {tab === "enrollments" ? (
-            <AdminEnrollments items={enrList} onDecide={decideEnr} freshIds={freshEnrs} />
-          ) : null}
+              {tab === "payments" ? <AdminPayments /> : null}
+              {tab === "blog" ? <AdminBlog /> : null}
+              {tab === "audit" ? <AdminAuditLog /> : null}
+              {tab === "demos" ? <AdminDemoBookings /> : null}
+              {tab === "testimonials" ? <AdminTestimonials /> : null}
+              {tab === "courses" ? <AdminCourses /> : null}
+              {tab === "users" ? <AdminUsers items={users} /> : null}
+              {tab === "ai" ? <AdminAi /> : null}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </main>
 
-          {tab === "payments" ? (
-            <AdminPayments />
-          ) : null}
-
-          {tab === "blog" ? (
-            <AdminBlog />
-          ) : null}
-
-          {tab === "audit" ? (
-            <AdminAuditLog />
-          ) : null}
-
-          {tab === "demos" ? (
-            <AdminDemoBookings />
-          ) : null}
-
-          {tab === "testimonials" ? (
-            <AdminTestimonials />
-          ) : null}
-
-          {tab === "courses" ? (
-            <AdminCourses />
-          ) : null}
-
-          {tab === "users" ? (
-            <AdminUsers items={users} />
-          ) : null}
-        </main>
-      </div>
-
-      {/* MOBILE BOTTOM NAV */}
-      <nav className="fixed inset-x-3 bottom-3 z-40 flex items-center gap-1.5 overflow-x-auto rounded-2xl border border-white/70 bg-white/80 px-2 py-2 shadow-[0_18px_44px_-18px_rgb(15_23_42/0.4)] backdrop-blur-2xl no-scrollbar lg:hidden">
+      {/* ======================= MOBILE DOCK ======================= */}
+      <nav
+        aria-label="Sections"
+        className="fixed inset-x-3 bottom-3 z-40 flex items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white/90 px-2 py-2 shadow-[0_18px_44px_-18px_rgb(15_23_42/0.35)] backdrop-blur-2xl no-scrollbar lg:hidden"
+      >
         {TABS.map((t) => {
           const Icon = t.icon;
           const active = tab === t.key;
-          const badge =
-            (t.key === "applications" && stat.pending > 0)
-              ? stat.pending
-              : (t.key === "enrollments" && stat.enrPending > 0)
-                ? stat.enrPending
-                : null;
+          const badge = badgeFor(t.key);
           return (
             <button
               key={t.key}
               type="button"
-              onClick={() => setTab(t.key)}
+              onClick={() => goTab(t.key)}
               className={cn(
-                "relative flex flex-1 flex-col items-center gap-0.5 rounded-xl py-2 font-display text-[0.6rem] font-bold uppercase tracking-wider transition-all",
-                active ? "bg-gradient-to-r from-brand-deep to-brand-deep text-white" : "text-ink-2"
+                "relative flex min-w-[3.4rem] flex-1 flex-col items-center gap-0.5 rounded-xl py-2 font-display text-[0.56rem] font-bold uppercase tracking-wide transition-all",
+                active ? "bg-gradient-to-r from-brand-deep to-brand-deep text-white" : "text-slate-400 hover:text-slate-700"
               )}
             >
-              <Icon className="h-4.5 w-4.5" strokeWidth={1.9} />
-              <span className="whitespace-nowrap">{t.label}</span>
+              <Icon className="h-[1.15rem] w-[1.15rem]" strokeWidth={1.9} />
+              <span className="whitespace-nowrap">{t.label.split(" ")[0]}</span>
               {badge ? (
                 <span className={cn(
-                  "absolute right-1.5 top-0.5 grid min-w-4 place-items-center rounded-full px-1 font-mono text-[0.5rem] font-black",
+                  "absolute right-1 top-0.5 grid min-w-4 place-items-center rounded-full px-1 font-mono text-[0.5rem] font-black",
                   active ? "bg-white/25 text-white" : "bg-brand-deep text-white"
                 )}>
                   {badge}
@@ -443,20 +498,149 @@ export function AdminPanel({
             </button>
           );
         })}
-        <button
-          type="button"
-          aria-label="Sign out"
-          onClick={async () => {
-            await fetch("/api/admin/logout", { method: "POST" });
-            router.push("/");
-            router.refresh();
-          }}
-          className="grid h-10 w-12 place-items-center rounded-xl text-rose-500 transition-colors hover:bg-rose-50"
-        >
-          <LogOut className="h-4.5 w-4.5" />
-        </button>
       </nav>
+
+      {/* command palette */}
+      <CmdPalette
+        open={palette}
+        busy={syncing}
+        onClose={() => setPalette(false)}
+        onSelect={goTab}
+        current={tab}
+      />
     </div>
+  );
+}
+
+/** Floating command palette — Ctrl/Cmd+K to open, type to filter, Enter to jump. */
+function CmdPalette({
+  open,
+  busy,
+  onClose,
+  onSelect,
+  current,
+}: {
+  open: boolean;
+  busy: boolean;
+  onClose: () => void;
+  onSelect: (t: Tab) => void;
+  current: Tab;
+}) {
+  const [q, setQ] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Render-time reset so the query clears each time the palette opens.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) setQ("");
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  const matches = TABS.filter((t) => t.label.toLowerCase().includes(q.trim().toLowerCase()));
+
+  return (
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[80] flex items-start justify-center bg-slate-900/40 px-4 pt-[16vh] backdrop-blur-sm"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 14 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ duration: 0.22, ease }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_40px_90px_-30px_rgb(15_23_42/0.5)]"
+          >
+            <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5">
+              <Search className="h-5 w-5 text-brand-deep" strokeWidth={2} />
+              <input
+                ref={inputRef}
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Jump to a section…"
+                className="flex-1 bg-transparent text-[0.95rem] text-slate-900 outline-none placeholder:text-slate-400"
+              />
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close"
+                className="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="max-h-[46vh] overflow-y-auto p-2">
+              {matches.length === 0 ? (
+                <p className="px-4 py-8 text-center font-mono text-[0.78rem] text-slate-400">
+                  No sections match “{q}”.
+                </p>
+              ) : (
+                matches.map((t, i) => {
+                  const Icon = t.icon;
+                  const active = current === t.key;
+                  return (
+                    <button
+                      key={t.key}
+                      type="button"
+                      onClick={() => onSelect(t.key)}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-start transition-colors",
+                        active ? "bg-brand/[0.06]" : "hover:bg-slate-50"
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "grid h-9 w-9 place-items-center rounded-lg",
+                          active ? "bg-brand-deep text-white" : "bg-slate-100 text-slate-500"
+                        )}
+                      >
+                        <Icon className="h-4.5 w-4.5" strokeWidth={1.9} />
+                      </span>
+                      <span className="flex-1 font-display text-[0.85rem] font-bold text-slate-800">
+                        {t.label}
+                      </span>
+                      {active ? (
+                        <span className="rounded-full bg-brand/10 px-2.5 py-1 font-mono text-[0.58rem] font-black uppercase tracking-widest text-brand-deep">
+                          current
+                        </span>
+                      ) : (
+                        <span className="font-mono text-[0.62rem] text-slate-300">{i + 1}</span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="flex items-center gap-4 border-t border-slate-100 px-4 py-2.5 font-mono text-[0.58rem] uppercase tracking-widest text-slate-400">
+              <span className="flex items-center gap-1.5">
+                <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-bold">↵</kbd> jump
+              </span>
+              <span className="flex items-center gap-1.5">
+                <kbd className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-bold">esc</kbd> close
+              </span>
+              <span className="ml-auto text-slate-300">{busy ? "syncing…" : "LH·OPS"}</span>
+            </div>
+          </motion.div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
   );
 }
 
@@ -464,10 +648,10 @@ function LiveBadge({ live, syncTicker }: { live: boolean; syncTicker: boolean })
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[0.6rem] font-black uppercase tracking-[0.2em]",
+        "hidden items-center gap-2 rounded-full border px-3 py-1.5 font-mono text-[0.6rem] font-black uppercase tracking-[0.2em] md:inline-flex",
         live && !syncTicker
           ? "border-emerald-300 bg-emerald-50/80 text-emerald-600"
-          : "border-ink/12 bg-white/70 text-ink-2"
+          : "border-slate-200 bg-white/70 text-slate-500"
       )}
     >
       <span className={cn("h-1.5 w-1.5 rounded-full", live && !syncTicker ? "bg-emerald-500 animate-pulse" : live ? "bg-slate-300" : "bg-amber-400 animate-pulse")} />
@@ -524,7 +708,7 @@ function Overview({
       </div>
 
       {/* HUD STATS */}
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
+      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
         <AdminStatCard label="Applications" value={stats.total} accent="indigo" sub="lifetime" icon={<FileText className="h-5 w-5" />} onClick={() => onNavigate("applications")} />
         <AdminStatCard label="Pending" value={stats.pending} accent="amber" sub="needs review" icon={<Clock className="h-5 w-5" />} onClick={() => onNavigate("applications")} />
         <AdminStatCard label="Approved" value={stats.approved} accent="emerald" sub="moved to enroll" icon={<BadgeCheck className="h-5 w-5" />} onClick={() => onNavigate("applications")} />

@@ -2,8 +2,8 @@
 
 import { motion } from "framer-motion";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { ACADEMY, FOUNDER } from "@/lib/content";
-import { BadgeCheck, Quote } from "lucide-react";
+import { ACADEMY, ACADEMY_STATS, FOUNDER } from "@/lib/content";
+import { Award, BadgeCheck, GraduationCap, Quote, Users } from "lucide-react";
 import { useLang } from "@/components/LanguageProvider";
 
 const PILLARS = [
@@ -77,49 +77,92 @@ export function About() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.7, ease }}
-          className="relative mt-14 overflow-hidden rounded-[2rem] bg-ink px-8 py-10 text-ivory sm:px-12"
+          className="relative mt-20 overflow-hidden rounded-[2.5rem] bg-[#0d0c16] text-ivory shadow-[0_60px_120px_-60px_rgb(79_70_229/0.5)]"
         >
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand/40 blur-3xl" />
-            <div className="absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-gold/20 blur-3xl" />
-          </div>
+          {/* Decorative layers */}
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-[0.35]"
+            style={{
+              backgroundImage:
+                "radial-gradient(rgb(255 255 255 / 0.07) 1px, transparent 1px)",
+              backgroundSize: "26px 26px",
+            }}
+          />
+          <div
+            aria-hidden
+            className="gradient-pan absolute inset-0 opacity-[0.08]"
+            style={{
+              backgroundImage:
+                "conic-gradient(from 90deg, #6366f1, #d63a8c, #f59e0b, #0ea5e9, #6366f1)",
+            }}
+          />
+          <div aria-hidden className="absolute -right-28 -top-28 h-80 w-80 rounded-full bg-brand/40 blur-[90px]" />
+          <div aria-hidden className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-brand-magenta/25 blur-[90px]" />
+          <div aria-hidden className="shine-sweep" />
 
-          <div className="relative flex flex-col items-center gap-8 lg:flex-row lg:items-start">
-            <div className="relative shrink-0">
-              <span className="grid h-28 w-28 place-items-center rounded-3xl bg-gradient-to-br from-brand to-brand-magenta font-display text-4xl font-extrabold text-white shadow-[0_24px_50px_-20px_rgb(110_90_224/0.8)]">
-                {initials}
-              </span>
+          <div className="relative grid gap-10 p-8 sm:p-12 lg:grid-cols-[auto_1fr_0.9fr] lg:gap-12 lg:p-14">
+            {/* Avatar */}
+            <div className="relative mx-auto lg:mx-0">
               <span
                 aria-hidden
-                className="absolute -bottom-2 -right-2 grid h-9 w-9 place-items-center rounded-full bg-emerald-500 text-white"
-              >
+                className="ring-spin-slow absolute -inset-3 rounded-[1.8rem] bg-[conic-gradient(from_0deg,#6366f1,#f59e0b,#d63a8c,#6366f1)] opacity-70 blur-[8px]"
+              />
+              <span className="relative grid h-32 w-32 place-items-center rounded-[1.8rem] bg-gradient-to-br from-brand to-brand-magenta font-display text-5xl font-extrabold text-white shadow-2xl ring-1 ring-white/10">
+                {initials}
+              </span>
+              <span className="absolute -bottom-2 -right-2 grid h-10 w-10 place-items-center rounded-full bg-emerald-500 text-white ring-4 ring-[#0d0c16]">
                 <BadgeCheck className="h-5 w-5" />
               </span>
             </div>
 
-            <div className="flex-1 text-center lg:text-start">
+            {/* Identity */}
+            <div className="flex flex-col items-center text-center lg:items-start lg:text-start">
               <p className="font-display text-[0.66rem] font-bold uppercase tracking-[0.34em] text-gold-light">
                 {ACADEMY.foundedByLabel}
               </p>
-              <h3 className="mt-2 font-display text-3xl font-extrabold tracking-tight">
+              <h3 className="mt-2 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
                 {FOUNDER.headline}
               </h3>
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
                 {FOUNDER.credentials.map((c) => (
                   <span
                     key={c}
-                    className="rounded-full border border-ivory/15 bg-ivory/[0.05] px-4 py-1.5 font-display text-[0.68rem] font-bold uppercase tracking-[0.14em] text-ivory/80"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-ivory/15 bg-ivory/[0.05] px-4 py-1.5 font-display text-[0.68rem] font-bold uppercase tracking-[0.14em] text-ivory/80"
                   >
+                    <Award className="h-3.5 w-3.5 text-gold-light/80" strokeWidth={2} />
                     {c}
                   </span>
                 ))}
               </div>
+
+              <div className="mt-7 grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
+                {ACADEMY_STATS.map((s, i) => (
+                  <div
+                    key={s.label}
+                    className="rounded-2xl border border-ivory/10 bg-ivory/[0.04] px-3 py-4 text-center"
+                  >
+                    <div className="flex items-center justify-center gap-1.5 font-display text-[1.35rem] font-extrabold text-white">
+                      {i === 1 ? <Users className="h-4 w-4 text-gold-light/70" /> : i === 2 ? <GraduationCap className="h-4 w-4 text-gold-light/70" /> : null}
+                      {s.value}
+                    </div>
+                    <p className="mt-1 font-mono text-[0.56rem] uppercase tracking-[0.16em] text-ivory/50">
+                      {s.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="relative max-w-md lg:self-center">
-              <Quote className="absolute -left-3 -top-4 h-10 w-10 text-gold/30" aria-hidden />
-              <p className="font-serif text-[1.15rem] italic leading-relaxed text-ivory/90">
+            {/* Quote */}
+            <div className="relative self-center rounded-3xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur-md">
+              <Quote className="h-10 w-10 text-gold/40" aria-hidden />
+              <p className="mt-3 font-serif text-[1.15rem] italic leading-relaxed text-ivory/90">
                 “{FOUNDER.quote}”
+              </p>
+              <span aria-hidden className="mt-5 inline-block h-px w-16 bg-gold/50" />
+              <p className="mt-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ivory/50">
+                — {ACADEMY.name}
               </p>
             </div>
           </div>

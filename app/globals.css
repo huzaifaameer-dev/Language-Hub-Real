@@ -488,11 +488,11 @@
   /* ---------- dashboard glass + animated scenery ---------- */
 
   .glass-dash {
-    background: linear-gradient(150deg, rgb(255 255 255 / 0.78), rgb(255 255 255 / 0.5));
-    -webkit-backdrop-filter: blur(22px);
-    backdrop-filter: blur(22px);
-    border: 1px solid rgb(255 255 255 / 0.7);
-    box-shadow: 0 8px 32px -14px rgb(15 23 42 / 0.16), inset 0 1px 0 rgb(255 255 255 / 0.9);
+    background: rgb(255 255 255 / 0.92);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgb(226 232 240 / 0.9);
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 16px 40px -22px rgb(15 23 42 / 0.14);
   }
 
   .orb {
@@ -961,5 +961,70 @@
   ::selection {
     background: rgb(99 102 241 / 0.22);
     color: var(--color-ink);
+  }
+
+  /* ---------- premium motion primitives (hero / CTA / footer) ---------- */
+
+  /* Blinking typewriter caret */
+  .tw-caret {
+    display: inline-block;
+    margin-left: 0.15em;
+    width: 0.09em;
+    border-radius: 9999px;
+    background: linear-gradient(180deg, #6366f1, #f59e0b);
+    animation: caret-blink 1s step-end infinite;
+  }
+  @keyframes caret-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* One-pass diagonal shine sweep (CTA / founder card) */
+  .shine-sweep {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  .shine-sweep::after {
+    content: "";
+    position: absolute;
+    top: -60%;
+    left: -80%;
+    height: 220%;
+    width: 45%;
+    transform: rotate(24deg);
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.09), transparent);
+    animation: shine-move 6.5s ease-in-out infinite;
+  }
+  @keyframes shine-move {
+    0% { left: -80%; }
+    55%, 100% { left: 130%; }
+  }
+
+  /* Slow vertical float for decorative badges */
+  .float-slow {
+    animation: float-y 7s ease-in-out infinite;
+  }
+  @keyframes float-y {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  /* Animated soft gradient overlay (handled with background-position) */
+  .gradient-pan {
+    background-size: 220% 220%;
+    animation: gradient-pan 9s ease-in-out infinite;
+  }
+  @keyframes gradient-pan {
+    0% { background-position: 0% 0%; }
+    50% { background-position: 100% 100%; }
+    100% { background-position: 0% 0%; }
+  }
+
+  /* Slow spin for premium decorative rings */
+  .ring-spin-slow {
+    animation: ring-spin 14s linear infinite;
   }
 }
