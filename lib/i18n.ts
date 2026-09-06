@@ -153,6 +153,27 @@ export const enDict: Dict = {
   "cta.subtitle": "Book a free demo class and experience how Language Hub turns nervous words into confident conversations.",
   "cta.track": "Track your application",
   "cta.replies": "replies fast",
+
+  // Guide (Aina — 3D voice companion)
+  "guide.name": "Aina",
+  "guide.role": "Your AI guide",
+  "guide.speaking": "Speaking…",
+  "guide.thinking": "Thinking…",
+  "guide.listening": "Listening… tap mic to stop",
+  "guide.placeholder": "Ask about courses, fees, the placement test…",
+  "guide.send": "Send message",
+  "guide.mic": "Speak",
+  "guide.micStop": "Stop listening",
+  "guide.mute": "Mute voice",
+  "guide.unmute": "Unmute voice",
+  "guide.close": "Close guide",
+  "guide.open": "Open guide",
+  "guide.error": "Aina hit a snag. Please try again.",
+  "guide.chipTour": "Show me around Language Hub",
+  "guide.chipFees": "How much are the fees?",
+  "guide.online": "Online",
+  "guide.repliesFast": "Answers instantly",
+  "guide.powered": "Language Hub AI · RAG",
 };
 
 /** Urdu UI strings. */
@@ -301,6 +322,27 @@ export const urDict: Dict = {
   "cta.subtitle": "مفت ڈیمو کلاس بک کریں اور دیکھیں کہ لینگویج ہب گھبرائی ہوئی باتوں کو پراعتماد گفتگو میں کیسے بدلتا ہے۔",
   "cta.track": "اپنی درخواست دیکھیں",
   "cta.replies": "جلد جواب دیتا ہے",
+
+  // Guide (آئینہ — 3D صوتی ساتھی)
+  "guide.name": "آئینہ",
+  "guide.role": "آپ کی AI رہنما",
+  "guide.speaking": "بول رہی ہوں…",
+  "guide.thinking": "سوچ رہی ہوں…",
+  "guide.listening": "سن رہی ہوں… بند کرنے کے لیے مائیک پر ٹیپ کریں",
+  "guide.placeholder": "کورسز، فیس یا پلیسمنٹ ٹیسٹ کے بارے میں پوچھیں…",
+  "guide.send": "پیغام بھیجیں",
+  "guide.mic": "بولیں",
+  "guide.micStop": "سننا بند کریں",
+  "guide.mute": "آواز بند کریں",
+  "guide.unmute": "آواز چالو کریں",
+  "guide.close": "رہنما بند کریں",
+  "guide.open": "رہنما کھولیں",
+  "guide.error": "آئینہ سے مسئلہ ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
+  "guide.chipTour": "مجھے لینگویج ہب کی سیر کرواؤ",
+  "guide.chipFees": "فیس کتنی ہے؟",
+  "guide.online": "آن لائن",
+  "guide.repliesFast": "فوری جواب دیتی ہوں",
+  "guide.powered": "لینگویج ہب AI · RAG",
 };
 
 export const DICTS: Record<Lang, Dict> = { en: enDict, ur: urDict };

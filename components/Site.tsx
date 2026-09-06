@@ -13,6 +13,7 @@ import { FaqSection } from "@/components/faq/FaqSection";
 import { CtaBanner } from "@/components/contact/CtaBanner";
 import { Footer } from "@/components/footer/Footer";
 import { LiveEnrollmentBanner } from "@/components/social-proof/LiveEnrollmentBanner";
+import { GuideCompanion } from "@/components/guide/GuideCompanion";
 import { ACADEMY, TESTIMONIALS } from "@/lib/content";
 
 /** Aggregate rating grounded in the testimonials we actually publish. */
@@ -65,6 +66,7 @@ export function Site() {
           <FaqSection />
           <CtaBanner />
         </main>
+        <GuideCompanion />
         <Footer />
       </IntroGate>
     </>
