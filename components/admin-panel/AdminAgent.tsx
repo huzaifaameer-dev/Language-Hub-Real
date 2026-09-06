@@ -53,6 +53,7 @@ export function AdminAgent() {
   const [status, setStatus] = useState<AgentStatus | null>(null);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [log, setLog] = useState<LogItem[]>([]);
+  const [shield, setShield] = useState<{ total: number; events: Array<{ id: string; kind: string; path: string; createdAt: string }> } | null>(null);
   const [topic, setTopic] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [publishBusy, setPublishBusy] = useState(false);
@@ -77,6 +78,13 @@ export function AdminAgent() {
     const id = window.setInterval(load, 12000);
     return () => window.clearInterval(id);
   }, [load]);
+
+  useEffect(() => {
+    fetch("/api/security/event")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setShield(d as typeof shield))
+      .catch(() => {});
+  }, []);
 
   const writeBlog = async () => {
     if (aiBusy || topic.trim().length < 4) return;
@@ -153,6 +161,36 @@ export function AdminAgent() {
         <Stat label="Queued jobs" value={status?.jobs.queued ?? "…"} accent="sky" />
         <Stat label="Done / Failed" value={`${status?.jobs.done ?? 0} / ${status?.jobs.failed ?? 0}`} accent="brand" />
       </div>
+
+      {/* Fortress shield */}
+      <GlassPanel>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <SectionTitle kicker="Fortress shield" title="Blocked attacks" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 font-mono text-[0.58rem] font-bold uppercase tracking-widest text-rose-600">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-rose-500" />
+            {shield?.total ?? 0} blocked
+          </span>
+        </div>
+        {!shield?.events?.length ? (
+          <p className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-6 text-center font-mono text-[0.78rem] text-emerald-700">
+            No attacks logged — the wall stands. 🛡️
+          </p>
+        ) : (
+          <div className="mt-4 flex max-h-44 flex-col gap-1.5 overflow-y-auto pr-1">
+            {shield.events.map((e) => (
+              <div key={e.id} className="flex items-start gap-2.5 rounded-xl border border-ink/[0.08] bg-white/60 px-3 py-2">
+                <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-rose-400" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-mono text-[0.66rem] font-bold uppercase tracking-widest text-ink">
+                    {e.kind} <span className="text-ink-3">· {e.path}</span>
+                  </p>
+                  <p className="font-mono text-[0.56rem] text-ink-3">{new Date(e.createdAt).toLocaleString("en-GB")}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </GlassPanel>
 
       {err && <p className="rounded-2xl border border-rose-300 bg-rose-50 px-4 py-3 font-mono text-[0.72rem] font-bold text-rose-600">{err}</p>}
 

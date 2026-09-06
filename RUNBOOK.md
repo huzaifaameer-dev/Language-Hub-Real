@@ -151,3 +151,25 @@ Collections of special note: `users`, `payments` (ledger), `enrollments`,
 | Build fails on `.next/dev/types/*.d.ts` | Stop dev server, remove `.next` + `tsconfig.tsbuildinfo`, rebuild |
 | Bot/abuse on WhatsApp | Ensure `WA_WEBHOOK_TOKEN` set (HMAC gate + per-number limits) |
 | `three` deprecation warning | Expected; pinned to `0.182.0` |
+
+---
+
+## 11. Fortress shield (active defense)
+
+The edge middleware (`proxy.ts`) is now a WAF:
+
+- **Blocked instantly (402/403/400):** XSS / SQLi / NoSQLi / path-traversal /
+  reconnaissance probes + honeypot paths (`/.env`, `/.git/*`, `/wp-login.php`,
+  `/phpmyadmin`, …).
+- **Strike ledger:** each probe adds a strike; over `SHIELD_STRIKE_LIMIT` the
+  client is **tarpitted** (`Retry-After`) for an exponentially-growing window
+  (`SHIELD_BLOCK_MS`).
+- **Evidence + alert:** events are written to `attack_events` (admin panel →
+  "Fortress shield" card) and admins are notified (throttled).
+
+Env: `SHIELD_STRIKE_LIMIT` (default 5), `SHIELD_BLOCK_MS` (default 600000),
+`SHIELD_TOKEN` (defaults to `AUTH_SECRET`). See `lib/security/shield.ts`.
+
+> **Attack-testing safely:** run ZAP against a **fresh/disposable DB** with
+> `AI_AGENT_AUTO=0` so scan-generated applications are only flagged, never
+> auto-approved. Nothing destructive exists on any scan path.

@@ -395,6 +395,8 @@ export function ensureInit(): Promise<void> {
         db.collection("applications").createIndex({ agentProcessedAt: 1 }),
         db.collection("enrollments").createIndex({ agentProcessedAt: 1 }),
         db.collection("ai_usage").createIndex({ updatedAt: 1 }, { expireAfterSeconds: 8 * 86400 }),
+        db.collection("attack_events").createIndex({ createdAt: -1 }),
+        db.collection("attack_events").createIndex({ key: 1, createdAt: -1 }),
       ]);
 
       // Drop legacy redundant indexes from older schema versions (best-effort;
