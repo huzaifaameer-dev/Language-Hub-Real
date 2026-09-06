@@ -5,10 +5,12 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Compass,
+  GraduationCap,
   Mic,
   MicOff,
   Send,
   Sparkles,
+  Trophy,
   Volume2,
   VolumeX,
   WandSparkles,
@@ -21,6 +23,7 @@ import { useSpeech } from "@/components/guide/useSpeech";
 import { useRecognition } from "@/components/guide/useRecognition";
 import { GuideBubble } from "@/components/guide/GuideBubble";
 import type { GuidePose } from "@/components/guide/GuideScene";
+import { PRACTICE_TOPICS, practiceOpener, type PracticeTopic } from "@/lib/growth/practice";
 
 const GuideScene = dynamic(() => import("@/components/guide/GuideScene").then((m) => m.GuideScene), {
   ssr: false,
@@ -38,6 +41,48 @@ const SESSION_KEY = "lh:guide-session";
 let seq = 0;
 const nextId = () => `g-${++seq}`;
 
+function appendAssistant(
+  setMessages: React.Dispatch<React.SetStateAction<ChatMsg[]>>,
+  delta: string
+) {
+  setMessages((prev) => {
+    const copy = [...prev];
+    for (let i = copy.length - 1; i >= 0; i--) {
+      if (copy[i].role === "assistant") {
+        copy[i] = { ...copy[i], text: copy[i].text + delta };
+        return copy;
+      }
+    }
+    return copy;
+  });
+}
+
+type QueuedEvent = { event: string; data: string };
+
+async function* readSSE(res: Response): AsyncGenerator<QueuedEvent> {
+  const reader = res.body?.getReader();
+  if (!reader) return;
+  const decoder = new TextDecoder();
+  let buffer = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    let idx: number;
+    while ((idx = buffer.indexOf("\n\n")) >= 0) {
+      const frame = buffer.slice(0, idx);
+      buffer = buffer.slice(idx + 2);
+      let event = "message";
+      let data = "";
+      for (const line of frame.split("\n")) {
+        if (line.startsWith("event:")) event = line.slice(6).trim();
+        else if (line.startsWith("data:")) data += line.slice(5).trim();
+      }
+      if (data) yield { event, data };
+    }
+  }
+}
+
 export function GuideCompanion() {
   const { dict, lang } = useLang();
   const reduce = useReducedMotion();
@@ -48,6 +93,13 @@ export function GuideCompanion() {
   const [error, setError] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
   const [welcomeChip, setWelcomeChip] = useState(false);
+  const [mode, setMode] = useState<"chat" | "practice">("chat");
+  const [topic, setTopic] = useState<PracticeTopic>("introduce-yourself");
+  const [fluency, setFluency] = useState<string | null>(null);
+  const [practiceCount, setPracticeCount] = useState(0);
+
+  const practiceTurnsRef = useRef<string[]>([]);
+  const fluentLabelRef = useRef<string | null>(null);
 
   const mutedRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -57,7 +109,7 @@ export function GuideCompanion() {
 
   const rec = useRecognition({
     lang: speechLang,
-    onResult: (t) => void send(t),
+    onResult: (t) => void handleSend(t),
     onEnd: () => {},
   });
 
@@ -165,6 +217,125 @@ export function GuideCompanion() {
     [streaming, messages, lang, queueVoice, dict]
   );
 
+  /** Practice turn — streams a short coach reply from /api/ai/practice. */
+  const sendPractice = useCallback(
+    async (raw: string) => {
+      const content = raw.trim();
+      if (!content || streaming) return;
+      setError(null);
+      setInput("");
+      setMessages((prev) => [
+        ...prev,
+        { id: nextId(), role: "user", text: content },
+        { id: nextId(), role: "assistant", text: "" },
+      ]);
+      setStreaming(true);
+      practiceTurnsRef.current = [...practiceTurnsRef.current, content];
+      const turn = practiceTurnsRef.current.length;
+      setPracticeCount(turn);
+
+      try {
+        const res = await fetch("/api/ai/practice", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: content, topic, lang, turn }),
+        });
+        if (!res.ok || !res.body) {
+          const data = await res.json().catch(() => ({}));
+          setError((data as { message?: string }).message ?? dict["guide.error"]);
+          return;
+        }
+        let full = "";
+        for await (const { event, data } of readSSE(res)) {
+          try {
+            const payload = JSON.parse(data) as { text?: string; message?: string };
+            if (event === "delta" && typeof payload.text === "string") {
+              full += payload.text;
+              appendAssistant(setMessages, payload.text);
+            } else if (event === "error") setError(payload.message ?? dict["guide.error"]);
+          } catch {
+            // ignore malformed frames
+          }
+        }
+        if (full.trim()) queueVoice(full.trim());
+      } catch {
+        setError(dict["guide.error"]);
+      } finally {
+        setStreaming(false);
+      }
+    },
+    [streaming, topic, lang, queueVoice, dict]
+  );
+
+  /** Grade the finished practice transcript via /api/ai/practice/feedback. */
+  const gradePractice = useCallback(async () => {
+    const text = practiceTurnsRef.current.join("\n");
+    if (streaming || text.trim().length < 12) return;
+    setError(null);
+    setFluency(null);
+    setMessages((prev) => [
+      ...prev,
+      { id: nextId(), role: "user", text: "Grade my practice" },
+      { id: nextId(), role: "assistant", text: "" },
+    ]);
+    setStreaming(true);
+
+    try {
+      const res = await fetch("/api/ai/practice/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        setError((data as { message?: string }).message ?? dict["guide.error"]);
+        return;
+      }
+      for await (const { event, data } of readSSE(res)) {
+        try {
+          const payload = JSON.parse(data) as { text?: string; message?: string; label?: string };
+          if (event === "fluency" && typeof payload.label === "string") {
+            fluentLabelRef.current = payload.label;
+            setFluency(payload.label);
+          } else if (event === "delta" && typeof payload.text === "string") {
+            appendAssistant(setMessages, payload.text);
+          } else if (event === "error") setError(payload.message ?? dict["guide.error"]);
+        } catch {
+          // ignore malformed frames
+        }
+      }
+      if (fluentLabelRef.current) {
+        queueVoice(`Nice practice! Your fluency sits at ${fluentLabelRef.current}. Keep going — details are below.`);
+      }
+    } catch {
+      setError(dict["guide.error"]);
+    } finally {
+      setStreaming(false);
+    }
+  }, [streaming, queueVoice, dict]);
+
+  /** Enter practice mode and kick off with a topic opener. */
+  const startPractice = useCallback(
+    (t: PracticeTopic) => {
+      setMode("practice");
+      setTopic(t);
+      setFluency(null);
+      practiceTurnsRef.current = [];
+      const opener = practiceOpener(t);
+      setMessages((prev) => [...prev, { id: nextId(), role: "assistant", text: opener }]);
+      queueVoice(opener);
+    },
+    [queueVoice]
+  );
+
+  const handleSend = useCallback(
+    (t: string) => {
+      if (mode === "practice") void sendPractice(t);
+      else void send(t);
+    },
+    [mode, send, sendPractice]
+  );
+
   const triggerGreeting = useCallback(() => {
     try {
       localStorage.setItem(SEEN_KEY, "1");
@@ -261,7 +432,7 @@ export function GuideCompanion() {
         : null;
 
   const userCount = messages.filter((m) => m.role === "user").length;
-  const showChips = !streaming && !rec.listening && userCount === 0;
+  const showChips = mode === "chat" && !streaming && !rec.listening && userCount === 0;
 
   const entry = reduce
     ? {}
@@ -428,6 +599,37 @@ export function GuideCompanion() {
                   <Wallet className="h-3.5 w-3.5 transition-transform duration-300 group-hover/chip:-rotate-12" />
                   {dict["guide.chipFees"]}
                 </button>
+                <button
+                  type="button"
+                  onClick={() => startPractice("introduce-yourself")}
+                  className="group/chip inline-flex items-center gap-1.5 rounded-full border border-emerald-300/60 bg-gradient-to-r from-emerald-500/[0.08] to-brand-cyan/[0.08] px-3 py-1.5 text-[0.72rem] font-bold text-emerald-700 transition-all hover:-translate-y-0.5 hover:border-emerald-400 hover:shadow-[0_10px_22px_-12px_rgb(16_185_129/0.5)]"
+                >
+                  <GraduationCap className="h-3.5 w-3.5 transition-transform duration-300 group-hover/chip:-rotate-6" />
+                  Practice with Aina
+                </button>
+              </div>
+            )}
+
+            {/* Practice topic picker (first practice turn) */}
+            {mode === "practice" && practiceCount === 0 && (
+              <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
+                <span className="font-mono text-[0.55rem] font-bold uppercase tracking-[0.16em] text-ink-3">
+                  Topic:
+                </span>
+                {PRACTICE_TOPICS.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => startPractice(t)}
+                    className={`rounded-full px-3 py-1 font-mono text-[0.6rem] font-bold uppercase tracking-[0.12em] transition-all ${
+                      topic === t
+                        ? "bg-brand-deep text-white"
+                        : "border border-ink/[0.12] text-ink-2 hover:border-brand/40 hover:text-brand-deep"
+                    }`}
+                  >
+                    {t.replace(/-/g, " ")}
+                  </button>
+                ))}
               </div>
             )}
 
@@ -440,7 +642,7 @@ export function GuideCompanion() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  void send(input);
+                  handleSend(input);
                 }}
                 className="flex items-center gap-1.5 rounded-2xl border border-ink/[0.1] bg-white p-1.5 shadow-[0_6px_22px_-14px_rgb(15_23_42/0.35)] transition-all focus-within:border-brand/60 focus-within:ring-4 focus-within:ring-brand/[0.08]"
               >
@@ -479,15 +681,39 @@ export function GuideCompanion() {
                   <Send className="h-4 w-4" />
                 </button>
               </form>
-              <div className="mt-2.5 flex items-center justify-between px-1.5">
-                <button
-                  type="button"
-                  onClick={toggleMute}
-                  className="inline-flex items-center gap-1.5 font-mono text-[0.56rem] font-bold uppercase tracking-[0.16em] text-ink-3 transition-colors hover:text-brand-deep"
-                >
-                  {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
-                  {muted ? dict["guide.unmute"] : dict["guide.mute"]}
-                </button>
+              <div className="mt-2.5 flex items-center justify-between gap-2 px-1.5">
+                {mode === "practice" ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 font-mono text-[0.54rem] font-bold uppercase tracking-[0.14em] text-emerald-700">
+                      <GraduationCap className="h-3 w-3" /> Practice · {topic.replace(/-/g, " ")}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void gradePractice()}
+                      disabled={streaming || practiceCount < 2}
+                      className="inline-flex items-center gap-1 rounded-full bg-ink px-2.5 py-1 font-mono text-[0.54rem] font-bold uppercase tracking-[0.14em] text-ivory transition-all hover:bg-brand-deep disabled:opacity-40"
+                    >
+                      <Trophy className="h-3 w-3" /> Grade
+                      {fluency ? ` · ${fluency}` : ""}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMode("chat")}
+                      className="inline-flex items-center rounded-full border border-ink/[0.12] px-2.5 py-1 font-mono text-[0.54rem] font-bold uppercase tracking-[0.14em] text-ink-3 transition-all hover:border-rose-300 hover:text-rose-600"
+                    >
+                      <X className="h-3 w-3" /> Exit practice
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={toggleMute}
+                    className="inline-flex items-center gap-1.5 font-mono text-[0.56rem] font-bold uppercase tracking-[0.16em] text-ink-3 transition-colors hover:text-brand-deep"
+                  >
+                    {muted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+                    {muted ? dict["guide.unmute"] : dict["guide.mute"]}
+                  </button>
+                )}
                 <span className="inline-flex items-center gap-1.5 font-mono text-[0.54rem] font-bold uppercase tracking-[0.16em] text-ink-3">
                   <Sparkles className="h-3 w-3 text-brand" />
                   {dict["guide.powered"]}

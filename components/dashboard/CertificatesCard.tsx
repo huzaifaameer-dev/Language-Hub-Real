@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Award, Download, Lock, Trophy } from "lucide-react";
+import { Award, Download, Lock, Share2, Trophy } from "lucide-react";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -81,6 +81,14 @@ export function CertificatesCard({
                   </p>
                 </div>
                 <div className="flex gap-2">
+                  <a
+                    href={`/result/${cert.certificateId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-3 font-display text-[0.72rem] font-bold text-amber-700 transition-all hover:bg-amber-50"
+                  >
+                    <Share2 className="h-3 w-3" /> Share
+                  </a>
                   <button
                     type="button"
                     onClick={() => {

@@ -383,6 +383,10 @@ export function ensureInit(): Promise<void> {
         db.collection("ai_analyses").createIndex({ email: 1 }),
         db.collection("ai_feedback").createIndex({ userId: 1, createdAt: -1 }),
         db.collection("ai_reports").createIndex({ createdAt: -1 }),
+        db.collection("knowledge_drafts").createIndex({ status: 1, createdAt: -1 }),
+        db.collection("session_recaps").createIndex({ createdAt: -1 }),
+        db.collection("session_recaps").createIndex({ course: 1 }),
+        db.collection("applications").createIndex({ waitlistHoldUntil: 1 }),
       ]);
 
       // Drop legacy redundant indexes from older schema versions (best-effort;
@@ -779,4 +783,48 @@ export function generateReferralCode(userId: string, name?: string): string {
     .toUpperCase() || "LH";
   const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
   return `${prefix}-${userId.slice(-4).toUpperCase()}${rand}`.slice(0, 16);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Growth: knowledge drafts + session recaps                          */
+/* ------------------------------------------------------------------ */
+
+/** A proposed RAG knowledge chunk waiting for an admin approval decision. */
+export interface KnowledgeDraftDoc {
+  _id?: unknown;
+  title: string;
+  faq: string;
+  source: string;
+  offline: boolean;
+  model?: string | null;
+  status: "draft" | "approved" | "rejected";
+  seedId?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export async function getKnowledgeDraftsCollection() {
+  const db = await getDb();
+  return db.collection<KnowledgeDraftDoc>("knowledge_drafts");
+}
+
+/** An AI-generated session recap for a live class. */
+export interface SessionRecapDoc {
+  _id?: unknown;
+  course: string;
+  batch?: string | null;
+  topics: string[];
+  notes: string;
+  students: Array<{ email: string; gap: string; suggestion: string }>;
+  summary: string;
+  homework: string;
+  offline: boolean;
+  model?: string | null;
+  createdBy: string;
+  createdAt: Date;
+}
+
+export async function getSessionRecapsCollection() {
+  const db = await getDb();
+  return db.collection<SessionRecapDoc>("session_recaps");
 }
