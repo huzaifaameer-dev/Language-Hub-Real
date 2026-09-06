@@ -63,6 +63,8 @@ export async function POST(request: Request) {
       email: normalized,
       password: hash,
       role: "USER",
+      // Optional WhatsApp number so automation can nudge on WhatsApp too.
+      phone: typeof parsed.data.phone === "string" && parsed.data.phone ? parsed.data.phone.trim() : null,
       emailVerified: null,
       image: null,
       createdAt: new Date(),

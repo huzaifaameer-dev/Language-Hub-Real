@@ -16,6 +16,17 @@ export const RegisterSchema = z.object({
     .trim(),
   email: z.email("Enter a valid email address.").max(120).trim(),
   password: PasswordSchema,
+  phone: z
+    .string()
+    .trim()
+    .max(24, "Phone number is too long.")
+    .optional()
+    .refine(
+      (p) => !p || /^[+\d][\d\s\-()]{5,}$/.test(p),
+      "Enter a valid phone number (digits, spaces, +, - allowed)."
+    )
+    .optional()
+    .default(""),
 });
 
 export const ProfileUpdateSchema = z.object({

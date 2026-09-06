@@ -74,8 +74,15 @@ void listAdminEmails().then((emails) => {
   );
 });
 
+// Autonomous AI: reply to the applicant immediately (approve / clarify / reject
+// with a reason). The applicant never waits on the next background tick.
+const applicationId = String(result.insertedId);
+void import("@/lib/ai/agent/engine").then(({ processApplicationNow }) =>
+  processApplicationNow(applicationId).catch(() => {})
+);
+
 return NextResponse.json(
-    { id: String(result.insertedId), ok: true, status: "PENDING" },
+    { id: applicationId, ok: true, status: "PENDING" },
     { status: 201 }
   );
 }

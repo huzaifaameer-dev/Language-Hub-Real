@@ -3,7 +3,6 @@ import { ObjectId } from "mongodb";
 import { revalidateTag } from "next/cache";
 import { requireAdmin, isValidObjectId } from "@/lib/admin-guard";
 import { ensureIndexesAndAdmin, getEnrollmentsCollection, logAdminAction, type EnrollmentStatus } from "@/lib/db";
-import { checkSeatAvailability } from "@/lib/course-stats";
 import { publishEvent } from "@/lib/realtime";
 import { notify } from "@/lib/notifications";
 import { sendDecisionEmail } from "@/lib/email";
@@ -120,45 +119,13 @@ export async function PATCH(request: Request) {
 
   const status = actionToStatus(action as EnrollmentAction);
 
-  // Bulk CONFIRM requires checking seat availability for each record.
+  // Bulk CONFIRM (no seat gate — capacity is unlimited).
   if (action === "CONFIRM" && validIds.length > 1) {
     const objectIds = validIds.map((v) => new ObjectId(v));
     const pendingDocs = await enrollments
       .find({ _id: { $in: objectIds } })
       .project({ userId: 1, email: 1, name: 1, subjects: 1, batch: 1 })
       .toArray();
-
-    // Run seat checks in parallel (independent reads) and short-circuit on the
-    // first failure so large selections don't serialise n sequential gates.
-    const results = await Promise.allSettled(
-      pendingDocs.map(async (t) => {
-        if (!(t.subjects?.length && t.batch)) {
-          return { id: t._id, name: t.name, passes: true };
-        }
-        const gate = await checkSeatAvailability(t.subjects, t.batch);
-        const failed = !gate.ok;
-        return {
-          id: t._id,
-          name: t.name,
-          passes: !failed,
-          code: failed ? (gate as { code?: string }).code : undefined,
-          message: failed ? (gate as { message?: string }).message : undefined,
-        };
-      })
-    );
-
-    for (const r of results) {
-      if (r.status === "rejected") {
-        return NextResponse.json({ message: "Seat check failed. Please retry." }, { status: 500 });
-      }
-      if (!r.value.passes) {
-        const code = r.value.code ?? "BATCH_FULL";
-        return NextResponse.json(
-          { message: `${r.value.name}: ${r.value.message ?? "That batch is full."}`, code },
-          { status: code === "BATCH_FULL" ? 409 : 400 }
-        );
-      }
-    }
 
     const $set: Record<string, unknown> = {
       status,
@@ -213,19 +180,6 @@ export async function PATCH(request: Request) {
       { _id: objectId },
       { projection: { userId: 1, email: 1, name: 1, subjects: 1, batch: 1 } }
     );
-
-    // Confirming a seat is the same purchase as a fresh enrollment: the target
-    // batch must still have room, otherwise the catalog seat counts would drift
-    // above capacity the moment the pending request turns ENROLLED.
-    if (action === "CONFIRM" && target?.subjects?.length && target?.batch) {
-      const gate = await checkSeatAvailability(target.subjects, target.batch);
-      if (!gate.ok) {
-        return NextResponse.json(
-          { message: gate.message, code: gate.code },
-          { status: gate.code === "BATCH_FULL" ? 409 : 400 }
-        );
-      }
-    }
 
     const $set: Record<string, unknown> = {
       status,

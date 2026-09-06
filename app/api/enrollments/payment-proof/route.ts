@@ -136,5 +136,10 @@ export async function POST(request: Request) {
     }
   );
 
+  // Autonomous AI: proof received → confirm enrollment + record the deposit now.
+  void import("@/lib/ai/agent/engine").then(({ processEnrollmentNow }) =>
+    processEnrollmentNow(enrollmentId).catch(() => {})
+  );
+
   return NextResponse.json({ ok: true, proof: url, status: "PROOF_SUBMITTED" }, { status: 201 });
 }

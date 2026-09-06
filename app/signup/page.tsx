@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { Check, Eye, EyeOff, Lock, Mail, Ticket, User } from "lucide-react";
+import { Check, Eye, EyeOff, Lock, Mail, Smartphone, Ticket, User } from "lucide-react";
 
 import { AuthShell, Field } from "@/components/auth/AuthShell";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 interface FieldErrors {
   name?: string[];
   email?: string[];
+  phone?: string[];
   password?: string[];
 }
 
@@ -38,6 +39,7 @@ function SignupForm() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [errors, setErrors] = useState<FieldErrors | null>(null);
@@ -60,7 +62,7 @@ function SignupForm() {
       const res = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, referralCode: refCode || undefined }),
+        body: JSON.stringify({ name, email, phone, password, referralCode: refCode || undefined }),
       });
       const data = await res.json();
 
@@ -140,6 +142,18 @@ function SignupForm() {
           icon={<Mail className="h-4.5 w-4.5" strokeWidth={1.8} />}
           error={errors?.email?.[0]}
           required
+        />
+
+        <Field
+          label="WhatsApp / Phone number"
+          id="signup-phone"
+          type="tel"
+          value={phone}
+          onChange={setPhone}
+          placeholder="0300 1234567 (optional)"
+          autoComplete="tel"
+          icon={<Smartphone className="h-4.5 w-4.5" strokeWidth={1.8} />}
+          error={errors?.phone?.[0]}
         />
 
         <div>

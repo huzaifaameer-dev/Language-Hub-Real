@@ -7,7 +7,6 @@ import {
   ensureIndexesAndAdmin,
   ENROLLMENT_ACTIVE_STATUSES,
 } from "@/lib/db";
-import { checkSeatAvailability } from "@/lib/course-stats";
 import { publishEvent } from "@/lib/realtime";
 import { EnrollmentSchema, fieldErrors } from "@/lib/validate";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
@@ -75,17 +74,7 @@ export async function POST(request: Request) {
 const data = parsed.data;
   const now = new Date();
 
-  // Seat gate: reject when any chosen subject's batch is already full in the
-  // live catalog, so admin never over-subscribes a running batch. The batch is
-  // verified against each subject's own admin-managed batch list, and subjects
-  // are validated against the active catalog rather than a hardcoded list.
-  const gate = await checkSeatAvailability(data.subjects, data.batch);
-  if (!gate.ok) {
-    return NextResponse.json(
-      { message: gate.message, code: gate.code },
-      { status: gate.code === "BATCH_FULL" ? 409 : 400 }
-    );
-  }
+  // Unlimited capacity: no seat gate — every student can enroll.
 
   const result = await enrollments.insertOne({
     userId: session.user.id,
@@ -112,6 +101,11 @@ const data = parsed.data;
     message: `${data.subjects.join(", ")} · Batch ${data.batch}`,
     href: "/admin-panel",
   });
+
+  // Autonomous AI: request payment immediately so the student can pay right away.
+  void import("@/lib/ai/agent/engine").then(({ processEnrollmentNow }) =>
+    processEnrollmentNow(String(result.insertedId)).catch(() => {})
+  );
 
   return NextResponse.json(
     { id: String(result.insertedId), ok: true, status: "PENDING" },
