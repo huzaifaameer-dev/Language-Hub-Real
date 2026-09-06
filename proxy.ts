@@ -57,11 +57,18 @@ export const config = {
     "/login/:path*",
     "/signup/:path*",
     "/dashboard/:path*",
-    // Anonymous endpoints whose rate limits are keyed on client identity:
+    // Anonymous endpoints whose rate limits are keyed on client identity.
     "/api/register/:path*",
-    "/api/auth/:path*",
     "/api/report/:path*",
     "/api/demo-bookings/:path*",
     "/api/admin/login/:path*",
+    // Our custom auth helpers still need the client-identity cookie minted
+    // here, so they are matched EXACTLY. Auth.js's own endpoints
+    // (/api/auth/session, csrf, callbacks…) are deliberately NOT matched —
+    // running the Auth.js middleware on its own routes swallows the requests
+    // and the client session fetch 404s with an HTML page instead of JSON.
+    "/api/auth/forgot",
+    "/api/auth/reset",
+    "/api/auth/verify",
   ],
 };
