@@ -60,3 +60,4 @@ public/uploads/avatars/
 test-results/
 playwright-report/
 
+.vercel
