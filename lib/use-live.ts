@@ -10,7 +10,7 @@ import type { LiveEvent } from "./realtime";
  * on tab focus. Returns whether the stream is currently connected.
  */
 export function useLiveSync(
-  onEvent: (ev: LiveEvent) => void,
+  onEvent: (ev: LiveEvent) => void | Promise<unknown>,
   intervalMs = 20000
 ): boolean {
   const [live, setLive] = useState(false);
@@ -18,6 +18,14 @@ export function useLiveSync(
   useEffect(() => {
     handlerRef.current = onEvent;
   }, [onEvent]);
+
+  /** Fire the handler and swallow any rejection (reload/abort/offline). */
+  function poke(ev: LiveEvent): void {
+    const p = handlerRef.current(ev);
+    if (p && typeof (p as Promise<unknown>).catch === "function") {
+      void (p as Promise<unknown>).catch(() => {});
+    }
+  }
 
   useEffect(() => {
     let closed = false;
@@ -39,7 +47,7 @@ export function useLiveSync(
       es.onmessage = (m) => {
         if (closed) return;
         try {
-          handlerRef.current(JSON.parse(m.data) as LiveEvent);
+          poke(JSON.parse(m.data) as LiveEvent);
         } catch {
           // ignore malformed frames
         }
@@ -47,11 +55,11 @@ export function useLiveSync(
     }
 
     const poll = setInterval(() => {
-      if (!closed) handlerRef.current({ table: "poll", at: Date.now() });
+      if (!closed) poke({ table: "poll", at: Date.now() });
     }, intervalMs);
 
     const onVisible = () => {
-      if (!document.hidden) handlerRef.current({ table: "poll", at: Date.now() });
+      if (!document.hidden) poke({ table: "poll", at: Date.now() });
     };
     document.addEventListener("visibilitychange", onVisible);
 

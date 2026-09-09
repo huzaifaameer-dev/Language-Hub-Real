@@ -143,10 +143,14 @@ export function AdminPanel({
   const refresh = useCallback(
     async (silent = false) => {
       if (!silent) setSyncing(true);
+      // Never let a transient network failure (page reload, abort, offline)
+      // surface as an unhandled rejection — treat it as "nothing changed".
+      const safeJson = (p: Promise<Response>) =>
+        p.then((r) => (r.ok ? r.json() : null)).catch(() => null);
       try {
         const [sa, se] = await Promise.all([
-          fetch("/api/admin/applications").then((r) => (r.ok ? r.json() : null)),
-          fetch("/api/admin/enrollments").then((r) => (r.ok ? r.json() : null)),
+          safeJson(fetch("/api/admin/applications")),
+          safeJson(fetch("/api/admin/enrollments")),
         ]);
 
         const apps = (sa?.applications ?? null) as AdminApplication[] | null;
