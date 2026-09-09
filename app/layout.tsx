@@ -180,6 +180,11 @@ export default function RootLayout({
     >
       <body className="min-h-screen bg-ivory font-sans text-ink antialiased">
         <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){function silent(t){try{var e=new Error(t);if(/reportAllChanges|startTime/.test(t))return true}catch(_){}return false}var d=window.addEventListener||function(){};d.call(window,"error",function(e){var m=e&&e.message?String(e.message):"";if(/reportAllChanges/.test(m)||(m.indexOf("startTime")>-1)){try{e.preventDefault()}catch(_){}}},true)})();`,
+          }}
+        />
+        <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
