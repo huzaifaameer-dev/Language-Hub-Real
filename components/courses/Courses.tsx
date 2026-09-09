@@ -258,6 +258,23 @@ export function Courses() {
             );
           })}
         </motion.div>
+
+        {/* Full catalogue link */}
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 14 }}
+          whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-10 flex justify-center"
+        >
+          <Link
+            href="/courses"
+            className="group/see inline-flex h-12 items-center gap-2.5 rounded-full border border-brand/25 bg-gradient-to-r from-brand/[0.06] to-brand-magenta/[0.08] px-7 font-display text-[0.78rem] font-bold uppercase tracking-[0.16em] text-brand-deep transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-[0_18px_40px_-18px_rgb(99_102_241/0.6)]"
+          >
+            {dict["courses.seeAll"]}
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/see:translate-x-1" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

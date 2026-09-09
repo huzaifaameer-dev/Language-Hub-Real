@@ -258,7 +258,15 @@ export function Navbar() {
                           />
                         </Link>
                       ))}
-                      <div className="mt-1 border-t border-ink/[0.05] px-3 pb-2 pt-3">
+                      <div className="mt-1 flex items-center justify-between gap-2 border-t border-ink/[0.05] px-3 pb-2 pt-3">
+                        <Link
+                          href="/courses"
+                          onClick={() => setProgrammesOpen(false)}
+                          className="inline-flex items-center gap-1.5 font-display text-[0.72rem] font-bold text-brand-deep transition-colors hover:text-brand"
+                        >
+                          {dict["courses.viewAll"] ?? "View all courses"}
+                          <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.4} />
+                        </Link>
                         <button
                           type="button"
                           onClick={() => go("pricing")}
@@ -404,6 +412,21 @@ export function Navbar() {
                     </Link>
                   </motion.div>
                 ))}
+
+                <motion.div
+                  initial={{ opacity: 0, x: 30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 + courses.length * 0.04, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                >
+                  <Link
+                    href="/courses"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex w-full items-center justify-between rounded-2xl border border-brand/20 bg-brand/[0.05] px-4 py-3 font-display text-base font-bold text-brand-deep transition-colors hover:bg-brand/[0.1]"
+                  >
+                    {dict["courses.viewAll"] ?? "View all courses"}
+                    <ArrowRight className="h-5 w-5" strokeWidth={2.2} />
+                  </Link>
+                </motion.div>
 
                 <div className="mt-3 border-t border-ink/[0.06] pt-4">
                   {PAGES.map((p, i) => (
