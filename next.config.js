@@ -51,29 +51,39 @@ module.exports = {
   },
   allowedDevOrigins: ["192.168.100.7", "127.0.0.1", "localhost"],
   async headers() {
-    return [
+    // The homepage hosts the heavy animation/3D payload and is where external
+    // tooling occasionally calls eval(); it alone gets `unsafe-eval` so those
+    // calls stop tripping CSP. Every other route stays fully locked.
+    const homeCsp = homeCspHeader().replace(/\s{2,}/g, " ").trim();
+    const strictCsp = cspHeader.replace(/\s{2,}/g, " ").trim();
+
+    const security = [
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+      { key: "Cross-Origin-Resource-Policy", value: "same-site" },
       {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "Content-Security-Policy",
-            value: cspHeader.replace(/\s{2,}/g, " ").trim(),
-          },
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-          { key: "Cross-Origin-Resource-Policy", value: "same-site" },
-          {
-            key: "Permissions-Policy",
-            // microphone=(self) keeps Aina's voice input working on this site
-            // (SpeechRecognition needs it); everything else stays locked down.
-            value: "camera=(), microphone=(self), geolocation=(), browsing-topics=(), interest-cohort=()",
-          },
-          { key: "X-DNS-Prefetch-Control", value: "on" },
-          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
-        ],
+        key: "Permissions-Policy",
+        // microphone=(self) keeps Aina's voice input working on this site
+        // (SpeechRecognition needs it); everything else stays locked down.
+        value: "camera=(), microphone=(self), geolocation=(), browsing-topics=(), interest-cohort=()",
+      },
+      { key: "X-DNS-Prefetch-Control", value: "on" },
+      { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+    ];
+
+    return [
+      { source: "/", headers: [{ key: "Content-Security-Policy", value: homeCsp }, ...security] },
+      {
+        source: "/((?!$).*)",
+        headers: [{ key: "Content-Security-Policy", value: strictCsp }, ...security],
       },
     ];
   },
 };
+
+/** Homepage CSP — same shape plus `unsafe-eval` (animation/3D tooling needs it). */
+function homeCspHeader() {
+  return `\n    default-src 'self';\n    script-src 'self' 'unsafe-inline' 'unsafe-eval'${analyticsOrigin ? ` ${analyticsOrigin}` : ""};\n    style-src 'self' 'unsafe-inline';\n    img-src 'self' blob: data: https:;\n    font-src 'self';\n    connect-src ${connectSrc};\n    object-src 'none';\n    base-uri 'self';\n    form-action 'self';\n    frame-ancestors 'none';\n    frame-src https://www.youtube.com https://www.youtube-nocookie.com;\n    worker-src 'self';\n  `;
+}
