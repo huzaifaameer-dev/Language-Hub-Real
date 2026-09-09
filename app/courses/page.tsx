@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
+  Award as AwardIcon,
   BookOpen,
   CalendarDays,
   Clock,
@@ -9,6 +10,8 @@ import {
   Languages,
   Laptop,
   MessageCircle,
+  Send,
+  ShieldCheck,
   Sparkles,
   Users,
   Wallet,
@@ -17,6 +20,7 @@ import { getCoursesCollection } from "@/lib/db";
 import { FALLBACK_COURSES, courseSlug, formatPKR, type CourseInfo } from "@/lib/course-data";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/footer/Footer";
+import { Reveal } from "@/components/ui/Reveal";
 
 export const metadata: Metadata = {
   title: "Courses & Programmes | Language Hub",
@@ -71,18 +75,24 @@ export default async function CoursesPage() {
             }}
           />
           <div className="relative mx-auto max-w-6xl pt-8">
+            <Reveal>
             <p className="flex items-center gap-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-brand-deep">
               <span aria-hidden className="h-px w-7 bg-gradient-to-r from-brand/80 to-transparent" />
               {courses.length} programmes · live small-batch classes
             </p>
+          </Reveal>
+          <Reveal delay={0.08} y={22}>
             <h1 className="mt-4 font-display text-[clamp(2.2rem,6vw,4rem)] font-extrabold leading-[1.04] tracking-[-0.03em] text-ink">
               Every course, <span className="brand-text">fully detailed.</span>
             </h1>
+          </Reveal>
+          <Reveal delay={0.16} y={18}>
             <p className="mt-4 max-w-2xl text-[1.05rem] leading-relaxed text-ink-2">
               Spoken English, IELTS, PTE and Duolingo — with transparent fees,
               schedules, batches and the exact syllabus you will cover. Choose a
               path and start today.
             </p>
+          </Reveal>
           </div>
         </section>
 
@@ -94,13 +104,18 @@ export default async function CoursesPage() {
               const Icon = ICONS[i % ICONS.length];
               const years = c.modules ?? [];
               return (
+                <Reveal key={c.name} delay={i * 0.06} y={40} blur>
                 <article
-                  key={c.name}
-                  className="group relative overflow-hidden rounded-[2rem] border border-ink/[0.07] bg-white shadow-[0_34px_90px_-40px_rgb(15_23_42/0.28)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_44px_110px_-44px_rgb(15_23_42/0.4)]"
+                  className="group relative overflow-hidden rounded-[2rem] border border-ink/[0.07] bg-white shadow-[0_34px_90px_-40px_rgb(15_23_42/0.28)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_50px_120px_-46px_rgb(15_23_42/0.42)]"
                   id={courseSlug(c.name)}
                 >
                   {/* accent ribbon */}
                   <div className="relative h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${accent}, ${accent}25)` }} />
+                  {/* soft accent glow + ghost number */}
+                  <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full opacity-[0.08] blur-3xl transition-opacity duration-700 group-hover:opacity-[0.16]" style={{ background: accent }} />
+                  <span aria-hidden className="pointer-events-none absolute right-6 top-8 select-none font-display text-[6.5rem] font-extrabold leading-none text-ink/[0.04] transition-colors duration-700 group-hover:text-ink/[0.06]">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
 
                   <div className="grid gap-0 lg:grid-cols-[1.1fr_1fr]">
                     {/* Left: identity + outcomes */}
@@ -222,14 +237,16 @@ export default async function CoursesPage() {
                       <div className="mt-7 flex flex-col gap-2.5">
                         <Link
                           href="/signup"
-                          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl font-display text-[0.78rem] font-bold uppercase tracking-[0.18em] text-white transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.99]"
-                          style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)`, boxShadow: `0 16px 34px -14px ${accent}` }}
+                          className="group/apply relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-6 font-display text-[0.78rem] font-bold uppercase tracking-[0.18em] text-white transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.99]"
+                          style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)`, boxShadow: `0 18px 40px -16px ${accent}` }}
                         >
+                          <span aria-hidden className="absolute inset-0 -translate-x-[150%] bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover/apply:translate-x-[150%]" />
                           <Sparkles className="h-4 w-4" /> Apply now
+                          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/apply:translate-x-1" />
                         </Link>
                         <Link
                           href={`/courses/${courseSlug(c.name)}`}
-                          className="group/sec inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-ink/[0.14] font-display text-[0.74rem] font-bold uppercase tracking-[0.18em] text-ink-2 transition-colors duration-300 hover:border-ink hover:bg-ink hover:text-white"
+                          className="group/sec inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-ink/[0.14] font-display text-[0.74rem] font-bold uppercase tracking-[0.18em] text-ink transition-all duration-300 hover:-translate-y-0.5 hover:border-ink hover:bg-ink hover:text-white hover:shadow-[0_16px_36px_-18px_rgb(15_23_42/0.5)]"
                         >
                           Explore this course
                           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/sec:translate-x-1" />
@@ -238,36 +255,96 @@ export default async function CoursesPage() {
                     </div>
                   </div>
                 </article>
+                </Reveal>
               );
             })}
           </div>
         </section>
 
-        {/* Bottom CTA */}
-        <section className="px-6 pb-24 sm:px-12">
+        {/* How it works */}
+        <section className="px-6 pb-16 sm:px-12">
           <div className="mx-auto max-w-6xl">
-            <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#312e81] via-brand-deep to-brand px-8 py-14 text-center text-white sm:px-12">
-              <div aria-hidden className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-brand-cyan/40 blur-3xl" />
-              <div aria-hidden className="absolute -bottom-20 -left-16 h-52 w-52 rounded-full bg-brand-magenta/50 blur-3xl" />
-              <p className="relative font-mono text-[0.62rem] font-bold uppercase tracking-[0.36em] text-white/70">
-                Not sure which path fits?
-              </p>
-              <h2 className="relative mt-3 font-display text-[clamp(1.6rem,4vw,2.6rem)] font-extrabold tracking-[-0.02em]">
-                Take the free placement test
-              </h2>
-              <p className="relative mx-auto mt-3 max-w-xl text-[0.98rem] leading-relaxed text-white/85">
-                Twenty questions, a personal analysis and a recommended course —
-                then start with confidence.
-              </p>
-              <Link
-                href="/placement-test"
-                className="relative mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-white px-7 font-display text-[0.78rem] font-bold uppercase tracking-[0.18em] text-brand-deep shadow-[0_18px_44px_-18px_rgb(0_0_0/0.5)] transition-all hover:-translate-y-0.5 hover:brightness-105"
-              >
-                Start my free test
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+            <Reveal>
+              <div className="text-center">
+                <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-gold-deep">
+                  Simple &amp; transparent
+                </p>
+                <h2 className="mt-3 font-display text-[clamp(1.6rem,4vw,2.5rem)] font-extrabold tracking-[-0.02em] text-ink">
+                  From here to <span className="brand-text">fluent</span>
+                </h2>
+                <p className="mx-auto mt-3 max-w-2xl text-[1rem] leading-relaxed text-ink-2">
+                  Four steps, no surprises — pick a course, tell us your goal, pay
+                  the one clear fee, and start speaking in a small live class.
+                </p>
+              </div>
+            </Reveal>
+
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                {
+                  step: "01",
+                  title: "Choose your course",
+                  text: "Spoken English, IELTS, PTE or Duolingo — matched to your goal.",
+                  icon: BookOpen,
+                },
+                {
+                  step: "02",
+                  title: "Apply & get reviewed",
+                  text: "Your application is reviewed instantly — you hear back the moment you submit.",
+                  icon: Send,
+                },
+                {
+                  step: "03",
+                  title: "Pay securely",
+                  text: "EasyPaisa, JazzCash, debit/credit card or bank — one clear monthly fee.",
+                  icon: ShieldCheck,
+                },
+                {
+                  step: "04",
+                  title: "Start learning",
+                  text: "Live small batches, a personal syllabus and a completion certificate.",
+                  icon: AwardIcon,
+                },
+              ].map((s, i) => (
+                <Reveal key={s.step} delay={i * 0.08} y={26}>
+                  <div className="group relative h-full overflow-hidden rounded-2xl border border-ink/[0.07] bg-white p-6 transition-all duration-500 hover:-translate-y-1 hover:border-brand/30 hover:shadow-[0_24px_54px_-26px_rgb(99_102_241/0.45)]">
+                    <span aria-hidden className="pointer-events-none absolute -right-3 -top-4 select-none font-display text-[4.5rem] font-extrabold text-ink/[0.04]">
+                      {s.step}
+                    </span>
+                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-brand to-brand-magenta text-white shadow-[0_12px_26px_-12px_rgb(124_58_237/0.7)] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-105">
+                      <s.icon className="h-5 w-5" strokeWidth={1.9} />
+                    </span>
+                    <h3 className="mt-4 font-display text-[1.05rem] font-extrabold text-ink">{s.title}</h3>
+                    <p className="mt-1.5 text-[0.86rem] leading-relaxed text-ink-2">{s.text}</p>
+                  </div>
+                </Reveal>
+              ))}
             </div>
           </div>
+        </section>
+
+        {/* Trust bar */}
+        <section className="px-6 pb-24 sm:px-12">
+          <Reveal>
+            <div className="mx-auto grid max-w-6xl gap-4 rounded-2xl border border-ink/[0.07] bg-white p-6 sm:grid-cols-2 lg:grid-cols-4 lg:p-8">
+              {[
+                { icon: Users, label: "Small batches 10–20", sub: "Everyone speaks every session" },
+                { icon: MessageCircle, label: "Real conversation", sub: "Practice from day one" },
+                { icon: Wallet, label: "One transparent fee", sub: "No hidden charges" },
+                { icon: AwardIcon, label: "Certificate on completion", sub: "Share your result card" },
+              ].map((t) => (
+                <div key={t.label} className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand/[0.08] text-brand-deep">
+                    <t.icon className="h-5 w-5" strokeWidth={1.9} />
+                  </span>
+                  <span>
+                    <span className="block font-display text-[0.88rem] font-extrabold text-ink">{t.label}</span>
+                    <span className="block text-[0.72rem] text-ink-3">{t.sub}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </Reveal>
         </section>
       </main>
       <Footer />
