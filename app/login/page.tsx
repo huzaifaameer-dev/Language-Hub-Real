@@ -1,21 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 import { AuthShell, Field } from "@/components/auth/AuthShell";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
+import { waitForSessionAndGo } from "@/lib/client-session";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  // Race-proof: the moment the session is confirmed authenticated, leave this
+  // page — even if the form's own router.push raced the cookie write.
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+      router.refresh();
+    }
+  }, [status, router]);
 
   const submit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -31,8 +42,8 @@ export default function LoginPage() {
       if (res?.error) {
         setError("Invalid email or password.");
       } else {
-        router.push("/dashboard");
-        router.refresh();
+        const landed = await waitForSessionAndGo(router);
+        if (!landed) setError("Session did not stick. Please try again.");
       }
     } catch {
       setError("Something went wrong. Please try again.");

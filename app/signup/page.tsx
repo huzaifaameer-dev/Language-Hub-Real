@@ -1,14 +1,15 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { Check, Eye, EyeOff, Lock, Mail, Smartphone, Ticket, User } from "lucide-react";
 
 import { AuthShell, Field } from "@/components/auth/AuthShell";
 import { OAuthButtons } from "@/components/auth/OAuthButtons";
 import { cn } from "@/lib/utils";
+import { waitForSessionAndGo } from "@/lib/client-session";
 
 interface FieldErrors {
   name?: string[];
@@ -36,6 +37,16 @@ function SignupForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const refCode = (searchParams.get("ref") ?? "").trim().toUpperCase();
+  const { status } = useSession();
+
+  // Auto-login is async; navigate the instant the session is confirmed so a
+  // cookie race can never strand the user on the signup page.
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+      router.refresh();
+    }
+  }, [status, router]);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -82,9 +93,10 @@ function SignupForm() {
         // Account created — just take them to login.
         router.push("/login?created=1");
       } else {
-        router.push("/dashboard");
+        // Wait for the server to confirm the session, then land on dashboard.
+        const landed = await waitForSessionAndGo(router);
+        if (!landed) router.push("/login?created=1");
       }
-      router.refresh();
     } catch {
       setFormError("Network error. Please try again.");
     } finally {
