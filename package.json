@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack",
+    "build": "next build",
     "start": "next start",
     "start:standalone": "node .next/standalone/server.js",
     "lint": "eslint",
@@ -40,6 +40,7 @@
     "@types/nodemailer": "^8.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.185.4",
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
     "lightningcss": "^1.33.0",
