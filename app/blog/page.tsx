@@ -8,6 +8,7 @@ import { BlogListClient } from "@/components/blog/BlogListClient";
 
 /** Blog content is essentially immutable after publish — cache list reads for
  *  60s and revalidate instantly from the admin when posts change. */
+export const dynamic = "force-dynamic";
 export const revalidate = 60;
 
 const baseUrl = appBaseUrl();

@@ -9,6 +9,7 @@ import { appBaseUrl } from "@/lib/base-url";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/footer/Footer";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 60;
 const baseUrl = appBaseUrl();
 

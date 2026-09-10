@@ -7,6 +7,8 @@ import { getDb } from "@/lib/db";
 import { UserDashboard } from "@/components/dashboard/UserDashboard";
 import { StaleSession } from "@/components/dashboard/StaleSession";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Dashboard · Language Hub",
 };

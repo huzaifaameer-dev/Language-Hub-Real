@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { getCertificatesCollection } from "@/lib/db";
 import { appBaseUrl } from "@/lib/base-url";
 
+export const dynamic = "force-dynamic";
+
 interface SharePageProps {
   params: Promise<{ certificateId: string }>;
 }
