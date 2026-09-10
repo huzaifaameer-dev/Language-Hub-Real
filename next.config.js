@@ -32,10 +32,9 @@ const cspHeader = `
 
 module.exports = {
   poweredByHeader: false,
-  // Self-contained output so a Dockerfile can copy only the runtime trace
-  // (server.js + traced node_modules) instead of the whole node_modules tree.
-  // Vercel builds a separate deployment artefact and ignores this.
-  output: "standalone",
+  // Use standalone output only when building for Docker (standalone script).
+  // Vercel ignores this and uses its own build pipeline.
+  output: process.env.VERCEL ? undefined : "standalone",
   // The driver stays external: webpack must not statically resolve mongodb's
   // optional native deps (client-side-encryption, kerberos, aws…) or the
   // bundle breaks at runtime with "Can't resolve 'mongodb-client-encryption'".
