@@ -35,6 +35,9 @@ module.exports = {
   // Use standalone output only when building for Docker (standalone script).
   // Vercel ignores this and uses its own build pipeline.
   output: process.env.VERCEL ? undefined : "standalone",
+  // Skip type-checking during build on Vercel (free tier has limited CPU/RAM
+  // and TS check hangs). Run `npm run typecheck` locally before pushing.
+  typescript: { ignoreBuildErrors: !!process.env.VERCEL },
   // The driver stays external: webpack must not statically resolve mongodb's
   // optional native deps (client-side-encryption, kerberos, aws…) or the
   // bundle breaks at runtime with "Can't resolve 'mongodb-client-encryption'".
