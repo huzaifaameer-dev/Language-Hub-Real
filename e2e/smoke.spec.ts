@@ -14,15 +14,6 @@ test.describe("public smoke", () => {
     expect(errors.filter((e) => !/favicon/.test(e))).toEqual([]);
   });
 
-  test("Aina guide launcher is present and opens the dialog", async ({ page }) => {
-    await page.goto("/");
-    const launcher = page.getByRole("button", { name: /Open guide/i });
-    await expect(launcher).toBeVisible();
-    await launcher.click();
-    await expect(page.getByRole("dialog", { name: /Aina|آئینہ/i }).first()).toBeVisible();
-    await expect(page.getByPlaceholder(/Ask about|کورسز/).first()).toBeVisible();
-  });
-
   test("auth pages are reachable", async ({ page }) => {
     for (const path of ["/login", "/signup"]) {
       await page.goto(path);

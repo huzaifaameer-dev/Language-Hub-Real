@@ -14,7 +14,6 @@ import { CtaBanner } from "@/components/contact/CtaBanner";
 import { Footer } from "@/components/footer/Footer";
 import { LiveEnrollmentBanner } from "@/components/social-proof/LiveEnrollmentBanner";
 import { SupportHelp } from "@/components/support/SupportHelp";
-import { GuideCompanion } from "@/components/guide/GuideCompanion";
 import { ACADEMY, TESTIMONIALS } from "@/lib/content";
 
 /** Aggregate rating grounded in the testimonials we actually publish. */
@@ -69,7 +68,6 @@ export function Site() {
         </main>
         <SupportHelp />
         <Footer />
-        <GuideCompanion />
       </IntroGate>
     </>
   );
