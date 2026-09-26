@@ -73,7 +73,7 @@ async function uploadImage(file: File): Promise<string | null> {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+      const scale = Math.min(1, 1280 / Math.max(img.width, img.height));
       const canvas = document.createElement("canvas");
       canvas.width = Math.max(1, Math.round(img.width * scale));
       canvas.height = Math.max(1, Math.round(img.height * scale));
@@ -286,7 +286,12 @@ function NewsEditor({ existing, onDone }: { existing: NewsRow | null; onDone: ()
       const payload = { title, body, coverImage, authorName, authorRole, tags: tags.split(",").map((t) => t.trim()).filter(Boolean), published };
       const url = "/api/admin/news";
       const res = await fetch(url, { method: existing ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: existing ? JSON.stringify({ id: existing.id, payload }) : JSON.stringify(payload) });
-      if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.message ?? "Failed to save."); return; }
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        const first = d?.errors ? Object.values(d.errors).flat()[0] : undefined;
+        setError(first ?? d?.message ?? "Failed to save.");
+        return;
+      }
       onDone();
     } catch { setError("Network error."); }
     setSaving(false);

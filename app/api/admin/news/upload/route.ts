@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
   try {
     const buffer = Buffer.from(dataUrl.slice(prefix.length), "base64");
-    const webp = await sharp(buffer).rotate().resize(1600, null, { withoutEnlargement: true }).webp({ quality: 84 }).toBuffer();
+    const webp = await sharp(buffer).rotate().resize(1280, null, { withoutEnlargement: true }).webp({ quality: 76 }).toBuffer();
     return NextResponse.json({ ok: true, url: `data:image/webp;base64,${webp.toString("base64")}` });
   } catch {
     return NextResponse.json({ message: "Could not process image." }, { status: 500 });
