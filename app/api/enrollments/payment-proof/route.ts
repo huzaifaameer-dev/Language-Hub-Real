@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { mkdir } from "node:fs/promises";
-import path from "node:path";
-import sharp, { type Metadata } from "sharp";
 
 import { auth } from "@/auth";
 import { getDb, ENROLLMENT_ACTIVE_STATUSES } from "@/lib/db";
@@ -17,18 +14,10 @@ const ProofSchema = z.object({
     .max(7_000_000, "Image is too large (max 5 MB encoded)."),
 });
 
-const ALLOWED_PREFIXES = ["data:image/jpeg;base64,", "data:image/png;base64,", "data:image/webp;base64,"];
+// Screenshots arrive as base64 data-URIs (≤5MB raw → ~7MB encoded).
+export const bodySizeLimit = "12mb";
 
-const PROOF_WIDTH = 1400; // downscale wide screenshots, keep them readable
-const PROOF_QUALITY = 82;
-
-function uploadsDir(): string {
-  return path.join(process.cwd(), "private", "uploads", "proof");
-}
-
-function proofPath(enrollmentId: string): string {
-  return path.join(uploadsDir(), `${enrollmentId}.webp`);
-}
+const ALLOWED_PREFIXES = ["data:image/jpeg;base64,", "data:image/png;base64,", "data:image/webp;base64,", "data:image/heic;base64,", "data:image/heif;base64,"];
 
 /** Signed API path to retrieve a proof (never exposed from /public). */
 function publicUrl(enrollmentId: string): string {
@@ -86,7 +75,7 @@ export async function POST(request: Request) {
   const prefix = ALLOWED_PREFIXES.find((p) => dataUrl.startsWith(p));
   if (!prefix) {
     return NextResponse.json(
-      { message: "Only JPG, PNG or WebP images are allowed." },
+      { message: "Only JPG, PNG, WebP, HEIC or HEIF images are allowed." },
       { status: 400 }
     );
   }
@@ -97,32 +86,12 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ message: "Invalid image data." }, { status: 400 });
   }
-
-  let meta: Metadata;
-  try {
-    meta = await sharp(input).metadata();
-  } catch {
-    return NextResponse.json({ message: "Invalid image data." }, { status: 400 });
-  }
-  if (!meta.width || !meta.height) {
+  if (input.length === 0) {
     return NextResponse.json({ message: "Invalid image data." }, { status: 400 });
   }
 
-  let output: Buffer;
-  try {
-    output = await sharp(input)
-      .rotate()
-      .resize({ width: PROOF_WIDTH, withoutEnlargement: true })
-      .webp({ quality: PROOF_QUALITY })
-      .toBuffer();
-  } catch {
-    return NextResponse.json({ message: "Image processing failed." }, { status: 422 });
-  }
-
-  await mkdir(uploadsDir(), { recursive: true });
-  const filePath = proofPath(enrollmentId);
-  const { writeFile } = await import("node:fs/promises");
-  await writeFile(filePath, output);
+  const contentType = prefix.slice("data:".length, prefix.length - ";base64,".length);
+  const output = input;
 
   const url = publicUrl(enrollmentId);
   await enrollments.updateOne(
@@ -131,6 +100,8 @@ export async function POST(request: Request) {
       $set: {
         status: "PROOF_SUBMITTED",
         paymentProof: url,
+        proofData: output.toString("base64"),
+        proofContentType: contentType,
         updatedAt: new Date(),
       },
     }

@@ -22,6 +22,7 @@ const FEATURE_TINTS = [
   "bg-emerald-50 text-emerald-600",
   "bg-violet-50 text-violet-600",
 ];
+const FEATURE_NUMBERS = ["01", "02", "03", "04", "05", "06"];
 
 export function Features() {
   const { dict, lang } = useLang();
@@ -31,7 +32,7 @@ export function Features() {
     <section
       id="why"
       data-section
-      className="relative overflow-hidden bg-[#f7f8fc] px-6 py-24 sm:px-12"
+      className="relative overflow-hidden bg-site px-6 py-24 sm:px-12"
       aria-label="Why Language Hub"
     >
       <div className="mx-auto max-w-6xl">
@@ -55,6 +56,7 @@ export function Features() {
             const desc = dict[`features.f${i + 1}.desc`];
             const tone = FEATURE_TONES[i];
             const tint = FEATURE_TINTS[i];
+            const num = FEATURE_NUMBERS[i];
             return (
               <Reveal
                 key={title}
@@ -65,18 +67,21 @@ export function Features() {
               >
                 <span
                   aria-hidden
-                  className="absolute inset-x-0 top-0 h-1 origin-left scale-x-0 bg-gradient-to-r transition-transform duration-500 group-hover:scale-x-100"
+                  className="absolute inset-x-0 top-0 h-[2px] origin-left scale-x-0 bg-gradient-to-r transition-transform duration-500 group-hover:scale-x-100"
                   style={{
                     background: `linear-gradient(90deg, ${tone}, ${tone}88)`,
                   }}
                 />
+                <span className="absolute right-4 top-4 font-mono text-[0.6rem] font-bold text-ink-3/40">
+                  {num}
+                </span>
                 <span className={`grid h-14 w-14 place-items-center rounded-2xl ${tint}`}>
                   <Icon className="h-7 w-7" strokeWidth={1.6} />
                 </span>
                 <h3 className="mt-5 font-display text-xl font-extrabold tracking-tight text-ink" dir={isUr ? "rtl" : "ltr"}>
                   {title}
                 </h3>
-                <p className="mt-2 text-[0.92rem] leading-relaxed text-ink-2">{desc}</p>
+                <p className="mt-2 text-[0.88rem] leading-relaxed text-ink-2">{desc}</p>
               </Reveal>
             );
           })}

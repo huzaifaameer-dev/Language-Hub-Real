@@ -8,10 +8,10 @@ import { COURSE_FAQS, SUCCESS_STORIES } from "../lib/content";
 
 describe("referral code generation", () => {
   it("produces a stable, URL-safe, unique code from a name + user id", () => {
-    const code = generateReferralCode("abc123def", "Javeria Malik");
+    const code = generateReferralCode("abc123def", "Javaria Malik");
     expect(code).toMatch(/^[A-Z0-9-]+$/);
     expect(code.length).toBeLessThanOrEqual(16);
-    expect(code).toContain("JAVE");
+    expect(code).toContain("JAVA");
   });
 
   it("falls back to a default prefix when the name is non-alphabetic", () => {

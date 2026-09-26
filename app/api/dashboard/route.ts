@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 
 import { auth } from "@/auth";
+import { CONTACT } from "@/lib/content";
 import {
   getApplicationsCollection,
   getEnrollmentsCollection,
@@ -113,7 +114,10 @@ export async function GET() {
       createdAt: user.createdAt?.toISOString?.() ?? null,
     },
     support: {
-      whatsapp: process.env.ACADEMY_WHATSAPP?.replace(/[^\d]/g, "") || null,
+      whatsapp:
+        (process.env.ACADEMY_WHATSAPP || process.env.NEXT_PUBLIC_ACADEMY_WHATSAPP || CONTACT.whatsapp)?.replace(/[^\d]/g, "") || null,
+      email:
+        process.env.ACADEMY_EMAIL || process.env.NEXT_PUBLIC_ACADEMY_EMAIL || (CONTACT.email || null),
     },
     applications,
     enrollments,

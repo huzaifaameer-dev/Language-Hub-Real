@@ -32,6 +32,8 @@ export async function GET() {
     course: d.course,
     active: d.active,
     order: d.order,
+    image: d.image ?? null,
+    featured: !!d.featured,
     createdAt: d.createdAt.toISOString(),
   }));
 
@@ -69,8 +71,10 @@ export async function POST(request: Request) {
     quote: data.quote.trim(),
     outcome: data.outcome,
     course: data.course.trim(),
+    image: data.image ?? null,
     active: true,
     order: count,
+    featured: !!data.featured,
     createdAt: now,
     updatedAt: now,
   });

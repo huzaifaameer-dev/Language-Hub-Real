@@ -5,13 +5,17 @@ import { gsap, ScrollTrigger } from "@/lib/scroll";
 
 let lenis: Lenis | null = null;
 
-/** Start Lenis smooth scrolling, synced with GSAP ScrollTrigger. */
+/** Start Lenis smooth scrolling, synced with GSAP ScrollTrigger.
+ *  Only on devices that benefit: fine pointer, capable CPU, no reduced-motion.
+ *  Low-end devices keep native (instant) scrolling so nav feels snappy. */
 export function initLenis(): Lenis | null {
   if (typeof window === "undefined" || lenis) return lenis;
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return null;
+  if (!window.matchMedia("(pointer: fine)").matches) return null;
+  if (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency < 4) return null;
 
   lenis = new Lenis({
-    duration: 1.15,
+    duration: navigator.hardwareConcurrency >= 8 ? 1.05 : 0.7,
     easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     smoothWheel: true,
     touchMultiplier: 1.5,

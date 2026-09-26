@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Manrope, Playfair_Display } from "next/font/google";
+import { Caveat, Inter, Manrope, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
@@ -33,6 +33,12 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 const baseUrl = appBaseUrl();
 
 const title = "Language Hub | Hub of Language Excellence";
@@ -48,7 +54,7 @@ const organizationJsonLd = {
   url: baseUrl,
   logo: `${baseUrl}/opengraph-image`,
   image: `${baseUrl}/opengraph-image`,
-  founder: { "@type": "Person", name: "Javeria Malik" },
+  founder: { "@type": "Person", name: "Javaria Malik" },
   email: CONTACT.email || undefined,
   telephone: CONTACT.phone || undefined,
   ...(CONTACT.address || CONTACT.city
@@ -126,7 +132,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   applicationName: "Language Hub",
   category: "education",
-  authors: [{ name: "Javeria Malik" }],
+  authors: [{ name: "Javaria Malik" }],
   creator: "Language Hub",
   keywords: [
     "Language Hub",
@@ -136,7 +142,7 @@ export const metadata: Metadata = {
     "Duolingo English",
     "English fluency",
     "English communication",
-    "Javeria Malik",
+    "Javaria Malik",
   ],
   alternates: {
     canonical: "/",
@@ -176,7 +182,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${manrope.variable} ${playfair.variable}`}
+      className={`${inter.variable} ${manrope.variable} ${playfair.variable} ${caveat.variable}`}
     >
       <body className="min-h-screen bg-ivory font-sans text-ink antialiased">
         <script

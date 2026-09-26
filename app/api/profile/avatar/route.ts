@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { mkdir, unlink } from "node:fs/promises";
-import path from "node:path";
 import sharp, { type Metadata } from "sharp";
 
 import { auth } from "@/auth";
@@ -21,27 +19,12 @@ const ALLOWED_PREFIXES = ["data:image/jpeg;base64,", "data:image/png;base64,", "
 const AVATAR_SIZE = 196; // px (largest square used in the UI is ~96px; @2x covers it)
 const AVATAR_QUALITY = 82;
 
-function uploadsDir(): string {
-  return path.join(process.cwd(), "public", "uploads", "avatars");
-}
-
-function avatarPath(userId: string): string {
-  // userId is a validated ObjectId, safe to use in a filename.
-  return path.join(uploadsDir(), `${userId}.webp`);
-}
-
 function publicUrl(userId: string): string {
-  return `/uploads/avatars/${userId}.webp`;
+  return `/api/profile/avatar/${userId}`;
 }
 
-async function removeOldAvatars(userId: string): Promise<void> {
-  const dir = uploadsDir();
-  await Promise.all([
-    unlink(path.join(dir, `${userId}.jpg`)).catch(() => {}),
-    unlink(path.join(dir, `${userId}.png`)).catch(() => {}),
-    unlink(path.join(dir, `${userId}.webp`)).catch(() => {}),
-  ]);
-}
+// Client posts a base64 data-URI (≤2.5MB image → ~3.5MB encoded).
+export const bodySizeLimit = "8mb";
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -110,17 +93,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Image processing failed." }, { status: 422 });
   }
 
-  await mkdir(uploadsDir(), { recursive: true });
-  await removeOldAvatars(session.user.id); // clear any jpg/png/webp leftovers
-  const filePath = avatarPath(session.user.id);
-  const { writeFile } = await import("node:fs/promises");
-  await writeFile(filePath, output);
-
   const url = publicUrl(session.user.id);
   const db = await getDb();
   await db.collection("users").updateOne(
     { _id: new ObjectId(session.user.id) },
-    { $set: { image: url, updatedAt: new Date() } }
+    { $set: { image: url, avatarData: output.toString("base64"), updatedAt: new Date() } }
   );
 
   return NextResponse.json({ ok: true, image: url });

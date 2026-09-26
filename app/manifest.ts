@@ -28,7 +28,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Blog",
         short_name: "Blog",
         description: "Learning tips and guides",
-        url: "/blog",
+        url: "/news",
         icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" }],
       },
       {

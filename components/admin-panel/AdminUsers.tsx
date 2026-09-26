@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
@@ -20,9 +20,29 @@ const ease = [0.16, 1, 0.3, 1] as const;
 const PAGE_SIZE = 15;
 
 export function AdminUsers({ items }: { items: AdminUser[] }) {
+  const [rows, setRows] = useState<AdminUser[]>(items);
+  const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState<Filter>("ALL");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+
+  // The tab is self-sufficient: if the SSR shell carried no users (the admin
+  // page now derisks first paint by skipping database work), fetch them here.
+  useEffect(() => {
+    if (items.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRows(items);
+      return;
+    }
+    setBusy(true);
+    fetch("/api/admin/users", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d && Array.isArray(d.users)) setRows(d.users as AdminUser[]);
+      })
+      .catch(() => {})
+      .finally(() => setBusy(false));
+  }, [items]);
 
   const setFilterPageReset = (f: Filter) => {
     setFilter(f);
@@ -31,14 +51,14 @@ export function AdminUsers({ items }: { items: AdminUser[] }) {
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return items.filter((u) => {
+    return rows.filter((u) => {
       if (filter === "VERIFIED" && !u.emailVerified) return false;
       if (filter === "UNVERIFIED" && u.emailVerified) return false;
       if (!q) return true;
       const hay = `${u.name} ${u.email} ${u.role}`.toLowerCase();
       return hay.includes(q);
     });
-  }, [items, filter, query]);
+  }, [rows, filter, query]);
 
   const totalPages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
   const pageIdx = Math.min(page, totalPages);
@@ -65,9 +85,9 @@ export function AdminUsers({ items }: { items: AdminUser[] }) {
         <SectionTitle kicker="Directory · students" title="User Directory" />
         <FilterChips<Filter>
           options={[
-            { key: "ALL", label: "ALL", count: items.length },
-            { key: "VERIFIED", label: "VERIFIED", count: items.filter((u) => u.emailVerified).length },
-            { key: "UNVERIFIED", label: "UNVERIFIED", count: items.filter((u) => !u.emailVerified).length },
+            { key: "ALL", label: "ALL", count: rows.length },
+            { key: "VERIFIED", label: "VERIFIED", count: rows.filter((u) => u.emailVerified).length },
+            { key: "UNVERIFIED", label: "UNVERIFIED", count: rows.filter((u) => !u.emailVerified).length },
           ]}
           value={filter}
           onChange={setFilterPageReset}

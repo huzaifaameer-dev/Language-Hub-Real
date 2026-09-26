@@ -1,22 +1,22 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  BadgeCheck,
   BookOpen,
   Bot,
   CalendarClock,
   Clock,
-  CreditCard,
   ExternalLink,
   FileText,
   GraduationCap,
   LayoutDashboard,
   Library,
   LogOut,
+  MessageCircle,
+  MessageSquareText,
   RefreshCw,
   Search,
   ShieldCheck,
@@ -25,236 +25,154 @@ import {
   UserRoundPlus,
   Users,
   X,
-  XCircle,
+  CheckCircle2,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
 import { useLiveSync } from "@/lib/use-live";
-import type { AdminApplication, AdminCounts, AdminEnrollment, AdminStats, AdminUser } from "./types";
+import type { AdminCounts, AdminRegistration, AdminStats, AdminUser } from "./types";
 import { deriveAdminStats } from "./stats";
-import { AdminApplications } from "./AdminApplications";
-import { AdminEnrollments } from "./AdminEnrollments";
+import { AdminRegistrations } from "./AdminRegistrations";
 import { AdminCourses } from "./AdminCourses";
 import { AdminUsers } from "./AdminUsers";
+import { AdminTeachers } from "./AdminTeachers";
 import { AdminDemoBookings } from "./AdminDemoBookings";
 import { AdminTestimonials } from "./AdminTestimonials";
-import { AdminPayments } from "./AdminPayments";
-import { AdminBlog } from "./AdminBlog";
+import { AdminTeam } from "./AdminTeam";
 import { AdminAuditLog } from "./AdminAuditLog";
-import { AdminAi } from "./AdminAi";
-import { AdminAgent } from "./AdminAgent";
 import { AdminStatCard, GlassPanel, ProgressRing, StatusPill } from "./ui";
-import { AdminAnalyticsCharts } from "./AdminAnalyticsCharts";
 
-type Tab = "agent" | "overview" | "applications" | "enrollments" | "payments" | "blog" | "audit" | "courses" | "users" | "demos" | "testimonials" | "ai";
+// Heavy sections are lazy-loaded so the admin shell paints and responds fast —
+// the JS and data fetches for a tab only load once you actually open it.
+import dynamic from "next/dynamic";
+const AdminNews = dynamic(() => import("./AdminNews").then((m) => m.AdminNews), { ssr: false });
+const AdminNewsComments = dynamic(() => import("./AdminNewsComments").then((m) => m.AdminNewsComments), { ssr: false });
+const AdminAi = dynamic(() => import("./AdminAi").then((m) => m.AdminAi), { ssr: false });
+const AdminAgent = dynamic(() => import("./AdminAgent").then((m) => m.AdminAgent), { ssr: false });
+const AdminAnalyticsCharts = dynamic(() => import("./AdminAnalyticsCharts").then((m) => m.AdminAnalyticsCharts), { ssr: false });
+const AdminFeedback = dynamic(() => import("./AdminFeedback").then((m) => m.AdminFeedback), { ssr: false });
+
+type Tab =
+  | "agent"
+  | "overview"
+  | "registrations"
+  | "feedback"
+  | "news"
+  | "newsmod"
+  | "audit"
+  | "courses"
+  | "users"
+  | "teachers"
+  | "demos"
+  | "testimonials"
+  | "team"
+  | "ai";
 
 const TABS: { key: Tab; label: string; icon: LucideIcon }[] = [
   { key: "agent", label: "AI Agent", icon: Bot },
   { key: "overview", label: "Overview", icon: LayoutDashboard },
-  { key: "applications", label: "Applications", icon: FileText },
-  { key: "enrollments", label: "Enrollments", icon: GraduationCap },
-  { key: "payments", label: "Payments", icon: CreditCard },
-  { key: "blog", label: "Blog", icon: BookOpen },
+  { key: "registrations", label: "Registrations", icon: FileText },
+  { key: "feedback", label: "Feedback", icon: MessageSquareText },
+  { key: "news", label: "Daily News", icon: BookOpen },
+  { key: "newsmod", label: "Comments", icon: MessageCircle },
   { key: "audit", label: "Activity Log", icon: ShieldCheck },
   { key: "demos", label: "Demo Bookings", icon: CalendarClock },
   { key: "testimonials", label: "Testimonials", icon: Star },
-  { key: "users", label: "Students", icon: Users },
+  { key: "team", label: "Team", icon: Users },
+  { key: "users", label: "Students", icon: UserRoundPlus },
+  { key: "teachers", label: "Teachers", icon: GraduationCap },
   { key: "courses", label: "Courses", icon: Library },
   { key: "ai", label: "AI Reports", icon: Sparkles },
 ];
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-interface Toast {
-  id: number;
-  title: string;
-  kind: "apps" | "enrs";
-}
-
-let toastSeq = 0;
-
 export function AdminPanel({
-  adminEmail, counts, applications, enrollments, users,
+  adminEmail,
+  counts,
+  registrations,
+  users,
 }: {
   adminEmail: string;
   counts: AdminCounts;
-  applications: AdminApplication[];
-  enrollments: AdminEnrollment[];
+  registrations: AdminRegistration[];
   users: AdminUser[];
 }) {
-  const [tab, setTab] = useState<Tab>("agent");
-  const [appList, setAppList] = useState(applications);
-  const [enrList, setEnrList] = useState(enrollments);
+  const [tab, setTab] = useState<Tab>("registrations");
   const [countsState, setCountsState] = useState<AdminCounts>(counts);
+  const [registrationList, setRegistrationList] = useState(registrations);
+  const [feedbackNew, setFeedbackNew] = useState(0);
   const [syncing, setSyncing] = useState(false);
-  const [freshApps, setFreshApps] = useState<Set<string>>(new Set());
-  const [freshEnrs, setFreshEnrs] = useState<Set<string>>(new Set());
-  const [toasts, setToasts] = useState<Toast[]>([]);
   const [palette, setPalette] = useState(false);
   const router = useRouter();
 
-  const stat = useMemo(
-    () => deriveAdminStats(appList, enrList, countsState),
-    [appList, enrList, countsState]
-  );
+  // Throttle auto-refreshes: live events can burst, and every refresh is a DB
+  // round-trip — never run two inside a 2.5s window, and never run a second
+  // while one is already in flight.
+  const lastRefresh = useRef(0);
+  const inflight = useRef(false);
 
-  const knownIds = useRef({ apps: new Set(applications.map((a) => a.id)), enrs: new Set(enrollments.map((e) => e.id)) });
-  const pendingRef = useRef({
-    apps: applications.filter((a) => a.status === "PENDING").length,
-    enrs: enrollments.filter((e) => e.status === "PENDING").length,
-  });
+  // Keep the funnel metrics live without owning the queue list (the
+  // Registrations tab owns its own full state via the admin API).
+  const refresh = useCallback(async (opts?: { force?: boolean }) => {
+    const now = Date.now();
+    if (!opts?.force && (inflight.current || now - lastRefresh.current < 2500)) return;
+    inflight.current = true;
+    lastRefresh.current = now;
+    setSyncing(true);
+    try {
+      const [r, fr] = await Promise.all([
+        fetch("/api/admin/registrations", { cache: "no-store" }),
+        fetch("/api/admin/feedback?counts=1", { cache: "no-store" }),
+      ]);
+      if (r.ok) {
+        const d = (await r.json()) as {
+          registrations?: AdminRegistration[];
+          counts?: Partial<AdminCounts>;
+        };
+        if (d.counts) setCountsState((prev) => ({ ...prev, ...d.counts }));
+        if (d.registrations?.length) setRegistrationList(d.registrations);
+      }
+      if (fr.ok) {
+        const fd = (await fr.json()) as { counts?: { fbNew?: number } };
+        if (typeof fd.counts?.fbNew === "number") setFeedbackNew(fd.counts.fbNew);
+      }
+    } catch {
+      // network blip — keep whatever is on screen
+    } finally {
+      inflight.current = false;
+      setSyncing(false);
+    }
+  }, []);
 
-  // Global shortcut: Ctrl/Cmd + K toggles the command palette.
+  const live = useLiveSync(() => void refresh());
+
+  // First paint is SSR-free; populate counts + funnel from the API on mount.
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setPalette((p) => !p);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void refresh({ force: true });
+  }, [refresh]);
 
-  const pushToast = useCallback((title: string, kind: Toast["kind"]) => {
-    const id = ++toastSeq;
-    setToasts((t) => [...t, { id, title, kind }]);
-    setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 5200);
-  }, []);
-
-  const flash = useCallback((kind: "apps" | "enrs", ids: string[]) => {
-    if (ids.length === 0) return;
-    const apply = kind === "apps" ? setFreshApps : setFreshEnrs;
-    apply((prev) => {
-      const next = new Set(prev);
-      ids.forEach((id) => next.add(id));
-      return next;
-    });
-    setTimeout(() => {
-      apply((prev) => {
-        const next = new Set(prev);
-        ids.forEach((id) => next.delete(id));
-        return next;
-      });
-    }, 6500);
-  }, []);
-
-  const refresh = useCallback(
-    async (silent = false) => {
-      if (!silent) setSyncing(true);
-      // Never let a transient network failure (page reload, abort, offline)
-      // surface as an unhandled rejection — treat it as "nothing changed".
-      const safeJson = (p: Promise<Response>) =>
-        p.then((r) => (r.ok ? r.json() : null)).catch(() => null);
-      try {
-        const [sa, se] = await Promise.all([
-          safeJson(fetch("/api/admin/applications")),
-          safeJson(fetch("/api/admin/enrollments")),
-        ]);
-
-        const apps = (sa?.applications ?? null) as AdminApplication[] | null;
-        const enrs = (se?.enrollments ?? null) as AdminEnrollment[] | null;
-
-        if (sa?.counts) setCountsState((prev) => ({ ...prev, ...sa.counts }));
-        if (se?.counts) setCountsState((prev) => ({ ...prev, ...se.counts }));
-
-        if (apps) {
-          const nextPending = apps.filter((a) => a.status === "PENDING").length;
-          const delta = nextPending - pendingRef.current.apps;
-          if (delta > 0) {
-            const freshIds = apps
-              .filter((a) => a.status === "PENDING" && !knownIds.current.apps.has(a.id))
-              .map((a) => a.id);
-            pushToast(`${delta} new application${delta > 1 ? "s" : ""} queued`, "apps");
-            flash("apps", freshIds);
-          }
-          pendingRef.current.apps = nextPending;
-          apps.forEach((a) => knownIds.current.apps.add(a.id));
-          setAppList(apps);
-        }
-
-        if (enrs) {
-          const nextPending = enrs.filter((e) => e.status === "PENDING").length;
-          const delta = nextPending - pendingRef.current.enrs;
-          if (delta > 0) {
-            const freshIds = enrs
-              .filter((e) => e.status === "PENDING" && !knownIds.current.enrs.has(e.id))
-              .map((e) => e.id);
-            pushToast(`${delta} new enrollment request`, "enrs");
-            flash("enrs", freshIds);
-          }
-          pendingRef.current.enrs = nextPending;
-          enrs.forEach((e) => knownIds.current.enrs.add(e.id));
-          setEnrList(enrs);
-        }
-      } finally {
-        if (!silent) setSyncing(false);
-      }
-    },
-    [pushToast, flash]
+  const stat = useMemo(
+    () => deriveAdminStats(registrationList, countsState),
+    [registrationList, countsState]
   );
 
-  const live = useLiveSync(() => refresh(true));
-
-  const decideApp = useCallback(
-    async (id: string, action: "APPROVE" | "REJECT", message: string) => {
-      const res = await fetch("/api/admin/applications", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action, message }),
-      });
-      if (!res.ok) return;
-      const next = action === "APPROVE" ? "APPROVED" : "REJECTED";
-      setAppList((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status: next, adminMessage: message || a.adminMessage } : a))
-      );
-      refresh(true);
-    },
-    [refresh]
-  );
-
-  const decideEnr = useCallback(
-    async (
-      id: string,
-      action: "REQUEST_PAYMENT" | "CONFIRM" | "REJECT",
-      message: string,
-      paymentInstructions?: string
-    ) => {
-      const res = await fetch("/api/admin/enrollments", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, action, message, paymentInstructions }),
-      });
-      if (!res.ok) return;
-      const statusMap: Record<string, AdminEnrollment["status"]> = {
-        REQUEST_PAYMENT: "AWAITING_PAYMENT",
-        CONFIRM: "ENROLLED",
-        REJECT: "REJECTED",
-      };
-      const next = statusMap[action];
-      setEnrList((prev) =>
-        prev.map((e) =>
-          e.id === id
-            ? {
-                ...e,
-                status: next,
-                adminMessage: message || e.adminMessage,
-                paymentInstructions: paymentInstructions || e.paymentInstructions,
-              }
-            : e
-        )
-      );
-      refresh(true);
-    },
-    [refresh]
-  );
+  const knownIds = useRef(new Set(registrationList.map((r) => r.id)));
+  useEffect(() => {
+    for (const r of registrationList) knownIds.current.add(r.id);
+  }, [registrationList]);
 
   const badgeFor = (key: Tab): number | null =>
-    key === "applications" && stat.pending > 0
-      ? stat.pending
-      : key === "enrollments" && stat.enrPending > 0
-        ? stat.enrPending
+    key === "registrations"
+      ? stat.newCount > 0
+        ? stat.newCount
+        : null
+      : key === "feedback"
+        ? feedbackNew > 0
+          ? feedbackNew
+          : null
         : null;
 
   const goTab = (t: Tab) => {
@@ -284,37 +202,9 @@ export function AdminPanel({
         }}
       />
 
-      {/* toasts */}
-      <div className="pointer-events-none fixed right-4 top-4 z-[70] flex w-[min(92vw,340px)] flex-col gap-2">
-        {toasts.map((t) => (
-          <motion.div
-            key={t.id}
-            initial={{ opacity: 0, x: 40, scale: 0.96 }}
-            animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: 40 }}
-            transition={{ duration: 0.35, ease }}
-            className={cn(
-              "glass-dash pointer-events-auto flex items-center gap-3 rounded-2xl px-4 py-3 shadow-[0_20px_48px_-18px_rgb(110_90_224/0.5)]",
-              t.kind === "apps" ? "ring-1 ring-brand/45" : "ring-1 ring-brand-magenta/35"
-            )}
-          >
-            <span className={cn(
-              "grid h-9 w-9 shrink-0 place-items-center rounded-xl",
-              t.kind === "apps" ? "bg-brand/80/15 text-brand-deep" : "bg-brand-magenta/15 text-brand-magenta"
-            )}>
-              {t.kind === "apps" ? <FileText className="h-4 w-4" /> : <GraduationCap className="h-4 w-4" />}
-            </span>
-            <div className="min-w-0">
-              <p className="truncate font-display text-[0.82rem] font-extrabold text-ink">{t.title}</p>
-              <p className="font-mono text-[0.6rem] uppercase tracking-widest text-ink-3">live stream</p>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-
       {/* ======================= HEADER ======================= */}
       <header className="sticky top-0 z-50 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-3 px-4 py-3 pl-[4.5rem] sm:px-6 sm:pl-[4.5rem] lg:pl-[5.75rem] lg:px-8">
           <div className="flex items-center gap-3">
             <Link
               href="/"
@@ -350,7 +240,7 @@ export function AdminPanel({
             <LiveBadge live={live} syncTicker={syncing} />
             <button
               type="button"
-              onClick={() => refresh(false)}
+              onClick={() => void refresh({ force: true })}
               disabled={syncing}
               aria-label="Sync data"
               className="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-indigo-600 disabled:opacity-50"
@@ -448,25 +338,18 @@ export function AdminPanel({
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.35, ease }}
             >
-              {tab === "overview" ? (
-                <Overview stats={stat} applications={appList} enrollments={enrList} onNavigate={goTab} />
-              ) : null}
-
-              {tab === "applications" ? (
-                <AdminApplications items={appList} onDecide={decideApp} freshIds={freshApps} />
-              ) : null}
-
-              {tab === "enrollments" ? (
-                <AdminEnrollments items={enrList} onDecide={decideEnr} freshIds={freshEnrs} />
-              ) : null}
-
-              {tab === "payments" ? <AdminPayments /> : null}
-              {tab === "blog" ? <AdminBlog /> : null}
+              {tab === "overview" ? <Overview stats={stat} registrations={registrationList} onNavigate={goTab} /> : null}
+              {tab === "registrations" ? <AdminRegistrations initial={registrationList} /> : null}
+              {tab === "feedback" ? <AdminFeedback /> : null}
+              {tab === "news" ? <AdminNews /> : null}
+              {tab === "newsmod" ? <AdminNewsComments /> : null}
               {tab === "audit" ? <AdminAuditLog /> : null}
               {tab === "demos" ? <AdminDemoBookings /> : null}
               {tab === "testimonials" ? <AdminTestimonials /> : null}
+              {tab === "team" ? <AdminTeam /> : null}
               {tab === "courses" ? <AdminCourses /> : null}
               {tab === "users" ? <AdminUsers items={users} /> : null}
+              {tab === "teachers" ? <AdminTeachers /> : null}
               {tab === "ai" ? <AdminAi /> : null}
               {tab === "agent" ? <AdminAgent /> : null}
             </motion.div>
@@ -599,7 +482,7 @@ function CmdPalette({
                   No sections match “{q}”.
                 </p>
               ) : (
-                matches.map((t, i) => {
+                matches.map((t) => {
                   const Icon = t.icon;
                   const active = current === t.key;
                   return (
@@ -628,7 +511,7 @@ function CmdPalette({
                           current
                         </span>
                       ) : (
-                        <span className="font-mono text-[0.62rem] text-slate-300">{i + 1}</span>
+                        <span className="font-mono text-[0.62rem] text-slate-300">{TABS.indexOf(t) + 1}</span>
                       )}
                     </button>
                   );
@@ -670,13 +553,11 @@ function LiveBadge({ live, syncTicker }: { live: boolean; syncTicker: boolean })
 
 function Overview({
   stats,
-  applications,
-  enrollments,
+  registrations,
   onNavigate,
 }: {
   stats: AdminStats;
-  applications: AdminApplication[];
-  enrollments: AdminEnrollment[];
+  registrations: AdminRegistration[];
   onNavigate: (t: Tab) => void;
 }) {
   const week = useMemo(() => {
@@ -687,16 +568,15 @@ function Overview({
       return { label: d.toLocaleDateString("en-GB", { weekday: "short" }), count: 0 };
     });
     const todayStart = new Date().setHours(0, 0, 0, 0);
-    for (const a of applications) {
-      const idx = Math.floor((new Date(a.createdAt).getTime() - (todayStart - 6 * 86400000)) / 86400000);
+    for (const r of registrations) {
+      const idx = Math.floor((new Date(r.createdAt).getTime() - (todayStart - 6 * 86400000)) / 86400000);
       if (idx >= 0 && idx < 7) days[idx].count += 1;
     }
     return days;
-  }, [applications]);
+  }, [registrations]);
 
   const maxDay = Math.max(1, ...week.map((d) => d.count));
-  const recent = [...applications].slice(0, 6);
-  const liveEnrCount = enrollments.filter((e) => e.status === "PENDING").length;
+  const recent = [...registrations].slice(0, 6);
 
   return (
     <>
@@ -710,37 +590,33 @@ function Overview({
             COMMAND <span className="indigo-text-shimmer">CENTER.</span>
           </h1>
         </div>
-        <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-ink-3">
+        <p className="font-mono text-[0.62rem] uppercase tracking-[0.28em] text-ink-3" suppressHydrationWarning>
           {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
         </p>
       </div>
 
       {/* HUD STATS */}
-      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
-        <AdminStatCard label="Applications" value={stats.total} accent="indigo" sub="lifetime" icon={<FileText className="h-5 w-5" />} onClick={() => onNavigate("applications")} />
-        <AdminStatCard label="Pending" value={stats.pending} accent="amber" sub="needs review" icon={<Clock className="h-5 w-5" />} onClick={() => onNavigate("applications")} />
-        <AdminStatCard label="Approved" value={stats.approved} accent="emerald" sub="moved to enroll" icon={<BadgeCheck className="h-5 w-5" />} onClick={() => onNavigate("applications")} />
-        <AdminStatCard label="Students" value={stats.users} accent="emerald" sub="accounts" icon={<UserRoundPlus className="h-5 w-5" />} />
-        <AdminStatCard label="Courses" value={stats.courses} accent="violet" sub="live catalog" icon={<BookOpen className="h-5 w-5" />} onClick={() => onNavigate("courses")} />
-        <AdminStatCard label="Enrolling" value={stats.enrPending} accent="fuchsia" sub="waiting" icon={<GraduationCap className="h-5 w-5" />} onClick={() => onNavigate("enrollments")} />
-        <AdminStatCard label="Enrolled" value={stats.enrEnrolled} accent="violet" sub="students onboard" icon={<Users className="h-5 w-5" />} onClick={() => onNavigate("enrollments")} />
-        <AdminStatCard label="Payments" value={stats.paymentsTotal} accent="fuchsia" sub="transactions" icon={<CreditCard className="h-5 w-5" />} onClick={() => onNavigate("payments")} />
-        <AdminStatCard label="Rejected" value={stats.rejected + stats.enrRejected} accent="rose" sub="total" icon={<XCircle className="h-5 w-5" />} onClick={() => onNavigate("applications")} />
+      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+        <AdminStatCard label="Registrations" value={stats.total} accent="indigo" sub="lifetime" icon={<FileText className="h-5 w-5" />} onClick={() => onNavigate("registrations")} />
+        <AdminStatCard label="New" value={stats.newCount} accent="amber" sub="needs review" icon={<Clock className="h-5 w-5" />} onClick={() => onNavigate("registrations")} />
+        <AdminStatCard label="Contacted" value={stats.contacted} accent="violet" sub="in touch" icon={<MessageCircle className="h-5 w-5" />} onClick={() => onNavigate("registrations")} />
+        <AdminStatCard label="Enrolled" value={stats.enrolled} accent="emerald" sub="confirmed seats" icon={<CheckCircle2 className="h-5 w-5" />} onClick={() => onNavigate("registrations")} />
+        <AdminStatCard label="Students" value={stats.users} accent="sky" sub="accounts" icon={<UserRoundPlus className="h-5 w-5" />} onClick={() => onNavigate("users")} />
+        <AdminStatCard label="Courses" value={stats.courses} accent="emerald" sub="live catalog" icon={<Library className="h-5 w-5" />} onClick={() => onNavigate("courses")} />
       </section>
 
       {/* Analytics: revenue, students, retention */}
       <AdminAnalyticsCharts />
 
       <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-        {/* Approval + funnel */}
+        {/* Enrolment funnel */}
         <GlassPanel>
-          <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.34em] text-brand-deep">Approval rate</p>
+          <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.34em] text-brand-deep">Response rate</p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-6 sm:justify-start">
-            <ProgressRing value={stats.approvalRate} />
+            <ProgressRing value={stats.responseRate} />
             <div className="flex-1 space-y-3.5">
-              <Funnel label="Applied" value={stats.total} total={stats.total || 1} />
-              <Funnel label="Approved" value={stats.approved} total={stats.total || 1} />
-              <Funnel label="Enrolled" value={stats.enrEnrolled} total={stats.total || 1} />
+              <Funnel label="Registered" value={stats.total} total={stats.total || 1} />
+              <Funnel label="Enrolled" value={stats.enrolled} total={stats.total || 1} />
             </div>
           </div>
         </GlassPanel>
@@ -753,7 +629,7 @@ function Overview({
             </p>
             <div className="flex flex-wrap justify-end gap-3 font-mono text-[0.62rem] text-ink-3">
               {week.map((d) => (
-                <span key={d.label} className="text-[0.6rem] uppercase tracking-wider">
+                <span key={d.label} className="text-[0.6rem] uppercase tracking-wider" suppressHydrationWarning>
                   {d.label} <b className="text-brand-deep">{d.count}</b>
                 </span>
               ))}
@@ -780,7 +656,7 @@ function Overview({
             ))}
           </div>
           <p className="mt-3 font-mono text-[0.58rem] uppercase tracking-widest text-ink-3">
-            {stats.thisWeek} application{stats.thisWeek === 1 ? "" : "s"} this week · {liveEnrCount > 0 ? `${liveEnrCount} enrollment${liveEnrCount === 1 ? "" : "s"} waiting` : "no enrollments waiting"}
+            {stats.thisWeek} registration{stats.thisWeek === 1 ? "" : "s"} this week
           </p>
         </GlassPanel>
       </div>
@@ -796,12 +672,12 @@ function Overview({
         <div className="mt-4 flex flex-col gap-1 p-3">
           {recent.length === 0 ? (
             <div className="grid place-items-center rounded-2xl border border-dashed border-ink/12 py-12 text-center">
-              <p className="font-mono text-[0.8rem] text-ink-3">No applications yet — the feed will light up in real time.</p>
+              <p className="font-mono text-[0.8rem] text-ink-3">No registrations yet — the feed will light up in real time.</p>
             </div>
           ) : (
-            recent.map((a, i) => (
+            recent.map((r, i) => (
               <motion.div
-                key={a.id}
+                key={r.id}
                 initial={{ opacity: 0, x: -14 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
@@ -810,10 +686,10 @@ function Overview({
               >
                 <span className="font-mono text-[0.6rem] font-black text-brand">{String(i + 1).padStart(2, "0")}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-[0.84rem] font-extrabold text-ink">{a.name}</p>
-                  <p className="truncate font-mono text-[0.62rem] text-ink-3">{a.course}</p>
+                  <p className="truncate font-display text-[0.84rem] font-extrabold text-ink">{r.name}</p>
+                  <p className="truncate font-mono text-[0.62rem] text-ink-3">{r.course} · {r.ref}</p>
                 </div>
-                <StatusPill status={a.status} />
+                <StatusPill status={r.status} />
               </motion.div>
             ))
           )}

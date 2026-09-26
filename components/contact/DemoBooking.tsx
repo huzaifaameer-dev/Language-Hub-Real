@@ -73,7 +73,7 @@ export function DemoBooking({ open, onClose }: { open: boolean; onClose: () => v
                     Free demo class
                   </p>
                   <h3 className="mt-1 font-display text-xl font-extrabold tracking-tight text-ink">
-                    Book your spot
+                    Book your slot
                   </h3>
                 </div>
                 <button
@@ -264,7 +264,7 @@ function DemoBookingBody({ onClose }: { onClose: () => void }) {
         </select>
       </Field>
 
-      <Field label="Interested course" error={errors?.course?.[0]} icon={<GraduationCap className="h-4 w-4" />}>
+      <Field label="Course of interest" error={errors?.course?.[0]} icon={<GraduationCap className="h-4 w-4" />}>
         <select
           value={course}
           onChange={(e) => setCourse(e.target.value)}

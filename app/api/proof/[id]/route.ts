@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 
 import { auth } from "@/auth";
 import { requireAdmin } from "@/lib/admin-guard";
@@ -43,18 +41,18 @@ export async function GET(
     return NextResponse.json({ message: "Forbidden." }, { status: 403 });
   }
 
-  const filePath = path.join(process.cwd(), "private", "uploads", "proof", `${id}.webp`);
-  let data: Buffer;
-  try {
-    data = await readFile(filePath);
-  } catch {
+  // Proof image is stored inline on the enrollment (serverless-safe: no disk).
+  const proofBase64 = (enrollment as { proofData?: string }).proofData;
+  const contentType =
+    (enrollment as { proofContentType?: string }).proofContentType ?? "image/webp";
+  if (!proofBase64) {
     return NextResponse.json({ message: "Not found." }, { status: 404 });
   }
 
-  return new NextResponse(new Uint8Array(data), {
+  return new NextResponse(Buffer.from(proofBase64, "base64"), {
     status: 200,
     headers: {
-      "Content-Type": "image/webp",
+      "Content-Type": contentType,
       "Cache-Control": "private, max-age=3600",
       "X-Content-Type-Options": "nosniff",
     },

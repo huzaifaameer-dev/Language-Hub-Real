@@ -18,16 +18,19 @@ import {
 } from "lucide-react";
 import { getCoursesCollection } from "@/lib/db";
 import { FALLBACK_COURSES, courseSlug, formatPKR, type CourseInfo } from "@/lib/course-data";
+import { registrationKeyForCatalogName } from "@/lib/registration-config";
+import { ApplyButton } from "@/components/courses/ApplyButton";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/footer/Footer";
 import { Reveal } from "@/components/ui/Reveal";
 
-export const dynamic = "force-dynamic";
+/** ISR: courses cached at the edge, revalidated every 30s (admin changes publish fast). */
+export const revalidate = 30;
 
 export const metadata: Metadata = {
   title: "Courses & Programmes | Language Hub",
   description:
-    "Spoken English, IELTS, PTE and Duolingo — live small-batch classes, real conversation practice, transparent monthly fees and flexible timings.",
+    "Spoken English, IELTS General & Academic, PTE · GRE · Duolingo and Writing & Communication — live small-batch classes, transparent fees and flexible timings.",
 };
 
 const ACCENTS = ["#6e5ae0", "#2bb3d8", "#d63a8c", "#2e9e6b"];
@@ -65,7 +68,7 @@ export default async function CoursesPage() {
         }}
       />
       <Navbar />
-      <main className="min-h-screen bg-[#faf8f4] pt-24">
+      <main className="min-h-screen bg-site pt-24">
         {/* Hero */}
         <section className="relative overflow-hidden px-6 pb-10 sm:px-12">
           <div
@@ -90,9 +93,9 @@ export default async function CoursesPage() {
           </Reveal>
           <Reveal delay={0.16} y={18}>
             <p className="mt-4 max-w-2xl text-[1.05rem] leading-relaxed text-ink-2">
-              Spoken English, IELTS, PTE and Duolingo — with transparent fees,
-              schedules, batches and the exact syllabus you will cover. Choose a
-              path and start today.
+              Spoken English, IELTS General & Academic, PTE · GRE · Duolingo and
+              Writing & Communication — with transparent fees, schedules, batches
+              and the exact syllabus you will cover. Choose a path and start today.
             </p>
           </Reveal>
           </div>
@@ -187,11 +190,10 @@ export default async function CoursesPage() {
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
                           <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.2em] text-ink-3">
-                            Monthly fee
+                            Programme fee <span className="normal-case">(incl. registration)</span>
                           </p>
                           <p className="font-display text-[2rem] font-extrabold leading-none text-ink">
                             {formatPKR(c.fee)}
-                            <span className="text-[0.8rem] font-semibold text-ink-3">/month</span>
                           </p>
                         </div>
                         <div className="rounded-2xl border border-ink/[0.08] bg-white px-4 py-3">
@@ -237,15 +239,15 @@ export default async function CoursesPage() {
 
                       {/* CTAs */}
                       <div className="mt-7 flex flex-col gap-2.5">
-                        <Link
-                          href="/signup"
+                        <ApplyButton
+                          courseKey={registrationKeyForCatalogName(c.name)}
                           className="group/apply relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-6 font-display text-[0.78rem] font-bold uppercase tracking-[0.18em] text-white transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.99]"
                           style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)`, boxShadow: `0 18px 40px -16px ${accent}` }}
                         >
                           <span aria-hidden className="absolute inset-0 -translate-x-[150%] bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover/apply:translate-x-[150%]" />
                           <Sparkles className="h-4 w-4" /> Apply now
                           <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/apply:translate-x-1" />
-                        </Link>
+                        </ApplyButton>
                         <Link
                           href={`/courses/${courseSlug(c.name)}`}
                           className="group/sec inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-ink/[0.14] font-display text-[0.74rem] font-bold uppercase tracking-[0.18em] text-ink transition-all duration-300 hover:-translate-y-0.5 hover:border-ink hover:bg-ink hover:text-white hover:shadow-[0_16px_36px_-18px_rgb(15_23_42/0.5)]"

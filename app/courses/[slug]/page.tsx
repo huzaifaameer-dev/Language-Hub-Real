@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, BookOpen, CalendarDays, Clock, GraduationCap, Play, Users, CheckCircle } from "lucide-react";
 import { FALLBACK_COURSES, formatPKR, courseSlug, type CourseInfo, type CourseModule } from "@/lib/course-data";
 import { COURSE_FEATURES, CONTACT, COURSE_FAQS, whatsappLink } from "@/lib/content";
+import { registrationKeyForCatalogName } from "@/lib/registration-config";
+import { ApplyButton } from "@/components/courses/ApplyButton";
 import { appBaseUrl } from "@/lib/base-url";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/footer/Footer";
@@ -128,7 +130,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
         />
       ) : null}
       <Navbar />
-      <div className="min-h-screen bg-[#faf8f4] pt-[4.25rem]">
+      <div className="min-h-screen bg-site pt-[4.25rem]">
         <div className="mx-auto max-w-4xl px-5 py-12 lg:px-8">
           <Link
             href="/#courses"
@@ -153,8 +155,8 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             <Meta icon={<CalendarDays className="h-4 w-4" />} label="Schedule" value={course.schedule} />
             <Meta
               icon={<GraduationCap className="h-4 w-4" />}
-              label="Monthly fee"
-              value={`${formatPKR(course.fee)} / month`}
+              label="Fee (incl. registration)"
+              value={formatPKR(course.fee)}
               accent
             />
           </div>
@@ -285,12 +287,12 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
           ) : null}
 
           <div className="mt-12 flex flex-wrap items-center gap-4">
-            <Link
-              href="/signup"
+            <ApplyButton
+              courseKey={registrationKeyForCatalogName(course.name)}
               className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(110_90_224/0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110"
             >
               <BookOpen className="h-4 w-4" /> Apply for this course
-            </Link>
+            </ApplyButton>
             {whatsapp ? (
               <a
                 href={whatsapp}

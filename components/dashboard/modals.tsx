@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { Check, X } from "lucide-react";
+import { Check, MessageCircle, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { FocusTrap, LiveRegion, useEscapeKey } from "@/components/ui/FocusTrap";
 import { ErrorNote } from "@/components/dashboard/ui";
@@ -222,118 +223,178 @@ export function EnrollmentModal({
   );
 }
 
-export function EnrolledCelebration({ name, subjects, onDone }: { name: string; subjects: string[]; onDone: () => void }) {
-  const rings = [
-    { size: 120, delay: "0s", border: "rgb(99 102 241 / 0.7)" },
-    { size: 170, delay: "0.35s", border: "rgb(168 85 247 / 0.5)" },
-    { size: 220, delay: "0.7s", border: "rgb(217 70 239 / 0.4)" },
-  ];
-  const confetti = [
-    { left: "12%", top: "18%", "--dx": "-30px", "--dy": "86px", color: "#6366f1", delay: "0s" },
-    { left: "26%", top: "12%", "--dx": "40px", "--dy": "110px", color: "#d946ef", delay: "0.18s" },
-    { left: "42%", top: "8%", "--dx": "-24px", "--dy": "120px", color: "#0ea5e9", delay: "0.36s" },
-    { left: "58%", top: "10%", "--dx": "28px", "--dy": "115px", color: "#16a34a", delay: "0.12s" },
-    { left: "72%", top: "16%", "--dx": "-34px", "--dy": "95px", color: "#8b5cf6", delay: "0.28s" },
-    { left: "86%", top: "22%", "--dx": "-16px", "--dy": "80px", color: "#c084fc", delay: "0.44s" },
-    { left: "18%", top: "70%", "--dx": "50px", "--dy": "-70px", color: "#0ea5e9", delay: "0.2s" },
-    { left: "82%", top: "64%", "--dx": "-42px", "--dy": "-64px", color: "#6366f1", delay: "0.38s" },
-  ];
-  const title = "ENROLLMENT SUCCESSFUL.";
+export function EnrolledCelebration({
+  name,
+  subjects,
+  supportWhatsapp,
+  onDone,
+}: {
+  name: string;
+  subjects: string[];
+  supportWhatsapp?: string | null;
+  onDone: () => void;
+}) {
+  const [showNumber, setShowNumber] = useState(false);
+  const waHref = `https://wa.me/${supportWhatsapp ?? ""}`;
+  const displayNumber = supportWhatsapp ? `+${supportWhatsapp}` : "";
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="fixed inset-0 z-[60] grid place-items-center overflow-hidden bg-slate-50/95 px-5 backdrop-blur-md"
+      className="fixed inset-0 z-[60] grid place-items-center overflow-hidden bg-[#0a0f1e]/85 px-5 backdrop-blur-lg"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Enrollment successful"
     >
-      {confetti.map((c, i) => (
-        <span
-          key={i}
-          aria-hidden
-          className="absolute h-2.5 w-2.5 rounded-sm"
-          style={{
-            left: c.left,
-            top: c.top,
-            background: c.color,
-            animation: `confetti-burst 0.9s cubic-bezier(0.22,1,0.36,1) ${c.delay} both`,
-            ...(c as unknown as React.CSSProperties),
-          }}
-        />
-      ))}
+      {/* ambient premium glows */}
+      <div aria-hidden className="pointer-events-none absolute left-1/2 top-[8%] h-72 w-72 -translate-x-1/2 rounded-full bg-indigo-600/25 blur-[90px]" />
+      <div aria-hidden className="pointer-events-none absolute bottom-[6%] left-[12%] h-56 w-56 rounded-full bg-fuchsia-600/15 blur-[80px]" />
+      <div aria-hidden className="pointer-events-none absolute bottom-[10%] right-[10%] h-56 w-56 rounded-full bg-emerald-500/15 blur-[80px]" />
+      <span aria-hidden className="pointer-events-none absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1px)", backgroundSize: "30px 30px" }} />
 
       <div className="relative flex w-full max-w-lg flex-col items-center text-center">
-        <div className="relative grid h-56 w-56 place-items-center sm:h-64 sm:w-64">
-          {rings.map((r, i) => (
-            <span
-              key={i}
-              aria-hidden
-              className="absolute rounded-full border-2"
-              style={{ width: r.size, height: r.size, borderColor: r.border, animation: `burst-ring 1.6s cubic-bezier(0.22,1,0.36,1) ${r.delay} both` }}
-            />
-          ))}
-          <span aria-hidden className="absolute inset-0 animate-spin rounded-full border border-dashed border-indigo-400/60" style={{ animation: "spin-dash 8s linear infinite" }} />
-          <svg viewBox="0 0 56 56" className="relative h-36 w-36">
-            <circle cx="28" cy="28" r="25" fill="none" stroke="rgb(99 102 241 / 0.25)" strokeWidth="2" />
-            <circle
-              cx="28" cy="28" r="25" fill="none" stroke="url(#enrGrad)" strokeWidth="2.5"
-              strokeLinecap="round" strokeDasharray="157" strokeDashoffset="157"
-              style={{ animation: "check-draw 1s cubic-bezier(0.65,0,0.35,1) 0.1s forwards" }}
-            />
-            <path
-              d="M17 29 L25 37 L39 21"
-              fill="none"
-              stroke="#6366f1"
-              strokeWidth="3.4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeDasharray="84"
-              strokeDashoffset="84"
-              style={{ animation: "check-draw 0.7s ease-out 0.85s forwards" }}
-            />
-            <defs>
-              <linearGradient id="enrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#6366f1" />
-                <stop offset="50%" stopColor="#8b5cf6" />
-                <stop offset="100%" stopColor="#d946ef" />
-              </linearGradient>
-            </defs>
-          </svg>
+        {/* animated badge */}
+        <div className="relative grid h-32 w-32 place-items-center sm:h-36 sm:w-36">
+          {/* pulse halo */}
+          <motion.span
+            aria-hidden
+            className="absolute inset-0 rounded-full border-2 border-indigo-400/50"
+            animate={{ scale: [1, 1.7], opacity: [0.8, 0] }}
+            transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
+          />
+          <motion.span
+            aria-hidden
+            className="absolute inset-0 rounded-full border-2 border-fuchsia-400/40"
+            animate={{ scale: [1, 1.45], opacity: [0.7, 0] }}
+            transition={{ duration: 1.6, repeat: Infinity, delay: 0.6, ease: "easeOut" }}
+          />
+          <motion.div
+            initial={{ scale: 0.7, rotate: -12, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 240, damping: 16 }}
+            className="relative grid h-24 w-24 place-items-center rounded-[1.75rem] bg-gradient-to-br from-indigo-500 via-blue-600 to-fuchsia-600 shadow-[0_30px_70px_-24px_rgb(99_102_241/0.9)] ring-1 ring-white/20 sm:h-28 sm:w-28"
+          >
+            <svg viewBox="0 0 52 52" className="h-14 w-14 sm:h-16 sm:w-16">
+              <path
+                d="M14 27 L22 35 L38 18"
+                fill="none"
+                stroke="#fff"
+                strokeWidth="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray="60"
+                strokeDashoffset="60"
+                style={{ animation: "check-draw 0.7s cubic-bezier(0.16,1,0.3,1) 0.25s forwards" }}
+              />
+            </svg>
+          </motion.div>
         </div>
 
-        <motion.h3
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="mt-2 font-display text-[clamp(1.9rem,6vw,2.7rem)] font-extrabold tracking-[-0.03em]"
+        {/* eyebrow */}
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.5 }}
+          className="mt-6 font-mono text-[0.62rem] font-bold uppercase tracking-[0.42em] text-emerald-400"
         >
-          {Array.from(title).map((ch, i) => (
-              <span
-                key={i}
-                className={ch === " " ? "inline-block w-3" : "inline-block indigo-text-shimmer"}
-                style={{ animation: `letter-rise 0.6s cubic-bezier(0.22,1,0.36,1) ${0.4 + i * 0.045}s both` }}
-              >
-                {ch === " " ? "\u00A0" : ch}
-              </span>
-            ))}
+          Welcome to Language Hub
+        </motion.p>
+
+        {/* title */}
+        <motion.h3
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.55 }}
+          className="mt-3 font-display text-[clamp(1.9rem,6vw,2.7rem)] font-extrabold tracking-[-0.03em] text-white"
+        >
+          You&apos;re <span className="bg-gradient-to-r from-indigo-400 via-sky-400 to-fuchsia-400 bg-clip-text text-transparent">enrolled</span> 🎉
         </motion.h3>
-        <p className="mt-3 text-[1rem] text-slate-500">
-          <span className="font-bold not-italic text-indigo-600">{name}</span>, welcome aboard — your seat is locked in and your books are ready.
-        </p>
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
-          {subjects.slice(0, 4).map((s) => (
-            <span key={s} className="rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 font-mono text-[0.68rem] font-bold text-emerald-700">
+
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.72, duration: 0.5 }}
+          className="mt-3 max-w-sm text-[1rem] leading-relaxed text-slate-300"
+        >
+          <span className="font-bold text-white">{name}</span>, great to have you aboard. Our team
+          will be in touch with you about your class details.
+        </motion.p>
+
+        {/* courses */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.85, duration: 0.5 }}
+          className="mt-6 flex flex-wrap justify-center gap-2"
+        >
+          {subjects.slice(0, 4).map((s, i) => (
+            <motion.span
+              key={s}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.9 + i * 0.08, duration: 0.4 }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/30 bg-emerald-400/10 px-4 py-1.5 font-display text-[0.72rem] font-bold text-emerald-300"
+            >
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               {s}
-            </span>
+            </motion.span>
           ))}
-        </div>
-        <button
+        </motion.div>
+
+        {/* WhatsApp contact */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.1, duration: 0.5 }}
+          className="mt-7 w-full max-w-sm"
+        >
+          {showNumber ? (
+            <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur">
+              <p className="font-mono text-[0.62rem] font-bold uppercase tracking-[0.28em] text-slate-400">
+                Contact us on WhatsApp
+              </p>
+              <a
+                href={waHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#25D366] font-display text-[0.9rem] font-bold text-white shadow-[0_16px_36px_-14px_rgb(37_211_102/0.8)] transition-all hover:-translate-y-0.5 hover:brightness-110"
+              >
+                <MessageCircle className="h-4.5 w-4.5" />
+                {displayNumber || "Open WhatsApp"}
+              </a>
+              <button
+                type="button"
+                onClick={() => setShowNumber(false)}
+                className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.2em] text-slate-400 transition-colors hover:text-white"
+              >
+                Hide number
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowNumber(true)}
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-emerald-300/40 bg-emerald-500/10 font-display text-[0.85rem] font-bold text-emerald-300 transition-all hover:-translate-y-0.5 hover:bg-emerald-500/20"
+            >
+              <MessageCircle className="h-4.5 w-4.5" />
+              Contact us on WhatsApp
+            </button>
+          )}
+        </motion.div>
+
+        <motion.button
           type="button"
           onClick={onDone}
-          className="mt-8 inline-flex h-[3.1rem] items-center justify-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_16px_36px_-14px_rgb(99_102_241/0.7)] transition-all duration-500 hover:-translate-y-0.5 hover:brightness-[1.05]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.3, duration: 0.4 }}
+          className="mt-6 inline-flex h-[3rem] items-center justify-center gap-2 rounded-full bg-white/10 px-8 font-display text-[0.85rem] font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20"
         >
-          Enter my classroom
-          <span className="inline-block transition-transform duration-500 group-hover:translate-x-1">→</span>
-        </button>
+          Continue to dashboard
+          <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+        </motion.button>
       </div>
     </motion.div>
   );

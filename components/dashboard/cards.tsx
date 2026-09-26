@@ -204,7 +204,7 @@ export function EnrollmentCard({ enr, onlinePayment, konnectPayment, onRetry }: 
                 ) : null}
               </div>
               <p className="text-center font-mono text-[0.62rem] uppercase tracking-widest text-ink-3">
-                or pay manually below — either way your seat is confirmed once received
+                or pay manually below — either way your seat is confirmed once your payment is received
               </p>
               {payError ? (
                 <p className="text-center text-[0.82rem] font-medium text-rose-600">{payError}</p>
@@ -224,7 +224,7 @@ export function EnrollmentCard({ enr, onlinePayment, konnectPayment, onRetry }: 
               </p>
             </div>
           ) : (
-            <p className="text-[0.9rem] text-ink-2">Payment instructions are on their way from the admin.</p>
+            <p className="text-[0.9rem] text-ink-2">Payment instructions from the admin will be ready shortly.</p>
           )}
 
           <div className="rounded-2xl border border-ink/10 bg-white/60 p-4">

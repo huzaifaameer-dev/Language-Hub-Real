@@ -32,7 +32,10 @@ export function IntroGate({ children }: { children: ReactNode }) {
       try {
         seen = window.localStorage.getItem("lh:intro-seen") === "1";
       } catch {}
-      if (seen) setIntroDone(true);
+      // Skip the intro on low-end devices — it should never delay the content.
+      const lowEnd =
+        typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency < 4;
+      if (seen || lowEnd) setIntroDone(true);
       setReady(true);
     });
     return () => window.cancelAnimationFrame(raf);

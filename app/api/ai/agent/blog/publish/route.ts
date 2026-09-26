@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { requireAdmin } from "@/lib/admin-guard";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { publishBlog } from "@/lib/ai/agent/tools";
@@ -16,16 +14,9 @@ const DraftSchema = z.object({
   author: z.string().max(80).optional().default("Aina (AI)"),
 });
 
-/** Save an AI-generated data-URI cover to disk so the DB never stores a blob. */
-async function materializeCover(slug: string, dataUri: string | null): Promise<string | null> {
-  if (!dataUri || !dataUri.startsWith("data:image/svg+xml;base64,")) return dataUri;
-  const match = dataUri.match(/^data:image\/svg\+xml;base64,(.+)$/);
-  if (!match) return dataUri;
-  const dir = path.join(process.cwd(), "public", "uploads", "blog");
-  await mkdir(dir, { recursive: true });
-  const filename = `${slug}-cover.svg`;
-  await writeFile(path.join(dir, filename), Buffer.from(match[1], "base64"));
-  return `/uploads/blog/${filename}`;
+/** Keep the AI-generated cover as a data-URI (serverless-safe: no disk). */
+async function materializeCover(_slug: string, dataUri: string | null): Promise<string | null> {
+  return dataUri;
 }
 
 /** POST — publish an AI-drafted blog post (reviewed by the admin first). */
@@ -55,7 +46,7 @@ export async function POST(request: Request) {
   if (!result.ok) {
     return NextResponse.json({ message: result.message }, { status: 500 });
   }
-  return NextResponse.json({ ok: true, id: result.ref, article: `/blog/${d.slug}` });
+  return NextResponse.json({ ok: true, id: result.ref, article: `/news/${d.slug}` });
 }
 
 export const dynamic = "force-dynamic";

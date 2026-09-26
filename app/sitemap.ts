@@ -4,27 +4,27 @@ import { appBaseUrl } from "@/lib/base-url";
 import { FALLBACK_COURSES, courseSlug } from "@/lib/course-data";
 import { SUCCESS_STORY_SLUGS } from "@/lib/content";
 
-/** Sitemap is rebuilt at most every 5 minutes — blog posts rarely change. */
+/** Sitemap is rebuilt at most every 5 minutes — news posts rarely change. */
+export const dynamic = "force-dynamic";
 export const revalidate = 300;
 
-const getBlogUrlsCached = unstable_cache(
-  async (): Promise<{ slug: string; publishedAt: string; tags: string[] }[]> => {
-    const { getBlogCollection } = await import("@/lib/db");
-    const blog = await getBlogCollection();
-    const posts = await blog
+const getNewsUrlsCached = unstable_cache(
+  async (): Promise<{ slug: string; publishedAt: string }[]> => {
+    const { getNewsPostsCollection } = await import("@/lib/db");
+    const news = await getNewsPostsCollection();
+    const posts = await news
       .find({ published: true })
-      .project({ slug: 1, publishedAt: 1, updatedAt: 1, tags: 1 })
+      .project({ slug: 1, publishedAt: 1, updatedAt: 1 })
       .sort({ publishedAt: -1 })
       .limit(100)
       .toArray();
     return posts.map((p) => ({
       slug: p.slug,
       publishedAt: (p.publishedAt ?? p.updatedAt ?? new Date()).toISOString(),
-      tags: p.tags ?? [],
     }));
   },
-  ["sitemap-blog"],
-  { revalidate: 300, tags: ["blog"] }
+  ["sitemap-news"],
+  { revalidate: 300, tags: ["news"] }
 );
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -36,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/login`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/signup`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/reset-password`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${base}/blog`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/news`, lastModified: now, changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/team`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
     { url: `${base}/success-stories`, lastModified: now, changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/placement-test`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
@@ -51,10 +51,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  const blogPages: MetadataRoute.Sitemap = (await getBlogUrlsCached()).map((p) => ({
-    url: `${base}/blog/${p.slug}`,
+  const newsPages: MetadataRoute.Sitemap = (await getNewsUrlsCached()).map((p) => ({
+    url: `${base}/news/${p.slug}`,
     lastModified: p.publishedAt,
-    changeFrequency: "monthly" as const,
+    changeFrequency: "daily" as const,
     priority: 0.7,
   }));
 
@@ -65,21 +65,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  // Blog category / tag archive URLs.
-  const tagSet = new Set<string>();
-  for (const p of await getBlogUrlsCached()) {
-    for (const t of p.tags) {
-      tagSet.add(t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""));
-    }
-  }
-  const tagPages: MetadataRoute.Sitemap = Array.from(tagSet)
-    .filter(Boolean)
-    .map((tag) => ({
-      url: `${base}/blog/tag/${tag}`,
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: 0.6,
-    }));
-
-  return [...staticPages, ...blogPages, ...storyPages, ...tagPages];
+  return [...staticPages, ...newsPages, ...storyPages];
 }

@@ -35,6 +35,8 @@ export interface SendEmailInput {
   subject: string;
   text: string;
   html: string;
+  /** Optional binary attachments (e.g. a generated registration PDF). */
+  attachments?: Array<{ filename: string; content: Buffer; contentType?: string }>;
 }
 
 export interface SendEmailResult {
@@ -63,6 +65,7 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       subject: input.subject,
       text: input.text,
       html: input.html,
+      attachments: input.attachments,
     });
     return { ok: true };
   } catch (err) {
@@ -350,5 +353,73 @@ export async function sendPaymentReminderEmail(input: {
       <p><a href="${appBaseUrl()}/dashboard" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Complete your payment</a></p>
       <p style="color:#94a3b8;font-size:13px;margin-top:14px">If we don't hear back, your seat may be released to the next student on the waitlist.</p>
     `),
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/*  Course registration emails (PDF summary + 24h acknowledgment)     */
+/* ------------------------------------------------------------------ */
+
+export interface RegistrationEmailPayload {
+  to: string;
+  studentName: string;
+  course: string;
+  ref: string;
+  pdf: Buffer;
+  /** Extra attachments — usually the original payment receipt. */
+  extraAttachments?: Array<{ filename: string; content: Buffer; contentType?: string }> | null;
+  /** True when this email is the admin inbox digest. */
+  adminCopy?: boolean;
+}
+
+/**
+ * Emails a course-registration PDF summary. Used for the admin inbox digest
+ * (with the receipt attached when one was uploaded) and for the student's
+ * "send me a copy of my responses" confirmation.
+ */
+export async function sendRegistrationEmail(
+  input: RegistrationEmailPayload
+): Promise<SendEmailResult> {
+  const { to, studentName, course, ref, pdf } = input;
+  const first = studentName.split(" ")[0] || "there";
+
+  const attachments: NonNullable<SendEmailInput["attachments"]> = [
+    { filename: `${ref}-${course.replace(/[^a-z0-9]+/gi, "-")}.pdf`.toLowerCase(), content: pdf, contentType: "application/pdf" },
+  ];
+  for (const a of input.extraAttachments ?? []) {
+    attachments.push({ filename: a.filename, content: a.content, contentType: a.contentType });
+  }
+
+  const subject = input.adminCopy
+    ? `New course registration — ${studentName} · ${course} (${ref})`
+    : `Your ${course} registration — ${ref} | Language Hub`;
+
+  return sendEmail({
+    to,
+    subject,
+    text: input.adminCopy
+      ? `${studentName} registered for ${course}. Reference ${ref}. The full PDF summary is attached.`
+      : `Hi ${first}, your ${course} registration has been received. Reference ${ref}. Our team will reply within 24 hours. Your responses are attached.`,
+    html: input.adminCopy
+      ? shell("New course registration", `
+        <p style="font-weight:600;margin:0 0 12px">${studentName} just registered for <strong>${course}</strong>.</p>
+        <table role="presentation" style="width:100%;margin:0 0 16px">
+          <tr><td style="padding:6px 0;color:#64748b;font-size:13px;width:130px">Reference</td><td style="padding:6px 0;font-weight:700">${ref}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Course</td><td style="padding:6px 0;font-weight:600">${course}</td></tr>
+          <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Student</td><td style="padding:6px 0;font-weight:600">${studentName}</td></tr>
+        </table>
+        <p>The full registration summary (with photo and payment details) is attached as a PDF.
+        ${input.extraAttachments?.length ? "The original payment receipt is attached as well." : ""}</p>
+        <p><a href="${appBaseUrl()}/admin-panel" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open the admin panel</a></p>
+      `)
+      : shell("Registration received — we'll reply within 24 hours", `
+        <p>Hi ${first},</p>
+        <p style="font-weight:600">Your <strong>${course}</strong> registration has been received.</p>
+        <p>Reference: <strong>${ref}</strong></p>
+        <p>Our team reviews every registration within <strong>24 hours</strong> and will reach out to you on WhatsApp or email to confirm your seat and next steps.</p>
+        <p>Your responses are attached as a PDF — keep it for your records.</p>
+        <p style="color:#94a3b8;font-size:13px">Every language journey begins with one small step. See you in class!</p>
+      `),
+    attachments,
   });
 }

@@ -38,7 +38,8 @@ export async function GET() {
       createdAt: user.createdAt?.toISOString?.() ?? null,
     },
     support: {
-      whatsapp: process.env.ACADEMY_WHATSAPP?.replace(/[^\d]/g, "") || null,
+      whatsapp:
+        (process.env.ACADEMY_WHATSAPP || process.env.NEXT_PUBLIC_ACADEMY_WHATSAPP)?.replace(/[^\d]/g, "") || null,
     },
   });
 }

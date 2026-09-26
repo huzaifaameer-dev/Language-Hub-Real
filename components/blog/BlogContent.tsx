@@ -15,6 +15,10 @@ function escapeHtml(s: string): string {
 
 const SAFE_SCHEMES = /^(https?:|mailto:)/i;
 
+/** Image sources may additionally be embedded data-URIs (uploaded inline
+ *  images), which the strict link policy deliberately excludes. */
+const SAFE_IMG_DATA = /^data:image\/(?:webp|jpeg|png);base64,/i;
+
 /** URL scheme allow-list: only http(s), mailto, and same-site relative/anchor
  *  hrefs survive. `javascript:`, `data:`, `vbscript:` etc. are dropped. */
 function sanitizeUrl(raw: string): string {
@@ -23,6 +27,16 @@ function sanitizeUrl(raw: string): string {
   if (url.startsWith("/") || url.startsWith("#")) return url;
   if (!SAFE_SCHEMES.test(url)) return "";
   return url;
+}
+
+/** Image src: http(s), same-site path, OR an embedded data:image URI. */
+function sanitizeImageSrc(raw: string): string {
+  const url = raw.trim();
+  if (!url) return "";
+  if (url.startsWith("/") || url.startsWith("#")) return url;
+  if (SAFE_IMG_DATA.test(url)) return url;
+  if (SAFE_SCHEMES.test(url)) return url;
+  return "";
 }
 
 function escAttr(s: string): string {
@@ -36,9 +50,9 @@ function renderInline(text: string): string {
   const placeholders: string[] = [];
 
   let out = text
-    // Images: ![alt](src)
-    .replace(/!\[([^\]]*)\]\((https?:[^)\s]+|\/[^\s()]+)\)/g, (_m, alt: string, src: string) => {
-      const safe = sanitizeUrl(src);
+    // Images: ![alt](src) — http(s), same-site path, or embedded data:image URI
+    .replace(/!\[([^\]]*)\]\((https?:[^)\s]+|\/[^\s()]+|data:image\/(?:webp|jpeg|png);base64,[A-Za-z0-9+/=]+)\)/g, (_m, alt: string, src: string) => {
+      const safe = sanitizeImageSrc(src);
       if (!safe) return "";
       placeholders.push(
         `<img src="${escAttr(safe)}" alt="${escAttr(alt)}" class="my-4 rounded-xl w-full" loading="lazy" />`

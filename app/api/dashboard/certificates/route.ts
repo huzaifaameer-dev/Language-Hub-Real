@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     batch: enr.batch,
     issuedAt: now.toISOString().split("T")[0],
     completionPercent,
-    signedBy: "Javeria Malik",
+    signedBy: "Javaria Malik",
     certificateId,
     createdAt: now,
   });

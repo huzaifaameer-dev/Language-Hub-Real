@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { CalendarRange, Check, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
@@ -41,6 +41,11 @@ const STAT_ACCENTS: Record<string, { chip: string; value: string; glow: string }
     chip: "bg-brand-magenta/15 text-brand-magenta ring-brand-magenta/25",
     value: "text-ink",
     glow: "group-hover:shadow-[0_24px_52px_-18px_rgb(214_58_140/0.5)]",
+  },
+  sky: {
+    chip: "bg-sky-500/15 text-sky-700 ring-sky-200",
+    value: "text-ink",
+    glow: "group-hover:shadow-[0_24px_52px_-18px_rgb(14_165_233/0.5)]",
   },
   violet: {
     chip: "bg-brand-deep/15 text-brand-deep ring-brand/20",
@@ -98,6 +103,16 @@ export function AdminStatCard({
 }
 
 const STATUS_META: Record<string, { cls: string; dot: string; iconCls: string }> = {
+  NEW: {
+    cls: "border-amber-300 bg-amber-50 text-amber-700",
+    dot: "bg-amber-500",
+    iconCls: "text-amber-500",
+  },
+  CONTACTED: {
+    cls: "border-sky-300 bg-sky-50 text-sky-700",
+    dot: "bg-sky-500",
+    iconCls: "text-sky-500",
+  },
   PENDING: {
     cls: "border-amber-300 bg-amber-50 text-amber-700",
     dot: "bg-amber-500",

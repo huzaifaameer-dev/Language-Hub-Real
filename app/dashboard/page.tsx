@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 
 import { auth } from "@/auth";
 import { getDb } from "@/lib/db";
+import { Navbar } from "@/components/navigation/Navbar";
 import { UserDashboard } from "@/components/dashboard/UserDashboard";
 import { StaleSession } from "@/components/dashboard/StaleSession";
 
@@ -17,6 +18,7 @@ export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   if (session.user.role === "ADMIN") redirect("/admin-panel");
+  if (session.user.role === "TEACHER") redirect("/management");
 
   // Source of truth for the profile photo is the DB, not the JWT (which is
   // only snapshotted at sign-in). Always pass the freshest stored image.
@@ -34,11 +36,14 @@ export default async function DashboardPage() {
   }
 
   return (
-    <UserDashboard
-      name={session.user.name ?? "Learner"}
-      email={session.user.email ?? ""}
-      image={image}
-      userId={session.user.id}
-    />
+    <>
+      <Navbar />
+      <UserDashboard
+        name={session.user.name ?? "Learner"}
+        email={session.user.email ?? ""}
+        image={image}
+        userId={session.user.id}
+      />
+    </>
   );
 }

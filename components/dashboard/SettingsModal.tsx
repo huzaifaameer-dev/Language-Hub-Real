@@ -195,7 +195,7 @@ export function SettingsModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-slate-900/45 px-5 py-10 backdrop-blur-md"
+      className="fixed inset-0 z-[180] grid place-items-center overflow-y-auto bg-slate-900/45 px-5 py-10 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-label="Account settings"

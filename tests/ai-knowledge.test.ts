@@ -25,7 +25,7 @@ describe("corpusFromCourses", () => {
 
   it("includes outcomes and description in the course overview", () => {
     const overview = corpusFromCourses(FALLBACK_COURSES).find(
-      (i) => i.sourceId === "IELTS Preparation" && i.kind === "course"
+      (i) => i.sourceId === "IELTS General & Academic" && i.kind === "course"
     );
     expect(overview).toBeDefined();
     expect(overview!.text).toContain("Band 6.5+");

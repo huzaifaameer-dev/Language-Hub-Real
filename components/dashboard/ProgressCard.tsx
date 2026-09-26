@@ -36,7 +36,7 @@ export function ProgressCard({ progress, onToggleChapter }: {
           </span>
           <div>
             <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.36em] text-emerald-600">Progress</p>
-            <p className="font-display text-[0.95rem] font-bold text-slate-800">Start learning to track your progress</p>
+            <p className="font-display text-[0.95rem] font-bold text-slate-800">Start learning and track your progress here</p>
           </div>
         </div>
       </section>

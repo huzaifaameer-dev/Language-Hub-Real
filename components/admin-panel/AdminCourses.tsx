@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useState } from "react";
 import { motion } from "framer-motion";
@@ -433,7 +433,7 @@ function CourseEditor({
             <input
               value={form.teacher}
               onChange={(e) => set("teacher", e.target.value)}
-              placeholder="e.g. Javeria Malik"
+              placeholder="e.g. Javaria Malik"
               className={inputCls}
             />
           </Labelled>

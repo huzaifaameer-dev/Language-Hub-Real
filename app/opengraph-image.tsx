@@ -63,7 +63,7 @@ export default function OpengraphImage() {
             Speak. Write. Shine.
           </div>
           <div style={{ display: "flex", color: "#cbd5e1", fontSize: 26, fontWeight: 500, maxWidth: 900, lineHeight: 1.35 }}>
-            English fluency, confidence and creative expression through practical, interactive learning with Javeria Malik.
+            English fluency, confidence and creative expression through practical, interactive learning with Javaria Malik.
           </div>
         </div>
 

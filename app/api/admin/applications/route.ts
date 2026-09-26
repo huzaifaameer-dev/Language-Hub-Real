@@ -168,11 +168,75 @@ export async function PATCH(request: Request) {
         approved: status === "APPROVED",
         subject:
           status === "APPROVED"
-            ? "Your application was approved"
+            ? "Your application was approved 🎉"
             : "Update on your application",
         message,
         href: "/dashboard",
       }).catch(() => {});
+    }
+
+    // On approval: record the course fee as a pending deposit (auto, once per
+    // student+course) so the ledger reflects the chosen programme.
+    if (status === "APPROVED" && target) {
+      await ensureIndexesAndAdmin();
+      const { getCoursesCollection } = await import("@/lib/db");
+      const { sendWaText } = await import("@/lib/whatsapp");
+      try {
+        const dbCol = await getApplicationsCollection();
+        const full = await dbCol.findOne({ _id: objectId });
+        const courseName = (full as { course?: string } | null)?.course ?? "";
+        const courseFee = await getCoursesCollection().then((c) =>
+          c.findOne({ name: courseName, active: true })
+        );
+        const amount = Number(courseFee?.fee ?? 0);
+        if (amount > 0) {
+          const { getDb } = await import("@/lib/db");
+          const db = await getDb();
+          const dup = await db.collection("payments").findOne({
+            userId: String(target.userId),
+            note: { $regex: "auto:" + courseName.replace(/[^a-z0-9]+/gi, "-") + ":" },
+            status: { $in: ["PENDING", "PAID"] },
+          });
+          if (!dup) {
+            await db.collection("payments").insertOne({
+              enrollmentId: "",
+              userId: String(target.userId),
+              amount,
+              currency: "PKR",
+              provider: "manual",
+              status: "PENDING",
+              type: "DEPOSIT",
+              method: "bank",
+              note: `auto:${courseName.replace(/[^a-z0-9]+/gi, "-") || "course"}:${String(objectId)}`,
+              studentName: full?.name,
+              studentEmail: full?.email,
+              createdBy: `${admin.email ?? "admin"} / AI Agent`,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          }
+        }
+      } catch {
+        // ledger record is best-effort — never fail approval on a hiccup
+      }
+      try {
+        const db2 = await (await import("@/lib/db")).getDb();
+        const user = await db2
+          .collection("users")
+          .findOne({ _id: new ObjectId(target.userId) }, { projection: { phone: 1, whatsapp: 1 } });
+        const phone =
+          (user as { phone?: string; whatsapp?: string } | null)?.phone ||
+          (user as { phone?: string; whatsapp?: string } | null)?.whatsapp;
+        const full2 = await applications.findOne({ _id: objectId });
+        if (phone && full2) {
+          void sendWaText({
+            to: phone,
+            text: `🎉 Congratulations ${full2.name}! Your application for ${full2.course} has been approved. Our team will contact you to confirm your enrollment. Welcome to Language Hub!`,
+          }).catch(() => {});
+        }
+      } catch {
+        // whatsapp best-effort
+      }
     }
 
     return NextResponse.json({ ok: true, status, updated: 1 });

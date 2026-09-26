@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -174,14 +174,14 @@ export function AuthShell({
             {children}
           </motion.div>
 
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease, delay: 0.28 }}
             className="mt-6 text-center font-sans text-[0.88rem] text-ink-2"
           >
             {footer}
-          </motion.p>
+          </motion.div>
         </motion.div>
       </div>
     </div>

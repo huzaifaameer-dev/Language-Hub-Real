@@ -17,6 +17,8 @@ const getPublicTestimonials = unstable_cache(
       quote: d.quote,
       outcome: d.outcome,
       course: d.course,
+      featured: !!d.featured,
+      image: d.image ?? null,
     }));
   },
   ["public-testimonials"],

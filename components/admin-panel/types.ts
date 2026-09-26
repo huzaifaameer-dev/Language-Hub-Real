@@ -36,21 +36,19 @@ export interface AdminEnrollment {
 }
 
 export interface AdminStats {
+  /** Course registrations seen lifetime. */
   total: number;
-  pending: number;
-  approved: number;
-  rejected: number;
-  enrPending: number;
-  enrEnrolled: number;
-  enrRejected: number;
-  paymentsTotal: number;
+  newCount: number;
+  contacted: number;
+  enrolled: number;
   today: number;
   thisWeek: number;
   thisMonth: number;
   users: number;
   courses: number;
   notifications: number;
-  approvalRate: number;
+  /** Enrolled / total — how many registrations converted. */
+  responseRate: number;
 }
 
 /** Counts that cannot be derived reliably from the capped lists: full-table
@@ -61,16 +59,48 @@ export interface AdminCounts {
   users: number;
   courses: number;
   notifications: number;
-  paymentsTotal: number;
-  appsTotal: number;
-  appsPending: number;
-  appsApproved: number;
-  appsRejected: number;
-  enrsPending: number;
-  enrsAwaiting: number;
-  enrsProof: number;
-  enrsEnrolled: number;
-  enrsRejected: number;
+  regTotal: number;
+  regNew: number;
+  regContacted: number;
+  regEnrolled: number;
+}
+
+export type AdminRegistrationStatus = "NEW" | "CONTACTED" | "ENROLLED";
+
+export interface AdminRegistration {
+  id: string;
+  ref: string;
+  userId: string;
+  name: string;
+  email: string;
+  course: string;
+  courseKey: string;
+  phone: string;
+  address: string;
+  dob: string;
+  education: {
+    qualification: string;
+    institution: string;
+    yearOfPassing: string;
+  };
+  study: {
+    preferredTime: string;
+    focusModules: string[];
+    level: string;
+    hoursPerWeek: string;
+    heardAbout: string;
+    extras?: string | null;
+  };
+  payment: {
+    method: string;
+    note?: string | null;
+    receipt?: string | null;
+    receiptName?: string | null;
+  };
+  status: AdminRegistrationStatus;
+  adminMessage?: string | null;
+  pdfAttached: boolean;
+  createdAt: string;
 }
 
 /** Lightweight student-directory entry (password never leaves the server). */
@@ -81,6 +111,16 @@ export interface AdminUser {
   image: string | null;
   emailVerified: string | null;
   role: string;
+  createdAt: string;
+}
+
+/** Staff directory entry (admins + teachers). Password never leaves the server. */
+export interface AdminTeacher {
+  id: string;
+  name: string;
+  email: string;
+  role: "ADMIN" | "TEACHER";
+  disabled: boolean;
   createdAt: string;
 }
 

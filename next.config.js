@@ -1,4 +1,8 @@
 const isDev = process.env.NODE_ENV === "development";
+// Vercel injects live-communication tooling from vercel.live (feedback,
+// insights, speed-insights, live preview). Allow that origin on Vercel builds
+// so the CSP stops blocking those requests on production.
+const vercelLive = process.env.VERCEL ? " https://vercel.live" : "";
 
 // Analytics script origin (umami/plausible…) — added to script-src/connect-src
 // explicitly so the injected third-party script is actually allowed by the CSP.
@@ -10,23 +14,25 @@ try {
 
 // `'unsafe-inline'` is required for Next's hydration scripts; keep the surface
 // minimal by avoiding `'unsafe-eval'` outside dev.
-const scriptSrc = `'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${analyticsOrigin ? ` ${analyticsOrigin}` : ""}`;
+const scriptSrc = `'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}${analyticsOrigin ? ` ${analyticsOrigin}` : ""}${vercelLive}`;
 // Explicit connect-src so SSE (/api/events), fetch, and analytics beacons are
 // governed by a named directive (no implicit default-src fallback surprises).
-const connectSrc = `'self'${analyticsOrigin ? ` ${analyticsOrigin}` : ""}`;
+const connectSrc = `'self'${analyticsOrigin ? ` ${analyticsOrigin}` : ""}${vercelLive}`;
+// Allowed embeddable frames: YouTube embeds + Vercel live-preview tooling.
+const frameSrc = `https://www.youtube.com https://www.youtube-nocookie.com${vercelLive}`;
 
 const cspHeader = `
     default-src 'self';
     script-src ${scriptSrc};
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: https:;
-    font-src 'self';
+    font-src 'self'${vercelLive ? " https://vercel.live" : ""};
     connect-src ${connectSrc};
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    frame-src https://www.youtube.com https://www.youtube-nocookie.com;
+    frame-src ${frameSrc};
     worker-src 'self';
 `;
 
@@ -50,6 +56,12 @@ module.exports = {
   // "loader does not implement width" dev warning.
   images: {
     unoptimized: true,
+  },
+  // This dev machine only has ~8GB RAM; cap the number of parallel build
+  // workers so `next build` doesn't OOM during static generation. Does not
+  // affect Vercel, which budgets its own workers.
+  experimental: {
+    cpus: 2,
   },
   allowedDevOrigins: ["192.168.100.7", "127.0.0.1", "localhost"],
   async headers() {
@@ -87,5 +99,5 @@ module.exports = {
 
 /** Homepage CSP — same shape plus `unsafe-eval` (animation/3D tooling needs it). */
 function homeCspHeader() {
-  return `\n    default-src 'self';\n    script-src 'self' 'unsafe-inline' 'unsafe-eval'${analyticsOrigin ? ` ${analyticsOrigin}` : ""};\n    style-src 'self' 'unsafe-inline';\n    img-src 'self' blob: data: https:;\n    font-src 'self';\n    connect-src ${connectSrc};\n    object-src 'none';\n    base-uri 'self';\n    form-action 'self';\n    frame-ancestors 'none';\n    frame-src https://www.youtube.com https://www.youtube-nocookie.com;\n    worker-src 'self';\n  `;
+  return `\n    default-src 'self';\n    script-src 'self' 'unsafe-inline' 'unsafe-eval'${analyticsOrigin ? ` ${analyticsOrigin}` : ""}${vercelLive};\n    style-src 'self' 'unsafe-inline';\n    img-src 'self' blob: data: https:;\n    font-src 'self'${vercelLive ? " https://vercel.live" : ""};\n    connect-src ${connectSrc};\n    object-src 'none';\n    base-uri 'self';\n    form-action 'self';\n    frame-ancestors 'none';\n    frame-src ${frameSrc};\n    worker-src 'self';\n  `;
 }

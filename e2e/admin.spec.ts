@@ -6,19 +6,22 @@ const ADMIN_EMAIL = process.env.LH_TEST_ADMIN_EMAIL ?? "ci.e2e.admin@languagehub
 const ADMIN_PASS = process.env.LH_TEST_ADMIN_PASSWORD ?? "E2e-Test-Admin-Pass-9x!";
 const ADMIN_CODE = process.env.LH_TEST_ADMIN_ACCESS_CODE ?? "E2E-TEST-ACCESS-9x";
 
-test("admin gate unlock -> user directory tab", async ({ page }) => {
+test("admin gate unlock -> registration desk tab", async ({ page }) => {
   await page.goto("/admin-panel");
   await page.locator("#ag-email").fill(ADMIN_EMAIL);
   await page.locator("#ag-pass").fill(ADMIN_PASS);
   await page.locator("#ag-code").fill(ADMIN_CODE);
   await page.getByRole("button", { name: /Unlock Panel/i }).click();
 
-  await expect(page.locator("body")).toContainText(/Operations|Command Center/i, {
+  await expect(page.locator("body")).toContainText(/admin control suite/i, {
     timeout: 25_000,
   });
 
-  // Applications tab shows the queue
-  await expect(page.locator("body")).toContainText(/Applications/i);
+  // Registration desk is the default tab and shows the queue
+  await expect(page.locator("body")).toContainText(/Course Registrations/i, {
+    timeout: 20_000,
+  });
+  await expect(page.locator("body")).toContainText(/Registrations/i);
 
   // Students tab
   await page.evaluate(() => {

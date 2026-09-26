@@ -12,7 +12,7 @@ const dbName = process.env.MONGODB_DB ?? "languagehub";
  * Bump when the admin seed shape/password handling changes so stored admins
  * get re-hashed with the current ADMIN_PASSWORD on the next ensure call.
  */
-const SEED_VERSION = 3;
+const SEED_VERSION = 4;
 
 declare global {
   var lhMongo: Promise<MongoClient> | undefined;
@@ -22,8 +22,14 @@ export function createDbClient(): Promise<MongoClient> {
   const client = new MongoClient(uri, {
     maxPoolSize: 10,
     minPoolSize: 1,
-    serverSelectionTimeoutMS: 5000,
-    connectTimeoutMS: 5000,
+    // Longer than default so Atlas free-tier cold/sleep starts (or slow Vercel
+    // cold boxes) don't fail the first request — the connection is reused from
+    // globalThis on warm instances.
+    serverSelectionTimeoutMS: 15000,
+    connectTimeoutMS: 15000,
+    socketTimeoutMS: 60000,
+    retryReads: true,
+    retryWrites: true,
   });
   return client.connect();
 }
@@ -34,14 +40,33 @@ export const clientPromise: Promise<MongoClient> =
 // Mark the original promise handled so a transiently-unreachable database can
 // never surface as an unhandled-rejection crash (callers still see the error
 // when they await getDb).
-clientPromise.catch(() => {});
+clientPromise.catch(() => {
+  // A rejected connection must not poison every later request: reset the cache
+  // so the next call attempts a fresh client instead of reusing a dead one.
+  globalThis.lhMongo = undefined;
+});
 
-if (process.env.NODE_ENV !== "production") {
-  globalThis.lhMongo = clientPromise;
+// Cache on globalThis in ALL environments (not just dev). On serverless the
+// instance dies between requests, but while it is warm the same client is
+// reused — this is what makes the connection survive across requests in prod.
+globalThis.lhMongo = clientPromise;
+
+/** Lazy cached connection that self-heals: if the cached client was rejected,
+ *  a fresh one is created before the next query so a stale failure does not
+ *  permanently brick the serverless instance. */
+export function getClient(): Promise<MongoClient> {
+  const cached = globalThis.lhMongo;
+  if (cached) return cached;
+  const fresh = createDbClient();
+  fresh.catch(() => {
+    globalThis.lhMongo = undefined;
+  });
+  globalThis.lhMongo = fresh;
+  return fresh;
 }
 
 export function getDb(): Promise<Db> {
-  return clientPromise.then((c) => c.db(dbName));
+  return getClient().then((c) => c.db(dbName));
 }
 
 export type PaymentStatus = "PENDING" | "PAID" | "FAILED" | "REFUNDED";
@@ -95,6 +120,9 @@ export interface TestimonialDoc {
   course: string;
   active: boolean;
   order: number;
+  /** Featured "top band scorer" review — displayed as a premium hero card. */
+  featured?: boolean;
+  image?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -102,6 +130,289 @@ export interface TestimonialDoc {
 export async function getTestimonialsCollection() {
   const db = await getDb();
   return db.collection<TestimonialDoc>("testimonials");
+}
+
+/* ── Team members (admin-managed profiles shown on /team) ── */
+
+export interface TeamMemberDoc {
+  _id?: unknown;
+  /** Display name, e.g. "Javaria Malik". */
+  name: string;
+  /** Full role line, e.g. "CEO · Founder · Chairman". */
+  role: string;
+  /** Short badge text for the CEO flagship block, e.g. "MS. JAVARIA MALIK". */
+  headline?: string | null;
+  credentials: string[];
+  bio: string;
+  focus: string[];
+  /** Data-URI (webp/jpeg/png) portrait. */
+  image?: string | null;
+  order: number;
+  active: boolean;
+  /** The flagship founder/CEO profile — rendered as a special featured block. */
+  ceo?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export async function getTeamMembersCollection() {
+  const db = await getDb();
+  return db.collection<TeamMemberDoc>("team_members");
+}
+
+/* ── Feedback (site/dashboard submissions reviewed in the admin panel) ── */
+
+export type FeedbackCategory =
+  | "courses"
+  | "teaching"
+  | "website"
+  | "billing"
+  | "suggestion"
+  | "general";
+
+export type FeedbackStatus = "NEW" | "REVIEWED" | "ARCHIVED";
+
+export interface FeedbackDoc {
+  _id?: unknown;
+  /** Submitter display name. */
+  name: string;
+  email?: string | null;
+  /** Signed-in user id, when the visitor was authenticated. */
+  userId?: string | null;
+  category: FeedbackCategory;
+  /** 1–5 star rating. */
+  rating: number;
+  subject: string;
+  message: string;
+  contactOk: boolean;
+  status: FeedbackStatus;
+  /** Optional admin reply note (shown back if ever surfaced). */
+  adminNote?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export async function getFeedbackCollection() {
+  const db = await getDb();
+  return db.collection<FeedbackDoc>("feedback");
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/*  Management & Communication System (groups, assignments, attendance,       */
+/*  materials, messages — used by /manage and /my-learning)                  */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+export interface GroupDoc {
+  _id?: unknown;
+  /** e.g. "Spoken English Morning", "IELTS Batch A" (never hard-coded). */
+  name: string;
+  courseId?: string | null;
+  courseName?: string | null;
+  /** Teacher user-ids assigned to this group. */
+  teacherIds: string[];
+  /** Student user-ids in this group (users can be in many groups). */
+  studentIds: string[];
+  schedule?: string | null;
+  notes?: string | null;
+  status: "ACTIVE" | "ARCHIVED";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface TeacherDoc {
+  _id?: unknown;
+  userId: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  courseIds: string[];
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type MgAssignmentStatus = "DRAFT" | "SCHEDULED" | "PUBLISHED" | "OPEN" | "CLOSED";
+export type MgAssignmentPriority = "LOW" | "MEDIUM" | "HIGH";
+export type MgAssignmentKind = "homework" | "assignment" | "test" | "quiz" | "writing" | "speaking" | "reading" | "listening" | "general";
+
+export interface MgAssignmentDoc {
+  _id?: unknown;
+  groupIds: string[];
+  teacherId: string;
+  teacherName: string;
+  courseId?: string | null;
+  courseName?: string | null;
+  title: string;
+  kind?: MgAssignmentKind | null;
+  description?: string | null;
+  instructions?: string | null;
+  attachments: Array<{ name: string; rel: string; mime: string }>;
+  links: string[];
+  materialIds: string[];
+  deadline?: Date | null;
+  reminderEnabled: boolean;
+  /** When the automatic reminder to non-submitters fires (default: 2h before deadline). */
+  reminderAt?: Date | null;
+  priority: MgAssignmentPriority;
+  status: MgAssignmentStatus;
+  /** For SCHEDULED: when to auto-publish. */
+  scheduledFor?: Date | null;
+  notifyOnPublish: boolean;
+  publishedAt?: Date | null;
+  closedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type SubmissionStatus = "SUBMITTED" | "LATE" | "REVIEWED" | "RETURNED";
+
+export interface SubmissionDoc {
+  _id?: unknown;
+  assignmentId: string;
+  studentId: string;
+  studentName: string;
+  studentEmail?: string | null;
+  text?: string | null;
+  links: string[];
+  attachments: Array<{ name: string; rel: string; mime: string }>;
+  status: SubmissionStatus;
+  feedback?: string | null;
+  grade?: string | null;
+  submittedAt: Date;
+  reviewedAt?: Date | null;
+  returnedAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type AttendanceStatus = "PRESENT" | "ABSENT" | "LATE" | "EXCUSED";
+
+export interface AttendanceRecord {
+  studentId: string;
+  name: string;
+  status: AttendanceStatus;
+}
+
+export interface AttendanceDoc {
+  _id?: unknown;
+  groupId: string;
+  /** YYYY-MM-DD */
+  date: string;
+  records: AttendanceRecord[];
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type MaterialType = "PDF" | "DOC" | "IMAGE" | "VIDEO" | "LINK";
+
+export interface MaterialDoc {
+  _id?: unknown;
+  title: string;
+  category?: string | null;
+  description?: string | null;
+  type: MaterialType;
+  /** External link OR tenant-relative private path for uploaded files. */
+  url?: string | null;
+  uploaderId: string;
+  uploaderName: string;
+  groupId?: string | null;
+  courseId?: string | null;
+  active: boolean;
+  createdAt: Date;
+}
+
+export type MessageStatus = "DRAFT" | "SCHEDULED" | "PROCESSING" | "SENT" | "FAILED" | "CANCELLED";
+export type MessageKind =
+  | "assignment"
+  | "announcement"
+  | "reminder"
+  | "material"
+  | "notice"
+  | "custom";
+
+export interface MessageDelivery {
+  phone: string;
+  name: string;
+  status: "SENT" | "FAILED" | "PENDING" | "READ" | "DELIVERED";
+  messageId?: string | null;
+  error?: string | null;
+}
+
+export interface MessageDoc {
+  _id?: unknown;
+  /** Dedupe key for reminders ("remind:<assignmentId>:<studentId>"). */
+  refKey?: string | null;
+  kind: MessageKind;
+  senderId: string;
+  senderName: string;
+  recipientType: "student" | "group" | "groups";
+  studentIds: string[];
+  groupIds: string[];
+  groupNames: string[];
+  text: string;
+  templateKey?: string | null;
+  variables?: Record<string, string> | null;
+  status: MessageStatus;
+  scheduledFor?: Date | null;
+  sentAt?: Date | null;
+  failedReason?: string | null;
+  /** True when simulated (WhatsApp API not configured). */
+  mock: boolean;
+  relatedAssignmentId?: string | null;
+  deliveries: MessageDelivery[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MessageTemplateDoc {
+  _id?: unknown;
+  name: string;
+  body: string;
+  active: boolean;
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export async function getGroupsCollection() {
+  const db = await getDb();
+  return db.collection<GroupDoc>("groups");
+}
+
+export async function getTeachersCollection() {
+  const db = await getDb();
+  return db.collection<TeacherDoc>("teachers");
+}
+
+export async function getMgAssignmentsCollection() {
+  const db = await getDb();
+  return db.collection<MgAssignmentDoc>("assignments");
+}
+
+export async function getSubmissionsCollection() {
+  const db = await getDb();
+  return db.collection<SubmissionDoc>("submissions");
+}
+
+export async function getAttendanceCollection() {
+  const db = await getDb();
+  return db.collection<AttendanceDoc>("attendance");
+}
+
+export async function getMaterialsCollection() {
+  const db = await getDb();
+  return db.collection<MaterialDoc>("materials");
+}
+
+export async function getMessagesCollection() {
+  const db = await getDb();
+  return db.collection<MessageDoc>("messages");
+}
+
+export async function getMessageTemplatesCollection() {
+  const db = await getDb();
+  return db.collection<MessageTemplateDoc>("message_templates");
 }
 
 export interface DemoBookingDoc {
@@ -248,12 +559,136 @@ export interface BlogPostDoc {
   content: string;
   coverImage?: string | null;
   author: string;
+  authorRole?: "ceo" | "founder" | "teacher" | "developer" | "manager" | "ambassador";
   tags: string[];
   published: boolean;
   views: number;
+  commentCount: number;
+  likeCount: number;
+  interestedCount: number;
   createdAt: Date;
   updatedAt: Date;
   publishedAt?: Date | null;
+}
+
+/** A Daily News post authored from the admin panel. */
+export interface NewsPostDoc {
+  _id?: unknown;
+  slug: string;
+  title: string;
+  body: string;
+  coverImage?: string | null;
+  authorName: string;
+  authorRole: "ceo" | "founder" | "teacher" | "developer" | "manager" | "ambassador";
+  tags: string[];
+  published: boolean;
+  pinned: boolean;
+  views: number;
+  likeCount: number;
+  interestedCount: number;
+  notInterestedCount: number;
+  commentCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+  publishedAt?: Date | null;
+}
+
+/** A single comment a visitor/student leaves on a news (blog) post. */
+export interface NewsCommentDoc {
+  _id?: unknown;
+  postSlug: string;
+  postTitle?: string;
+  /** Display name (always captured, even for anonymous visitors). */
+  authorName: string;
+  /** Signed-in user id when available (for avatar + future mentions). */
+  authorId?: string | null;
+  authorImage?: string | null;
+  /** Anonymous identity cookie, used for like-vote dedupe + rate limiting. */
+  clientId?: string | null;
+  text: string;
+  likes: number;
+  /** Actor ids (userId or clientId) that already liked this comment. */
+  likedBy: string[];
+  /** Admin officially endorsed this comment (badge shown to visitors). */
+  adminLiked: boolean;
+  pinned: boolean;
+  hidden: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/** One row per (post, actor) storing that actor's reaction to a news post. */
+export interface NewsReactionDoc {
+  _id?: unknown;
+  postSlug: string;
+  /** userId or anonymous clientId. */
+  actorId: string;
+  type: "like" | "interested" | "not_interested";
+  updatedAt: Date;
+}
+
+/* ── Course Registration (replaces the old apply → approve flow) ── */
+
+export type RegistrationStatus = "NEW" | "CONTACTED" | "ENROLLED";
+
+export interface RegistrationEducation {
+  qualification: string;
+  institution: string;
+  yearOfPassing: string;
+}
+
+export interface RegistrationStudyPrefs {
+  preferredTime: string;
+  focusModules: string[];
+  level: string;
+  hoursPerWeek: string;
+  heardAbout: string;
+  /** Course-specific answer, e.g. the extra test/goal question. */
+  extras?: string | null;
+}
+
+export interface RegistrationPayment {
+  method: string;
+  note?: string | null;
+  /** Tenant-relative path to the uploaded receipt (image or PDF). */
+  receipt?: string | null;
+  /** Original filename of the uploaded receipt, for the admin panel. */
+  receiptName?: string | null;
+}
+
+export interface RegistrationDoc {
+  _id?: unknown;
+  /** Human-friendly reference, e.g. LH-2026-9X2K4Q. */
+  ref: string;
+  userId: string;
+  /** Student display name captured at sign-up (authoritative). */
+  name: string;
+  email: string;
+  /** Course key — see lib/registration-config.ts. */
+  courseKey: string;
+  /** Public course name snapshot. */
+  course: string;
+  dob: string;
+  phone: string;
+  address: string;
+  education: RegistrationEducation;
+  study: RegistrationStudyPrefs;
+  payment: RegistrationPayment;
+  /** Tenant-relative path to the student photo (auth-guarded). */
+  photo?: string | null;
+  /** True once the declaration checkbox was accepted. */
+  agreed: boolean;
+  /** Student asked for an emailed copy of their responses. */
+  sendCopy: boolean;
+  /** Admin tracked. */
+  status: RegistrationStatus;
+  /** Optional note the admin attached while contacting/enrolling. */
+  adminMessage?: string | null;
+  /** Tenant-relative path to the generated PDF summary. */
+  pdfPath?: string | null;
+  pdfAttached: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 /** Immutable admin action log entry (audit trail). */
@@ -291,6 +726,26 @@ export async function logAdminAction(input: {
 export async function getBlogCollection() {
   const db = await getDb();
   return db.collection<BlogPostDoc>("blog_posts");
+}
+
+export async function getNewsPostsCollection() {
+  const db = await getDb();
+  return db.collection<NewsPostDoc>("news_posts");
+}
+
+export async function getRegistrationsCollection() {
+  const db = await getDb();
+  return db.collection<RegistrationDoc>("registrations");
+}
+
+export async function getNewsCommentsCollection() {
+  const db = await getDb();
+  return db.collection<NewsCommentDoc>("news_comments");
+}
+
+export async function getNewsReactionsCollection() {
+  const db = await getDb();
+  return db.collection<NewsReactionDoc>("news_reactions");
 }
 
 export async function getNotificationsCollection() {
@@ -338,6 +793,30 @@ export function ensureInit(): Promise<void> {
         db.collection("demo_bookings").createIndex({ createdAt: -1 }),
         db.collection("demo_bookings").createIndex({ email: 1 }),
         db.collection("testimonials").createIndex({ active: 1, order: 1 }),
+        db.collection("team_members").createIndex({ active: 1, order: 1 }),
+        db.collection("team_members").createIndex({ ceo: 1 }),
+        db.collection("feedback").createIndex({ status: 1, createdAt: -1 }),
+        db.collection("feedback").createIndex({ createdAt: -1 }),
+        db.collection("groups").createIndex({ name: 1 }),
+        db.collection("groups").createIndex({ teacherIds: 1, status: 1 }),
+        db.collection("groups").createIndex({ studentIds: 1, status: 1 }),
+        db.collection("teachers").createIndex({ userId: 1 }, { unique: true }),
+        db.collection("assignments").createIndex({ groupIds: 1, createdAt: -1 }),
+        db.collection("assignments").createIndex({ status: 1, scheduledFor: 1 }),
+        db.collection("assignments").createIndex({ teacherId: 1, createdAt: -1 }),
+        db.collection("assignments").createIndex({ deadline: 1, reminderAt: 1 }),
+        db.collection("submissions").createIndex({ assignmentId: 1, studentId: 1 }, { unique: true }),
+        db.collection("submissions").createIndex({ assignmentId: 1, status: 1 }),
+        db.collection("submissions").createIndex({ studentId: 1, createdAt: -1 }),
+        db.collection("attendance").createIndex({ groupId: 1, date: 1 }, { unique: true }),
+        db.collection("attendance").createIndex({ date: 1 }),
+        db.collection("materials").createIndex({ createdAt: -1 }),
+        db.collection("materials").createIndex({ groupId: 1 }),
+        db.collection("messages").createIndex({ status: 1, scheduledFor: 1 }),
+        db.collection("messages").createIndex({ senderId: 1, createdAt: -1 }),
+        db.collection("messages").createIndex({ groupIds: 1, createdAt: -1 }),
+        db.collection("messages").createIndex({ refKey: 1 }, { unique: true, sparse: true }),
+        db.collection("message_templates").createIndex({ name: 1 }, { unique: true }),
         db.collection("payments").createIndex({ userId: 1 }),
         db.collection("payments").createIndex({ enrollmentId: 1 }),
         db.collection("payments").createIndex({ providerRef: 1 }, { unique: true, sparse: true }),
@@ -351,6 +830,14 @@ export function ensureInit(): Promise<void> {
         db.collection("blog_posts").createIndex({ slug: 1 }, { unique: true }),
         db.collection("blog_posts").createIndex({ published: 1, publishedAt: -1 }),
         db.collection("blog_posts").createIndex({ tags: 1 }),
+        db.collection("news_comments").createIndex({ postSlug: 1, createdAt: -1 }),
+        db.collection("news_comments").createIndex({ pinned: 1, createdAt: -1 }),
+        db.collection("news_comments").createIndex({ hidden: 1 }),
+        db.collection("news_reactions").createIndex({ postSlug: 1, actorId: 1 }, { unique: true }),
+        db.collection("news_reactions").createIndex({ postSlug: 1, type: 1, createdAt: -1 }),
+        db.collection("news_posts").createIndex({ slug: 1 }, { unique: true }),
+        db.collection("news_posts").createIndex({ published: 1, pinned: -1, publishedAt: -1 }),
+        db.collection("news_posts").createIndex({ tags: 1 }),
         db.collection("settings").createIndex({ key: 1 }, { unique: true }),
         db.collection("errors").createIndex({ createdAt: -1 }),
         db.collection("audit_log").createIndex({ createdAt: -1 }),
@@ -368,6 +855,10 @@ export function ensureInit(): Promise<void> {
         db.collection("assignments").createIndex({ userId: 1, course: 1 }),
         db.collection("assignments").createIndex({ enrollmentId: 1 }),
         db.collection("assignments").createIndex({ createdAt: -1 }),
+        db.collection("registrations").createIndex({ userId: 1, createdAt: -1 }),
+        db.collection("registrations").createIndex({ status: 1, createdAt: -1 }),
+        db.collection("registrations").createIndex({ ref: 1 }, { unique: true }),
+        db.collection("registrations").createIndex({ courseKey: 1, createdAt: -1 }),
         db.collection("whatsapp_leads").createIndex({ createdAt: -1 }),
         db.collection("whatsapp_leads").createIndex({ phone: 1 }),
         db.collection("referrals").createIndex({ userId: 1 }, { unique: true }),
@@ -406,48 +897,31 @@ export function ensureInit(): Promise<void> {
         db.collection("auth_tokens").dropIndex("token_1_purpose_1").catch(() => {}),
       ]);
 
-      // Seed the course catalog (idempotent per course name).
+      // Seed the course catalog. Existing rows are OVERWRITTEN with the current
+      // fallback/seed data (fees, duration, batches, syllabus) and any course no
+      // longer in the list is deleted — so the published catalogue always
+      // matches the source of truth and no stale/old courses linger.
       const courses = db.collection<CourseDoc>("courses");
       const now = new Date();
+      const currentNames = new Set(FALLBACK_COURSES.map((c) => c.name));
       await Promise.all(
         FALLBACK_COURSES.map((c) =>
           courses.updateOne(
             { name: c.name },
             {
-              $setOnInsert: {
+              $set: {
                 ...c,
-                createdAt: now,
                 updatedAt: now,
               },
+              $setOnInsert: { createdAt: now },
             },
             { upsert: true }
           )
         )
       );
-
-      // Seed default testimonials (idempotent per quote).
-      const testimonials = db.collection<TestimonialDoc>("testimonials");
-      await Promise.all(
-        TESTIMONIALS.map((t, i) =>
-          testimonials.updateOne(
-            { quote: t.quote },
-            {
-              $setOnInsert: {
-                name: t.name,
-                role: t.role,
-                quote: t.quote,
-                outcome: t.outcome,
-                course: t.course,
-                active: true,
-                order: i,
-                createdAt: now,
-                updatedAt: now,
-              },
-            },
-            { upsert: true }
-          )
-        )
-      );
+      await courses.deleteMany({
+        name: { $nin: Array.from(currentNames) },
+      });
 
       if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
         const existing = await db

@@ -1,7 +1,7 @@
 # Language Hub — Hub of Language Excellence
 
 Production-grade web app for **Language Hub**, an online English-language
-institute founded by **Ms. Javeria Malik**. It is a full learning-management
+institute founded by **Ms. Javaria Malik**. It is a full learning-management
 platform on top of a premium, scroll-driven marketing brand experience:
 
 - **Marketing site** — cinematic one-page experience: kinetic intro, GSAP
@@ -9,9 +9,15 @@ platform on top of a premium, scroll-driven marketing brand experience:
 - **Aina — 3D voice guide** — a procedural Three.js mascot that greets visitors
   on load, answers with TTS + lip-sync, and takes mic (Chrome/Edge) or typed
   questions. Grounded by the same RAG knowledge base as the AI tutor.
-- **Learning platform** — signup/login, apply → review → enroll workflow,
-  live application tracking, student dashboard, admin panel (applications,
-  enrollments, payments + ledger, AI weekly assistant, blog, audit).
+- **Learning platform** — signup/login, course selection → secure multi-step
+  registration form (per-course), student photo + payment-proof uploads with
+  even stricter validation, automatic **PDF summary** emailed to the admin inbox
+  and an optional copy to the student, 24-hour reply acknowledgment, live
+  registration tracking, admin panel (registration desk, demo bookings,
+  students, courses, news, testimonials, AI reports).
+- **Admin panel** — one place to review course registrations (photo, receipt,
+  generated PDF, WhatsApp/email links), move students through New → Contacted →
+  Enrolled, plus demo bookings, students, courses, news and AI reports.
 - **AI features** — RAG English tutor, placement-test analyser, essay/speaking
   feedback studio, and a weekly admin teacher-assistant agent. Every feature
   degrades to a deterministic **offline mode** when no LLM key is configured.
@@ -87,10 +93,10 @@ node scripts/reset-db.mjs    # DROP ALL collections -> fresh bootstrap
 ```
 app/
   page.tsx              # marketing home (server component)
-  api/                  # 60+ route handlers (auth, courses, enrollments,
+  api/                  # 60+ route handlers (auth, registration, courses,
                         #   payments, ai/*, guide, admin/*, webhooks…)
-  dashboard/            # student app-tracking
-  admin-panel/          # gated admin UI
+  dashboard/            # course selection → registration wizard + tracking
+  admin-panel/          # gated admin UI (registration desk)
   courses/[slug]/       # per-course detail pages
   tutor/                # AI RAG English tutor
   ai-feedback/          # essay/speaking feedback studio
@@ -98,11 +104,15 @@ app/
 components/
   guide/                # Aina 3D voice guide (scene, speech, recognition, widget)
   ai/                   # tutor chat, feedback studio
-  admin-panel/          # admin UI shell + AI assistant
+  admin-panel/          # admin UI shell + registration desk + AI assistant
+  dashboard/            # RegistrationWizard (5-step) + dashboard shell
   ... (hero, courses, footer, navigation, …)
 lib/
   guide/                # guide persona + offline replies
   ai/                   # config, prompts, retrieve, vector-store, SSE, tutors
+  registration-config.ts   # 4 courses, form config, payment accounts
+  registration-pdf.ts      # pdfkit registration summary generator
+  registration-storage.ts  # private/ media persistence (auth-guarded)
   rate-limit.ts         # sliding-window limiter (in-memory + Mongo)
   client-id.ts          # signed per-device identity cookie
   db.ts                 # Mongo collections

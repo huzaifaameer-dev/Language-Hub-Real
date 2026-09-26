@@ -49,7 +49,7 @@ export default function PlacementTestPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(placementTestJsonLd) }}
       />
       <Navbar />
-      <div className="min-h-screen bg-[#faf8f4] pt-[4.25rem]">
+      <div className="min-h-screen bg-site pt-[4.25rem]">
         <PlacementTestClient />
       </div>
       <Footer />

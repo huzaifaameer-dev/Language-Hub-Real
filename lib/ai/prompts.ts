@@ -1,7 +1,7 @@
 /** System prompts for the four AI features. Kept in one place so prompt
  * engineering has a single home and evals can assert on shared constraints. */
 
-const ACADEMY_BLURB = `Language Hub is an online language institute founded by Ms. Javeria Malik. Courses: Spoken English, IELTS Preparation, PTE Preparation, and Duolingo English Test. Classes are live on video in small batches (10-20 students) so every student speaks every session.`;
+const ACADEMY_BLURB = `Language Hub is an online language institute founded by Ms. Javaria Malik. Courses: Spoken English, IELTS Preparation, PTE Preparation, and Duolingo English Test. Classes are live on video in small batches (10-20 students) so every student speaks every session.`;
 
 
 /**

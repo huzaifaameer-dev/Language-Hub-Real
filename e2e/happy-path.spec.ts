@@ -11,26 +11,16 @@ const EMAIL = `hp-${Date.now()}-${random()}@example.com`;
 const NAME = `Happy ${random()}`;
 const PASSWORD = "HappyPath!2026";
 
-const re = (s: string) => new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+// 1x1 transparent PNG used as proxy the browser photo upload.
+const PHOTO_B64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="; // 1x1 transparent PNG (real, decodable)
 
-test("signup -> apply -> admin approve -> enroll -> admin confirm", async ({
+test("signup -> register for a course -> admin sees + contacts the registration", async ({
   browser,
   request,
   baseURL,
 }) => {
   test.setTimeout(300_000);
-
-  // Choose a course with at least one open seat in the live catalog.
-  const cat = (await (await request.get("/api/courses")).json()) as {
-    courses: Array<{
-      name: string;
-      batches: Array<{ name: string; seatsLeft: number; full: boolean }>;
-    }>;
-  };
-  expect(cat.courses.length).toBeGreaterThan(0);
-  const course = cat.courses.find((c) => c.batches.some((b) => !b.full)) ?? cat.courses[0];
-  const batch = course.batches.find((b) => !b.full) ?? course.batches[0];
-  expect(batch, "course must have an open batch").toBeTruthy();
 
   // 1 —— user signs up and lands on the dashboard
   const user = await browser.newContext();
@@ -42,22 +32,71 @@ test("signup -> apply -> admin approve -> enroll -> admin confirm", async ({
   await up.getByRole("button", { name: /Create Account/i }).click();
   await expect(up).toHaveURL(/\/dashboard/, { timeout: 25_000 });
 
-  // 2 —— user applies
-  await up.locator("#f-name").fill(NAME);
-  await up.locator("#f-place").fill("Lahore, Pakistan");
-  await up
-    .locator("#f-bio")
-    .fill("I want to speak English with confidence for daily life and interviews.");
-  await up.locator("#f-course").selectOption({ label: course.name });
-  await up.locator("#f-message").fill("Happy-path E2E application from " + EMAIL);
-  await up.getByRole("button", { name: /Submit Application/i }).click();
-  await expect(
-    up.getByRole("dialog", { name: "Application sent" }),
-    "application confirmation dialog"
-  ).toBeVisible({ timeout: 25_000 });
+  // 2 —— user picks the Spoken English course card
+  await expect(up.locator("body")).toContainText(/Choose your course/i, { timeout: 20_000 });
+  await up.getByRole("button", { name: /Spoken English.*Register/i }).click();
 
-  // 3 —— admin unlocks the panel (UI), then confirms the AI's autonomous
-  // decision. The agent approves instantly, so we poll the APPROVED queue.
+  const wizard = up.getByRole("dialog", { name: "Spoken English registration form" });
+  await expect(wizard).toBeVisible({ timeout: 15_000 });
+
+  // 3 —— step 1: personal details + photo
+  await wizard.locator("#reg-dob").fill("2001-05-14");
+  await wizard.locator("#reg-phone").fill("+92 300 1234567");
+  await wizard.locator("#reg-address").fill("Gulberg III, Lahore, Pakistan");
+
+  const photoInput = wizard.locator('input[type="file"][accept="image/png,image/jpeg,image/webp"]');
+  await photoInput.setInputFiles({
+    name: "photo.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(PHOTO_B64, "base64"),
+  });
+  await wizard.getByRole("button", { name: /Next/i }).click();
+
+  // 4 —— step 2: academics
+  await expect(wizard.locator("#reg-qualification")).toBeVisible();
+  await wizard.locator("#reg-qualification").fill("Bachelor of Science");
+  await wizard.locator("#reg-institution").fill("University of the Punjab");
+  await wizard.locator("#reg-year").fill("2023");
+  await wizard.getByRole("button", { name: /Next/i }).click();
+
+  // 5 —— step 3: study preferences
+  await expect(wizard).toContainText(/Which skill do you want to enhance/);
+  await wizard.getByRole("button", { name: /^Fluency$/ }).click();
+  await wizard.getByRole("button", { name: /^Everyday conversation$/ }).click();
+  await wizard.getByRole("button", { name: /^Evening$/ }).click();
+  await wizard.getByRole("button", { name: /^Average$/ }).click();
+  await wizard.getByRole("button", { name: /^6 – 10 hours$/ }).click();
+  await wizard.getByRole("button", { name: /^Instagram$/ }).click();
+  await wizard.getByRole("button", { name: /Next/i }).click();
+
+  // 6 —— step 4: payment + receipt
+  await expect(wizard).toContainText(/Payment method/i);
+  await wizard.getByRole("button", { name: /^Easypaisa$/ }).click();
+
+  const receiptInput = wizard.locator('input[type="file"][accept*="application/pdf"]');
+  await receiptInput.setInputFiles({
+    name: "receipt.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(PHOTO_B64, "base64"),
+  });
+  await expect(wizard).toContainText(/Uploaded/i, { timeout: 10_000 });
+  await wizard.getByRole("button", { name: /Next/i }).click();
+
+  // 7 —— step 5: review + declaration + submit
+  await expect(wizard).toContainText(/Review & submit/i, { timeout: 30_000 });
+  await wizard.locator("#reg-agree").check();
+  await wizard.getByRole("button", { name: /Submit registration/i }).click();
+
+  // 8 —— success screen with a reference + 24h promise
+  await expect(wizard).toContainText(/THANK YOU FOR CHOOSING/i, { timeout: 30_000 });
+  await expect(wizard).toContainText(/reply within 24 hours/i);
+  await wizard.getByRole("button", { name: /^Done/ }).click();
+
+  // Dashboard shows "My registrations" entry for this submission.
+  await expect(up.locator("body")).toContainText(/My registrations/i, { timeout: 20_000 });
+  await expect(up.locator("body")).toContainText(/Received/i);
+
+  // 9 —— admin unlocks the panel, opens Registration desk, finds the entry
   const admin = await browser.newContext({ baseURL });
   const ap = await admin.newPage();
   await ap.goto("/admin-panel");
@@ -65,9 +104,7 @@ test("signup -> apply -> admin approve -> enroll -> admin confirm", async ({
   await ap.locator("#ag-pass").fill(ADMIN_PASS);
   await ap.locator("#ag-code").fill(ADMIN_CODE);
   await ap.getByRole("button", { name: /Unlock Panel/i }).click();
-  await expect(ap.locator("body")).toContainText(/Command Center|Operations/i, {
-    timeout: 30_000,
-  });
+  await expect(ap.locator("body")).toContainText(/Course Registrations/i, { timeout: 30_000 });
 
   // The admin token cookie is marked Secure; over http the standalone request
   // client skips it (browsers exempt loopback). Pass it through explicitly.
@@ -75,94 +112,24 @@ test("signup -> apply -> admin approve -> enroll -> admin confirm", async ({
   expect(token, "admin token cookie is set").toBeTruthy();
   const adminHeaders = { cookie: `hub_admin_token=${token}` };
 
-  // Poll until the AI agent has autonomously approved the application.
-  let app: { id: string; email: string; status: string } | undefined;
-  for (let i = 0; i < 20 && !app; i += 1) {
-    const appsRes = await request.get("/api/admin/applications?status=APPROVED", {
-      headers: adminHeaders,
-    });
-    expect(
-      appsRes.ok(),
-      `GET applications -> ${appsRes.status()}: ${await appsRes.text()}`
-    ).toBeTruthy();
-    const { applications } = (await appsRes.json()) as {
-      applications: Array<{ id: string; email: string; status: string }>;
+  let reg: { id: string; email: string; ref: string; status: string } | undefined;
+  for (let i = 0; i < 20 && !reg; i += 1) {
+    const res = await request.get("/api/admin/registrations", { headers: adminHeaders });
+    expect(res.ok(), `GET registrations -> ${res.status()}: ${await res.text()}`).toBeTruthy();
+    const { registrations } = (await res.json()) as {
+      registrations: Array<{ id: string; email: string; ref: string; status: string }>;
     };
-    app = applications.find((a) => a.email === EMAIL);
-    if (!app) await new Promise((r) => setTimeout(r, 600));
+    reg = registrations.find((r) => r.email === EMAIL);
+    if (!reg) await new Promise((r) => setTimeout(r, 600));
   }
-  expect(app, "AI agent autonomously approved the application").toBeTruthy();
+  expect(reg, "registration landed in the admin queue").toBeTruthy();
 
-  // 4 —— user enrolls (dashboard live-syncs the approval)
-  await expect(
-    up.getByRole("button", { name: /Proceed to Enrollment/i }),
-    "enroll CTA appears after approval"
-  ).toBeVisible({ timeout: 30_000 });
-  await up.getByRole("button", { name: /Proceed to Enrollment/i }).click();
-  const enrDialog = up.getByRole("dialog", { name: "Enroll in courses" });
-  await expect(enrDialog).toBeVisible({ timeout: 15_000 });
-  await enrDialog.getByRole("button", { name: re(course.name) }).first().click();
-  await enrDialog.getByRole("button", { name: re(batch.name) }).first().click();
-  await enrDialog.locator("#enr-plan").fill("Twice a week — beginner friendly.");
-  await enrDialog.getByRole("button", { name: /Confirm Enrollment/i }).click();
-  await expect(up.locator("body")).toContainText(/ENROLLMENT[\s\S]*SENT/i, {
-    timeout: 25_000,
-  });
-
-  // 5 —— admin confirms via the real admin API. The AI already auto-requested
-  // payment on enrollment creation, so we poll the awaiting-payment queue.
-  let enr: { id: string; email: string; status: string } | undefined;
-  for (let i = 0; i < 20 && !enr; i += 1) {
-    const enrsRes = await request.get("/api/admin/enrollments?status=AWAITING_PAYMENT", {
-      headers: adminHeaders,
-    });
-    expect(
-      enrsRes.ok(),
-      `GET enrollments -> ${enrsRes.status()}: ${await enrsRes.text()}`
-    ).toBeTruthy();
-    const { enrollments } = (await enrsRes.json()) as {
-      enrollments: Array<{ id: string; email: string; status: string }>;
-    };
-    enr = enrollments.find((e) => e.email === EMAIL);
-    if (!enr) await new Promise((r) => setTimeout(r, 600));
-  }
-  expect(enr, "AI agent auto-requested payment on the enrollment").toBeTruthy();
-
-  // Mirror the real admin flow: (re)request payment idempotently, then confirm.
-  const reqPayRes = await request.patch("/api/admin/enrollments", {
+  // 10 —— admin marks it contacted
+  const patch = await request.patch("/api/admin/registrations", {
     headers: adminHeaders,
-    data: {
-      id: enr!.id,
-      action: "REQUEST_PAYMENT",
-      message: "Send your fee to lock the seat.",
-      paymentInstructions: "Rs 12,000 via JazzCash 0300-1234567 — upload the receipt.",
-    },
+    data: { id: reg!.id, status: "CONTACTED", message: "Thanks — we'll call within 24h." },
   });
-  expect(reqPayRes.ok(), `request payment failed: ${reqPayRes.statusText()}`).toBeTruthy();
-
-  const confirmRes = await request.patch("/api/admin/enrollments", {
-    headers: adminHeaders,
-    data: { id: enr!.id, action: "CONFIRM", message: "Seat locked — see your books!" },
-  });
-  expect(confirmRes.ok(), `confirm seat failed: ${confirmRes.statusText()}`).toBeTruthy();
-
-  // 6 —— user sees the fully-onboarded state (celebration overlay is a
-// transient 5s animation; the persistent state below is the stable proof).
-  await up.reload();
-  await expect(up.locator("body"), "journey is fully onboarded").toContainText(
-    /FULLY ONBOARDED/i,
-    { timeout: 30_000 }
-  );
-  await expect(up.locator("#lh-bookshelf"), "assigned bookshelf is shown").toBeVisible({
-    timeout: 20_000,
-  });
-  await expect(up.locator("body"), "enrollment is confirmed").toContainText(
-    /SEAT\s+CONFIRMED/i,
-    { timeout: 20_000 }
-  );
-  await expect(up.locator("body"), "admin reply is visible on the dashboard").toContainText(
-    /Seat locked — see your books!/i
-  );
+  expect(patch.ok(), `PATCH registration -> ${patch.status()}: ${await patch.text()}`).toBeTruthy();
 
   await admin.close();
   await user.close();

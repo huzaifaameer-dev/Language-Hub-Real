@@ -7,7 +7,6 @@ import { ArrowUp, MapPin, Phone, Mail, Clock, MessageCircle, Sparkles } from "lu
 import { Logo } from "@/components/ui/Logo";
 import { WhatsAppCta } from "@/components/ui/WhatsAppCta";
 import { BookDemoButton } from "@/components/contact/BookDemoButton";
-import { scrollToId } from "@/lib/lenis";
 import { ACADEMY, CONTACT, OPENING_HOURS } from "@/lib/content";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -26,7 +25,7 @@ const LINK_SECTIONS = [
     title: "Institute",
     items: [
       { id: "about", label: "Beyond English" },
-      { id: "pricing", label: "Programmes & Fees" },
+      { id: "courses", label: "Programmes & Fees" },
       { id: "contact", label: "Opening Hours" },
       { id: "cta", label: "Start Today" },
     ],
@@ -35,9 +34,10 @@ const LINK_SECTIONS = [
     title: "Support",
     items: [
       { id: "faq", label: "FAQ" },
-      { id: "blog", label: "Blog", href: "/blog" },
+      { id: "news", label: "Daily News", href: "/news" },
       { id: "success-stories", label: "Success Stories", href: "/success-stories" },
       { id: "team", label: "Meet the Team", href: "/team" },
+      { id: "feedback", label: "Send Feedback", href: "/feedback" },
       { id: "contact", label: "Contact & Help" },
     ],
   },
@@ -66,7 +66,7 @@ function FooterLink({ id, label, href }: { id: string; label: string; href?: str
   return (
     <button
       type="button"
-      onClick={() => {
+      onClick={async () => {
         if (!onSite) {
           try {
             sessionStorage.setItem("lh:scroll-to", id);
@@ -74,6 +74,7 @@ function FooterLink({ id, label, href }: { id: string; label: string; href?: str
           router.push("/");
           return;
         }
+        const { scrollToId } = await import("@/lib/lenis");
         scrollToId(id);
       }}
       className={cls}
@@ -293,7 +294,10 @@ export function Footer() {
             ))}
             <button
               type="button"
-              onClick={() => scrollToId("home")}
+              onClick={async () => {
+                const { scrollToId } = await import("@/lib/lenis");
+                scrollToId("home");
+              }}
               aria-label="Back to top"
               className="grid h-9 w-9 place-items-center rounded-full border border-ivory/10 bg-ivory/[0.04] text-ivory/60 transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/50 hover:bg-brand/20 hover:text-white"
             >

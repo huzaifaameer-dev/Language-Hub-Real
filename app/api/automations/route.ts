@@ -334,7 +334,7 @@ export async function GET(request: Request) {
         batch: enr.batch,
         issuedAt: issueDate(),
         completionPercent: percent,
-        signedBy: "Javeria Malik",
+        signedBy: "Javaria Malik",
         certificateId,
         createdAt: now,
       });
@@ -365,5 +365,23 @@ export async function GET(request: Request) {
     // agent must never break the rest of the automation tick
   }
 
-  return NextResponse.json({ ok: true, sent, count: sent.length, agent });
+  /* ---------- 10. Management & Communication tick: publish schedules, send
+       scheduled WhatsApp messages, fire assignment reminders ---------- */
+  let mgmt: { published: number; messages: number; reminders: number; closed: number } = {
+    published: 0,
+    messages: 0,
+    reminders: 0,
+    closed: 0,
+  };
+  try {
+    const { runManagementTick } = await import("@/lib/management/core");
+    mgmt = await runManagementTick();
+    if (mgmt.messages > 0 || mgmt.reminders > 0) {
+      sent.push({ kind: "management_tick", to: `messages=${mgmt.messages}, reminders=${mgmt.reminders}` });
+    }
+  } catch {
+    // management tick must never break the rest of the automation round
+  }
+
+  return NextResponse.json({ ok: true, sent, count: sent.length, agent, mgmt });
 }

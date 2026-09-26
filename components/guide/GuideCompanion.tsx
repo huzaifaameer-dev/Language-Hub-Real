@@ -91,7 +91,7 @@ export function GuideCompanion() {
   const [streaming, setStreaming] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true);
   const [welcomeChip, setWelcomeChip] = useState(false);
   const [mode, setMode] = useState<"chat" | "practice">("chat");
   const [topic, setTopic] = useState<PracticeTopic>("introduce-yourself");
@@ -101,7 +101,7 @@ export function GuideCompanion() {
   const practiceTurnsRef = useRef<string[]>([]);
   const fluentLabelRef = useRef<string | null>(null);
 
-  const mutedRef = useRef(false);
+  const mutedRef = useRef(true);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const speechLang = lang === "ur" ? "ur-PK" : "en-PK";
@@ -348,12 +348,14 @@ export function GuideCompanion() {
     queueVoice(script);
   }, [lang, queueVoice]);
 
-  // Hydrate the persistent voice preference (courtesy: one mute remembers it).
+  // Hydrate the persistent voice preference. Voice is OFF by default: the bot
+  // only speaks when the user explicitly unmutes it (mic or the speaker toggle).
   useEffect(() => {
     const t = window.setTimeout(() => {
-      let m = false;
+      let m = true;
       try {
-        m = localStorage.getItem("lh:guide-muted") === "1";
+        // Default is muted unless the user has explicitly enabled voice before.
+        m = localStorage.getItem("lh:guide-muted") !== "0";
       } catch {}
       mutedRef.current = m;
       setMuted(m);
@@ -436,8 +438,21 @@ export function GuideCompanion() {
   };
 
   const toggleMic = () => {
-    if (rec.listening) rec.stop();
-    else rec.start();
+    if (rec.listening) {
+      rec.stop();
+      return;
+    }
+    // Tapping the mic signals the user wants to talk to the bot — enable its
+    // voice for this interaction (clear the silent-by-default state).
+    if (mutedRef.current) {
+      mutedRef.current = false;
+      setMuted(false);
+      speechRef.current.setMuted(false);
+      try {
+        localStorage.setItem("lh:guide-muted", "0");
+      } catch {}
+    }
+    rec.start();
   };
 
   const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant")?.text ?? null;

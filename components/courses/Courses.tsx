@@ -15,6 +15,8 @@ import {
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { COURSE_CARDS, COURSE_FEATURES } from "@/lib/content";
 import { courseSlug } from "@/lib/course-data";
+import { registrationKeyForCatalogName } from "@/lib/registration-config";
+import { ApplyButton } from "@/components/courses/ApplyButton";
 import { useLang } from "@/components/LanguageProvider";
 import { EASE_EXPO } from "@/lib/motion";
 
@@ -79,7 +81,7 @@ export function Courses() {
     <section
       id="courses"
       data-section
-      className="relative overflow-hidden bg-[#f7f8fc] px-6 py-24 sm:px-12"
+      className="relative overflow-hidden bg-site px-6 py-24 sm:px-12"
       aria-label="Courses"
     >
       <div className="mx-auto max-w-6xl">
@@ -234,8 +236,8 @@ export function Courses() {
                   </div>
 
                   <div className="mt-auto flex flex-col gap-2.5 pt-4">
-                    <Link
-                      href={card.href}
+                    <ApplyButton
+                      courseKey={registrationKeyForCatalogName(card.info.name)}
                       className="group/apply inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl font-display text-[0.7rem] font-bold uppercase tracking-[0.18em] text-ivory transition-transform duration-300 active:scale-[0.98] hover:-translate-y-0.5"
                       style={{
                         background: `linear-gradient(135deg, ${card.accent} 0%, ${card.accent}cc 100%)`,
@@ -244,7 +246,7 @@ export function Courses() {
                     >
                       {dict["courses.apply"]}
                       <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/apply:translate-x-1" />
-                    </Link>
+                    </ApplyButton>
                     <Link
                       href={`/courses/${courseSlug(card.info.name)}`}
                       className="group/details inline-flex h-[2.45rem] w-full items-center justify-center gap-2 rounded-xl border border-ink/[0.14] font-display text-[0.66rem] font-bold uppercase tracking-[0.18em] text-ink-2 transition-colors duration-300 hover:border-ink hover:bg-ink hover:text-ivory"

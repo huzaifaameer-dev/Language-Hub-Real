@@ -27,7 +27,7 @@ export function LegalShell({
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-[#faf8f4] pt-[4.25rem]">
+      <div className="min-h-screen bg-site pt-[4.25rem]">
         <div className="mx-auto max-w-3xl px-5 py-14 lg:px-8">
           <p className="flex items-center gap-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-brand-deep">
             <span aria-hidden className="h-px w-7 bg-gradient-to-r from-brand/80 to-transparent" />

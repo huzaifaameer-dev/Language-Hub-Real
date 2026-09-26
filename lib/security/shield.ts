@@ -42,7 +42,12 @@ const XSS_RE = /(<script|<img\s+onerror|\bonerror\s*=|javascript:alert|\balert\s
 const SQLI_RE = /(\bunion\s+select\b|\bor\s*['"]?1['"]?\s*=\s*['"]?1['"]?|\b1['"]?\s*=\s*['"]?1\b|'\s*--\s|;\s*drop\s+table|information_schema|sqlmap|\bwaitfor\s+delay\b)/i;
 const NOSQLI_RE = /(\$(ne|gt|gte|lt|lte|nin|where|regex|exists))\s*[:=\]]|\b_ne\b/i;
 const PATH_RE = /(\.\.\/|\.\.%2f|\.\.\\|%2e%2e|%00|etc\/passwd|\.md5|\.sql|\.bak|\.tar\.gz)/i;
-const RECON_RE = /(^|[?&])(debug|test|id|cmd|q|action|page|file|path|admin)=/i;
+// Scanner fingerprints only — NOT common benign params the app itself uses
+// (`id=`, `q=`, `page=`, `tag=`, `action=`, `file=`, `path=`, `admin`, …).
+// Flagging those false-positives dozens of legitimate requests (e.g. the admin
+// news DELETE `?id=<ObjectId>`) and tar-pits real users. Real probe payloads on
+// the benign params are still caught by the SQLI / XSS / PATH / NOSQLI rules.
+const RECON_RE = /(^|[?&])(debug|test|cmd|shell|source|exec|eval|trace|verbose|backup|dump|xdebug|docroot|phpinfo)(=|$)/i;
 
 export interface WebRequestLike {
   path: string;

@@ -42,7 +42,7 @@ export async function GET() {
     })(),
   ]);
 
-  const studentsGuided = Math.max(users, approvedApps, enrolled);
+  const studentsGuided = Math.max(600, users, approvedApps, enrolled);
   const labs = await db.collection("courses").distinct("batches.name").then((b) => b.length);
 
   return NextResponse.json({

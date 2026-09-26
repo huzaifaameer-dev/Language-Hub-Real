@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, CheckCircle, Play, Quote, Star } from "lucide-react";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/footer/Footer";
+import { ApplyButton } from "@/components/courses/ApplyButton";
+import { registrationKeyForCatalogName } from "@/lib/registration-config";
 import { SUCCESS_STORIES } from "@/lib/content";
 import { appBaseUrl } from "@/lib/base-url";
 import { whatsappLink } from "@/lib/content";
@@ -79,7 +81,7 @@ export default async function SuccessStoryPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
       />
       <Navbar />
-      <div className="min-h-screen bg-[#faf8f4] pt-[4.25rem]">
+      <div className="min-h-screen bg-site pt-[4.25rem]">
         <div className="mx-auto max-w-3xl px-5 py-12 lg:px-8">
           <Link
             href="/success-stories"
@@ -193,12 +195,12 @@ export default async function SuccessStoryPage({
 
           {/* CTA */}
           <div className="mt-10 flex flex-wrap items-center gap-4">
-            <Link
-              href="/signup"
+            <ApplyButton
+              courseKey={registrationKeyForCatalogName(story.course)}
               className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(110_90_224/0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110"
             >
               Start your {story.course} journey <ArrowRight className="h-4 w-4" />
-            </Link>
+            </ApplyButton>
             {whatsapp ? (
               <a
                 href={whatsapp}

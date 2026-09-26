@@ -7,12 +7,13 @@ import { Journey } from "@/components/journey/Journey";
 import { About } from "@/components/about/About";
 import { Features } from "@/components/philosophy/Features";
 import { Courses } from "@/components/courses/Courses";
-import { CoursePricing } from "@/components/courses/CoursePricing";
+import { EnrollmentPath } from "@/components/courses/EnrollmentPath";
 import { Reviews } from "@/components/reviews/Reviews";
 import { FaqSection } from "@/components/faq/FaqSection";
 import { CtaBanner } from "@/components/contact/CtaBanner";
 import { Footer } from "@/components/footer/Footer";
 import { LiveEnrollmentBanner } from "@/components/social-proof/LiveEnrollmentBanner";
+import { SupportHelp } from "@/components/support/SupportHelp";
 import { GuideCompanion } from "@/components/guide/GuideCompanion";
 import { ACADEMY, TESTIMONIALS } from "@/lib/content";
 
@@ -61,13 +62,14 @@ export function Site() {
           <About />
           <Features />
           <Courses />
-          <CoursePricing />
+          <EnrollmentPath />
           <Reviews />
           <FaqSection />
           <CtaBanner />
         </main>
-        <GuideCompanion />
+        <SupportHelp />
         <Footer />
+        <GuideCompanion />
       </IntroGate>
     </>
   );

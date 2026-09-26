@@ -2,36 +2,37 @@
 
 @theme {
   --color-ivory: #ffffff;
-  --color-cream: #f6f8fc;
-  --color-parchment: #eef1f8;
-  --color-ink: #0f172a;
-  --color-ink-2: #475569;
-  --color-ink-3: #94a3b8;
-  --color-night: #0b1220;
-  --color-night-2: #111a2e;
-  --color-brand: #6366f1;
-  --color-brand-deep: #4f46e5;
-  --color-brand-magenta: #8b5cf6;
-  --color-brand-cyan: #0ea5e9;
+  --color-cream: #f6f9ff;
+  --color-parchment: #eef2ff;
+  --color-ink: #0b1b3a;
+  --color-ink-2: #3b4a6b;
+  --color-ink-3: #8fa0c0;
+  --color-night: #081124;
+  --color-night-2: #0d1730;
+  --color-brand: #2563eb;
+  --color-brand-deep: #1647c7;
+  --color-brand-magenta: #6d4aff;
+  --color-brand-cyan: #60a5fa;
   --color-brand-fern: #10b981;
   --color-gold: #f59e0b;
   --color-gold-light: #fcd34d;
   --color-gold-deep: #d97706;
-  --color-line: #e5e9f2;
+  --color-line: #e3e9f7;
   --color-line-dark: rgb(226 232 240 / 0.16);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-manrope), var(--font-inter), ui-sans-serif, sans-serif;
   --font-serif: var(--font-playfair), Georgia, serif;
+  --font-hand: var(--font-caveat), "Patrick Hand", cursive;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 
-  --shadow-soft: 0 30px 70px -30px rgb(15 23 42 / 0.14);
-  --shadow-card: 0 14px 44px -16px rgb(15 23 42 / 0.1);
+  --shadow-soft: 0 30px 70px -30px rgb(11 27 58 / 0.14);
+  --shadow-card: 0 14px 44px -16px rgb(11 27 58 / 0.1);
   --shadow-gold: 0 18px 50px -18px rgb(245 158 11 / 0.4);
   --shadow-gold-strong: 0 22px 64px -20px rgb(245 158 11 / 0.55);
-  --shadow-book: 0 46px 90px -38px rgb(15 23 42 / 0.35);
+  --shadow-book: 0 46px 90px -38px rgb(11 27 58 / 0.35);
 
   --animate-spin-slow: spin 26s linear infinite;
   --animate-spin-slower: spin 60s linear infinite;
@@ -349,8 +350,8 @@
 
 .bg-grid {
   background-image:
-    linear-gradient(rgb(15 23 42 / 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(15 23 42 / 0.05) 1px, transparent 1px);
+    linear-gradient(rgb(11 27 58 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(11 27 58 / 0.05) 1px, transparent 1px);
   background-size: 34px 34px;
 }
 
@@ -424,15 +425,31 @@
   }
 
   body {
-    background: var(--color-ivory);
+    background-color: var(--color-ivory);
     color: var(--color-ink);
     font-family: var(--font-sans);
     text-rendering: optimizeLegibility;
     overflow-x: clip;
   }
 
+  /* Professional dotted + soft-glow backdrop shared by the whole site.
+     body gets it by default; pages can opt in with `.bg-site` when they set
+     their own wrapper colour. */
+  body,
+  .bg-site {
+    background-color: var(--color-ivory);
+    background-image:
+      radial-gradient(rgb(37 99 235 / 0.14) 1.2px, transparent 1.2px),
+      radial-gradient(900px 560px at 12% -8%, rgb(99 102 241 / 0.16), transparent 60%),
+      radial-gradient(1000px 580px at 108% 26%, rgb(217 70 239 / 0.11), transparent 55%),
+      radial-gradient(800px 580px at 42% 114%, rgb(14 165 233 / 0.11), transparent 60%);
+    background-size: 26px 26px, auto, auto, auto;
+    background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+    background-position: 0 0, 0 0, 100% 0, 0 100%;
+  }
+
   ::selection {
-    background: rgb(99 102 241 / 0.18);
+    background: rgb(37 99 235 / 0.18);
     color: var(--color-ink);
   }
 
@@ -459,17 +476,17 @@
 
 .mesh-auth {
       background:
-        radial-gradient(1200px 620px at 8% -12%, rgb(99 102 241 / 0.95), transparent 62%),
-        radial-gradient(1000px 540px at 112% 24%, rgb(79 70 229 / 0.9), transparent 58%),
-        radial-gradient(900px 560px at 50% 125%, rgb(14 165 233 / 0.5), transparent 62%),
-        linear-gradient(160deg, #4f46e5 0%, #6366f1 52%, #0ea5e9 100%);
+        radial-gradient(1200px 620px at 8% -12%, rgb(37 99 235 / 0.95), transparent 62%),
+        radial-gradient(1000px 540px at 112% 24%, rgb(22 71 199 / 0.9), transparent 58%),
+        radial-gradient(900px 560px at 50% 125%, rgb(96 165 250 / 0.5), transparent 62%),
+        linear-gradient(160deg, #1647c7 0%, #2563eb 52%, #60a5fa 100%);
     }
 
   .mesh-hero {
     background:
       radial-gradient(900px 420px at 0% 0%, rgb(255 255 255 / 0.16), transparent 55%),
-      radial-gradient(760px 420px at 100% 100%, rgb(14 165 233 / 0.3), transparent 58%),
-      linear-gradient(150deg, #4f46e5 0%, #6366f1 55%, #0ea5e9 100%);
+      radial-gradient(760px 420px at 100% 100%, rgb(96 165 250 / 0.3), transparent 58%),
+      linear-gradient(150deg, #1647c7 0%, #2563eb 55%, #60a5fa 100%);
   }
 
   .glass-app {
@@ -482,7 +499,7 @@
   .card-app {
     background: rgb(255 255 255 / 0.96);
     border: 1px solid var(--color-line);
-    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 18px 48px -18px rgb(15 23 42 / 0.18);
+    box-shadow: 0 1px 2px rgb(11 27 58 / 0.04), 0 18px 48px -18px rgb(11 27 58 / 0.18);
   }
 
   /* ---------- dashboard glass + animated scenery ---------- */
@@ -492,7 +509,7 @@
     -webkit-backdrop-filter: blur(18px);
     backdrop-filter: blur(18px);
     border: 1px solid rgb(226 232 240 / 0.9);
-    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 16px 40px -22px rgb(15 23 42 / 0.14);
+    box-shadow: 0 1px 2px rgb(11 27 58 / 0.04), 0 16px 40px -22px rgb(11 27 58 / 0.14);
   }
 
   .orb {
@@ -524,15 +541,15 @@
     100% {
       box-shadow:
         0 0 0 1px rgb(255 255 255 / 0.6),
-        0 18px 50px -24px rgb(99 102 241 / 0.35),
-        0 8px 28px -18px rgb(79 70 229 / 0.4),
+        0 18px 50px -24px rgb(37 99 235 / 0.35),
+        0 8px 28px -18px rgb(22 71 199 / 0.4),
         inset 0 1px 0 rgb(255 255 255 / 0.9);
     }
     50% {
       box-shadow:
         0 0 0 1px rgb(255 255 255 / 0.75),
-        0 24px 62px -20px rgb(99 102 241 / 0.55),
-        0 14px 42px -14px rgb(139 92 246 / 0.5),
+        0 24px 62px -20px rgb(37 99 235 / 0.55),
+        0 14px 42px -14px rgb(109 74 255 / 0.5),
         inset 0 1px 0 rgb(255 255 255 / 0.95);
     }
   }
@@ -543,7 +560,7 @@
   }
 
   .timeline-gradient {
-    background: linear-gradient(90deg, #6366f1, #0ea5e9 45%, #8b5cf6 80%, #6366f1);
+    background: linear-gradient(90deg, #2563eb, #60a5fa 45%, #6d4aff 80%, #2563eb);
     background-size: 200% 100%;
     animation: timeline-flow 3s linear infinite;
   }
@@ -576,7 +593,7 @@
     margin-top: -5px;
     border-radius: 9999px;
     background: #fff;
-    box-shadow: 0 0 12px 4px rgb(99 102 241 / 0.85);
+    box-shadow: 0 0 12px 4px rgb(37 99 235 / 0.85);
     animation: comet 2.6s linear infinite;
   }
 
@@ -607,12 +624,12 @@
   .indigo-text-shimmer {
     background: linear-gradient(
       115deg,
-      #6366f1 0%,
-      #0ea5e9 26%,
-      #8b5cf6 42%,
-      #0ea5e9 58%,
-      #6366f1 72%,
-      #4f46e5 100%
+      #2563eb 0%,
+      #60a5fa 26%,
+      #6d4aff 42%,
+      #60a5fa 58%,
+      #2563eb 72%,
+      #1647c7 100%
     );
     background-size: 220% auto;
     -webkit-background-clip: text;
@@ -622,7 +639,7 @@
   }
 
   .brand-text {
-    background: linear-gradient(120deg, #6366f1 0%, #8b5cf6 45%, #0ea5e9 75%, #38bdf8 100%);
+    background: linear-gradient(120deg, #2563eb 0%, #6d4aff 45%, #60a5fa 75%, #38bdf8 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -632,7 +649,7 @@
     font-family: var(--font-display);
     font-weight: 800;
     letter-spacing: -0.02em;
-    color: rgb(15 23 42 / 0.045);
+    color: rgb(11 27 58 / 0.045);
     user-select: none;
     pointer-events: none;
   }
@@ -647,7 +664,7 @@
   }
 
   .text-outline {
-    -webkit-text-stroke: 1px rgb(15 23 42 / 0.18);
+    -webkit-text-stroke: 1px rgb(11 27 58 / 0.18);
     color: transparent;
   }
 
@@ -806,7 +823,7 @@
     border-radius: 0.3rem;
     background:
       linear-gradient(90deg, rgb(248 250 253 / 0.97), rgb(241 244 250 / 0.97));
-    box-shadow: -0.5rem 0.15rem 0.7rem rgb(15 23 42 / 0.3);
+    box-shadow: -0.5rem 0.15rem 0.7rem rgb(11 27 58 / 0.3);
     transform: translateZ(-0.55rem);
   }
   .book3d .page3d::before {
@@ -885,7 +902,7 @@
     );
   }
 
-  /* Fixedsize pinned galleries can skip offscreen render entirely — no CLS
+  /* Fixedsize pinned galleries can skip offscreen render entirely â€” no CLS
      because their height is explicit, so the browser skips layout/paint until
      the section approaches the viewport. */
   [data-locked] {
@@ -934,7 +951,7 @@
   }
 
   .btn-outline {
-    border-color: rgb(15 23 42 / 0.18);
+    border-color: rgb(11 27 58 / 0.18);
     color: var(--color-ink);
     background: transparent;
   }
@@ -959,7 +976,7 @@
   }
 
   ::selection {
-    background: rgb(99 102 241 / 0.22);
+    background: rgb(37 99 235 / 0.22);
     color: var(--color-ink);
   }
 
@@ -971,7 +988,7 @@
     margin-left: 0.15em;
     width: 0.09em;
     border-radius: 9999px;
-    background: linear-gradient(180deg, #6366f1, #f59e0b);
+    background: linear-gradient(180deg, #2563eb, #f59e0b);
     animation: caret-blink 1s step-end infinite;
   }
   @keyframes caret-blink {

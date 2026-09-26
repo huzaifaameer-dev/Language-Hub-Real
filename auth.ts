@@ -46,8 +46,8 @@ const credentialsProvider: Provider = Credentials({
     const valid = await bcrypt.compare(password, passwordHash);
     if (!user || !user.password || !valid) return null;
 
-    // Admins use the standalone admin panel session, not the web login.
-    if ((user.role as string) === "ADMIN") return null;
+    // Disabled staff accounts (admins/teachers) can never obtain a web session.
+    if ((user as { disabled?: boolean }).disabled === true) return null;
 
     return {
       id: String(user._id),
@@ -57,7 +57,7 @@ const credentialsProvider: Provider = Credentials({
       // (see /api/profile/avatar) and the cookie must stay small. UIs read the
       // freshest image from /api/me or the dashboard server component.
       image: null,
-      role: "USER",
+      role: (user.role as string) === "ADMIN" ? "ADMIN" : (user.role as string) === "TEACHER" ? "TEACHER" : "USER",
     };
   },
 });
@@ -102,10 +102,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   callbacks: {
     ...authConfig.callbacks,
-    // Web sessions must never carry an elevated role. Admins are rejected
-    // inside the credentials `authorize`; on every token refresh we re-read the
-    // account so a stale role snapshot from the DB (e.g. a demotion/ban or a
-    // later promotion) cannot linger in the JWT.
+    // Roles are re-read on every token refresh so a stale snapshot from the DB
+    // (e.g. a demotion/ban or a later promotion) cannot linger in the JWT.
+    // Admins + teachers sign in through the management portal; admins also use
+    // the standalone /admin-panel (hub_admin_token) for the control suite.
     jwt: async ({ token, user }) => {
       const next = authConfig.callbacks?.jwt?.({ token, user }) ?? token;
       const id = (next?.id as string | undefined) ?? (user?.id as string | undefined);
@@ -116,10 +116,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             { _id: new ObjectId(id) },
             { projection: { role: 1 } }
           );
-          // Non-USER accounts are never valid web sessions; missing accounts
-          // keep the safe USER default (their data endpoints still 401).
-          next.role = row && (row.role as string) === "ADMIN" ? "ADMIN" : "USER";
-          if (next.role === "ADMIN") return null;
+          // Missing accounts keep the safe USER default (their data endpoints
+          // still 401); staff role rows keep their real role.
+          next.role =
+            row && (row.role as string) === "ADMIN"
+              ? "ADMIN"
+              : row && (row.role as string) === "TEACHER"
+                ? "TEACHER"
+                : "USER";
         } catch {
           // DB hiccup: keep the existing token rather than fail the request.
         }

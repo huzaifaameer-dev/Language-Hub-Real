@@ -16,7 +16,7 @@ export function Journey() {
     <section
       id="journey"
       data-section
-      className="relative overflow-hidden bg-[#f7f8fc] px-6 py-24 sm:px-12"
+      className="relative overflow-hidden bg-site px-6 py-24 sm:px-12"
       aria-label="The learning journey"
     >
       <div className="mx-auto max-w-6xl">

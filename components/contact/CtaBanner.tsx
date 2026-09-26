@@ -56,7 +56,7 @@ export function CtaBanner() {
     <section
       id="cta"
       data-section
-      className="relative overflow-hidden bg-[#f7f8fc] px-6 py-20 sm:px-12"
+      className="relative overflow-hidden bg-site px-6 py-20 sm:px-12"
       aria-label="Start your journey"
     >
       <Reveal
@@ -84,7 +84,7 @@ export function CtaBanner() {
           className="absolute right-8 top-10 hidden rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-2.5 text-start backdrop-blur-md lg:block"
         >
           <p className="flex items-center gap-1 font-display text-[0.85rem] font-extrabold text-white">
-            <span className="text-gold">★</span> 5.0 rated
+            <span className="text-gold">★</span> Rated 5.0
           </p>
           <p className="font-mono text-[0.56rem] uppercase tracking-widest text-ivory/50">by students</p>
         </motion.div>

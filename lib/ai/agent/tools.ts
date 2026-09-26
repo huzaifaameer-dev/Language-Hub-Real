@@ -5,13 +5,17 @@ import {
   getDb,
   getApplicationsCollection,
   getEnrollmentsCollection,
-  getBlogCollection,
+  getNewsPostsCollection,
+  getUsersCollection,
+  getCoursesCollection,
   logAdminAction,
 } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
 import { notify } from "@/lib/notifications";
 import { sendDecisionEmail } from "@/lib/email";
 import { emailSubjectFor } from "@/lib/enrollment-actions";
+import { sendWaText } from "@/lib/whatsapp";
+import { formatPKR } from "@/lib/course-data";
 
 /**
  * Audited business mutations the AI agent is allowed to perform. Every one
@@ -51,7 +55,7 @@ export async function approveApplication(applicationId: string, msg?: string | n
   const target = await col.findOne({ _id: new ObjectId(applicationId) });
   if (!target) return { ok: false, message: "Application not found." };
   if (target.status === "APPROVED") return { ok: true, skipped: true, message: "Already approved." };
-  const message = msg?.trim() || "Your application was approved — you can now enroll.";
+  const message = msg?.trim() || `Congratulations! Your application for ${target.course} is approved. Our team will contact you to confirm your enrollment.`;
   await col.updateOne(
     { _id: target._id },
     { $set: { status: "APPROVED", adminMessage: message, updatedAt: new Date() } }
@@ -63,13 +67,67 @@ export async function approveApplication(applicationId: string, msg?: string | n
       name: target.name,
       kind: "application",
       approved: true,
-      subject: "Your application was approved",
+      subject: "Your application was approved 🎉",
       message,
       href: "/dashboard",
     }).catch(() => {});
   }
+
+  // Auto-record the course fee as a pending deposit so the payment matches the
+  // student's chosen course. Only write once per student+course pair.
+  const db = await getDb();
+  const courseFee = await getCoursesCollection().then((courses) =>
+    courses.findOne({ name: (target as { course?: string }).course ?? "", active: true })
+  );
+  try {
+    const amount = Number(courseFee?.fee ?? 0);
+    if (amount > 0) {
+      const dup = await db.collection("payments").findOne({
+        userId: String(target.userId),
+        note: { $regex: "auto:" + (target as { course?: string }).course?.replace(/[^a-z0-9]+/gi, "-") + ":" },
+        status: { $in: ["PENDING", "PAID"] },
+      });
+      if (!dup) {
+        await db.collection("payments").insertOne({
+          enrollmentId: "",
+          userId: String(target.userId),
+          amount,
+          currency: "PKR",
+          provider: "manual",
+          status: "PENDING",
+          type: "DEPOSIT",
+          method: "bank",
+          note: `auto:${(target as { course?: string }).course?.replace(/[^a-z0-9]+/gi, "-") || "course"}:${String(target._id)}`,
+          studentName: target.name,
+          studentEmail: target.email,
+          createdBy: "AI Agent",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+    }
+  } catch {
+    // payment record is best-effort — never fail approval on a ledger hiccup
+  }
+
+  // WhatsApp congrats when the user has a phone on file.
+  try {
+    const users = await getUsersCollection();
+    const user = await users.findOne({ _id: new ObjectId(target.userId) }, { projection: { phone: 1, whatsapp: 1 } });
+    const phone = (user as { phone?: string; whatsapp?: string } | null)?.phone || (user as { phone?: string; whatsapp?: string } | null)?.whatsapp;
+    if (phone) {
+      const feeText = courseFee && Number(courseFee.fee) > 0 ? ` (fee: ${formatPKR(Number(courseFee.fee))})` : "";
+      void sendWaText({
+        to: phone,
+        text: `🎉 Congratulations ${target.name}! Your application for ${(target as { course?: string }).course} has been approved${feeText}. Our team will contact you to confirm your enrollment. Welcome to Language Hub!`,
+      }).catch(() => {});
+    }
+  } catch {
+    // whatsapp is best-effort
+  }
+
   void logAdminAction({ actor: "AI Agent", action: "APPLICATION_APPROVE", targetType: "application", targetLabel: target.email });
-  return { ok: true, ref: String(target._id), message: "Application approved." };
+  return { ok: true, ref: String(target._id), message: "Application approved + fee recorded." };
 }
 
 export async function rejectApplication(applicationId: string, msg: string): Promise<AgentResult> {
@@ -277,29 +335,34 @@ export async function publishBlog(input: {
   tags: string[];
   author?: string;
 }): Promise<AgentResult> {
-  const col = await getBlogCollection();
+  const col = await getNewsPostsCollection();
   const existing = await col.findOne({ slug: input.slug });
-  if (existing) return { ok: false, message: "Blog slug already exists." };
+  if (existing) return { ok: false, message: "News slug already exists." };
   const now = new Date();
   try {
     const res = await col.insertOne({
       slug: input.slug,
       title: input.title,
-      excerpt: input.excerpt,
-      content: input.content,
+      body: input.content,
       coverImage: input.coverImage ?? null,
-      author: input.author ?? "Aina (AI)",
+      authorName: input.author ?? "Aina (AI)",
+      authorRole: "teacher",
       tags: input.tags.slice(0, 6),
       published: true,
+      pinned: false,
       views: 0,
+      likeCount: 0,
+      interestedCount: 0,
+      notInterestedCount: 0,
+      commentCount: 0,
       createdAt: now,
       updatedAt: now,
       publishedAt: now,
     });
-    void logAdminAction({ actor: "AI Agent", action: "BLOG_PUBLISH", targetType: "blog", targetLabel: input.slug });
+    void logAdminAction({ actor: "AI Agent", action: "NEWS_PUBLISH", targetType: "news_post", targetLabel: input.slug });
     return { ok: true, ref: String(res.insertedId), message: `Published: ${input.title}` };
   } catch (err) {
-    return { ok: false, message: `Blog publish failed: ${(err as Error).message}` };
+    return { ok: false, message: `News publish failed: ${(err as Error).message}` };
   }
 }
 

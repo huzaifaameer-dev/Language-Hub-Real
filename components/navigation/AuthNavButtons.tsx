@@ -1,9 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
-import { LogOut, ChevronDown } from "lucide-react";
+import { ChevronDown, LogOut, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dark" }) {
@@ -13,8 +13,6 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
 
   const dark = variant === "dark";
 
-  // The JWT snapshots the photo at sign-in; pull the freshest stored photo
-  // from the API so the nav always matches the profile page.
   useEffect(() => {
     if (status !== "authenticated" || !session?.user?.id) return;
     if (session.user.role === "ADMIN") return;
@@ -35,33 +33,48 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
       <span
         aria-hidden
         className={cn(
-          "flex h-10 w-16 animate-pulse items-center justify-center rounded-full border",
-          dark ? "border-ivory/20 bg-ivory/10" : "border-ink/10 bg-ivory/60"
+          "flex h-10 w-10 animate-pulse items-center justify-center rounded-full",
+          dark ? "bg-ivory/10" : "bg-ink/[0.06]"
         )}
       />
     );
   }
 
+  /* ─── Not authenticated ─── */
   if (!session?.user) {
     return (
-      <Link
-        href="/login"
-        className={cn(
-          "group inline-flex h-10 items-center gap-2 rounded-full border px-4 font-display text-[0.72rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md transition-all duration-300",
-          dark
-            ? "border-gold/40 bg-gold/10 text-gold-light hover:-translate-y-0.5 hover:bg-gold/20"
-            : "border-ink/15 bg-ivory/70 text-ink hover:-translate-y-0.5 hover:border-brand/60 hover:text-brand-deep",
-          variant === "dark" ? "focus-visible:outline-gold" : "focus-visible:outline-brand/80"
-        )}
-      >
-        Sign in
-        <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
-      </Link>
+      <div className="flex items-center gap-2">
+        <Link
+          href="/signup"
+          className={cn(
+            "group inline-flex h-10 items-center gap-1.5 rounded-full px-4 font-display text-[0.72rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md transition-all duration-300",
+            "bg-gradient-to-r from-brand-deep to-brand-magenta text-white shadow-[0_10px_24px_-10px_rgb(124_58_237/0.7)] hover:brightness-110",
+            variant === "dark" ? "focus-visible:outline-gold" : "focus-visible:outline-brand/80"
+          )}
+        >
+          Sign up
+          <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+        </Link>
+        <Link
+          href="/login"
+          className={cn(
+            "inline-flex h-10 items-center rounded-full border px-4 font-display text-[0.72rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md transition-all duration-300",
+            dark
+              ? "border-gold/40 bg-gold/10 text-gold-light hover:bg-gold/20"
+              : "border-ink/15 bg-ivory/70 text-ink hover:border-brand/50 hover:text-brand-deep",
+            variant === "dark" ? "focus-visible:outline-gold" : "focus-visible:outline-brand/80"
+          )}
+        >
+          Log in
+        </Link>
+      </div>
     );
   }
 
-  const isAdmin = session.user.role === "ADMIN";
-  const href = isAdmin ? "/admin-panel" : "/dashboard";
+  /* ─── Authenticated ─── */
+  const isAdmin = session.user.role === "ADMIN" || session.user.role === "TEACHER";
+  // Staff (admins + teachers) land in the management portal; students get the dashboard.
+  const href = isAdmin ? "/management" : "/dashboard";
   const hrefLabel = isAdmin ? "Open admin panel" : "Open dashboard";
   const initial = (session.user.name ?? "U").slice(0, 1).toUpperCase();
   const label = isAdmin ? "Admin" : session.user.name;
@@ -69,7 +82,6 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
 
   return (
     <div className="relative">
-      {/* Click-away backdrop */}
       {menuOpen ? (
         <button
           type="button"
@@ -86,51 +98,69 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
         aria-expanded={menuOpen}
         aria-label={`${label} profile menu`}
         className={cn(
-          "group inline-flex h-11 items-center gap-2.5 rounded-full border py-1 pl-1 pr-3.5 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5",
+          "group inline-flex items-center gap-2 rounded-full py-1 pl-1 pr-3 backdrop-blur-md transition-all duration-300",
+          menuOpen ? "shadow-sm" : "",
           dark
-            ? "border-gold/40 bg-gold/10 hover:bg-gold/20 focus-visible:outline-gold"
-            : "border-ink/15 bg-ivory/70 hover:border-brand/60 focus-visible:outline-brand/80"
+            ? "border border-gold/40 bg-gold/10 hover:bg-gold/20 focus-visible:outline-gold"
+            : "border border-ink/12 bg-ivory/75 hover:bg-white hover:border-ink/20 focus-visible:outline-brand/80"
         )}
       >
-        <span
-          className={cn(
-            "grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full",
-            image
-              ? "bg-white"
-              : dark
-                ? "bg-gradient-to-br from-gold-light to-gold-deep"
-                : "bg-gradient-to-br from-brand/80 to-brand-deep"
-          )}
-        >
-          {image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={image} alt={`${label} profile`} className="h-full w-full object-cover" />
-          ) : (
-            <span className="font-display text-[0.8rem] font-black text-white">{initial}</span>
-          )}
+        {/* Avatar wrapped in a brand gradient ring */}
+        <span className={cn(
+          "grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br p-[1.5px]",
+          dark ? "from-gold-light to-gold-deep" : "from-brand to-brand-magenta"
+        )}>
+          <span className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white">
+            {image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={image} alt={`${label} profile`} className="h-full w-full object-cover" />
+            ) : (
+              <span
+                className={cn(
+                  "flex h-full w-full items-center justify-center",
+                  dark
+                    ? "bg-gradient-to-br from-gold-light to-gold-deep"
+                    : "bg-gradient-to-br from-brand/80 to-brand-deep"
+                )}
+              >
+                {initial ? (
+                  <span className="font-display text-[0.7rem] font-black text-white">{initial}</span>
+                ) : (
+                  <User className="h-3.5 w-3.5 text-white" strokeWidth={2} />
+                )}
+              </span>
+            )}
+            <span
+              aria-hidden
+              className="absolute bottom-0 right-0 h-2 w-2 rounded-full border-[1.5px] border-white bg-emerald-500"
+            />
+          </span>
         </span>
-        <span
-          className={cn(
-            "hidden max-w-[9rem] truncate font-display text-[0.72rem] font-bold uppercase tracking-[0.12em] sm:block",
-            dark ? "text-gold-light" : "text-slate-800"
-          )}
-        >
-          {label}
+        <span className="flex min-w-0 items-center gap-1.5">
+          <span
+            className={cn(
+              "hidden max-w-[7rem] truncate font-display text-[0.7rem] font-bold uppercase tracking-[0.08em] sm:block",
+              dark ? "text-gold-light" : "text-slate-800"
+            )}
+          >
+            {label}
+          </span>
+          <ChevronDown
+            className={cn(
+              "hidden h-3.5 w-3.5 transition-transform duration-300 sm:block",
+              menuOpen && "rotate-180",
+              dark ? "text-gold-light/70" : "text-slate-400"
+            )}
+            strokeWidth={2.2}
+          />
         </span>
-        <ChevronDown
-          className={cn(
-            "hidden h-3.5 w-3.5 transition-transform duration-300 sm:block",
-            menuOpen ? "rotate-180" : "",
-            dark ? "text-gold-light/70" : "text-slate-400"
-          )}
-        />
       </button>
 
       {menuOpen ? (
         <div
           role="menu"
           className={cn(
-            "absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-2xl border p-1.5 shadow-[0_24px_60px_-24px_rgb(15_23_42/0.45)] backdrop-blur-xl",
+            "fixed left-1/2 top-1/2 z-[200] w-[min(20rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border p-1.5 shadow-[0_24px_60px_-24px_rgb(15_23_42/0.45)] backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-56 sm:-translate-x-0 sm:-translate-y-0",
             dark ? "border-white/15 bg-[#0f172a]/95" : "border-ink/10 bg-white/95"
           )}
         >
@@ -138,7 +168,7 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
             <p className={cn("truncate font-display text-[0.8rem] font-extrabold", dark ? "text-white" : "text-ink")}>
               {session.user.name ?? "Account"}
             </p>
-            <p className={cn("truncate font-mono text-[0.6rem] text-ink-3")}>{session.user.email ?? ""}</p>
+            <p className={cn("truncate font-mono text-[0.6rem]", dark ? "text-white/40" : "text-ink-3")}>{session.user.email ?? ""}</p>
           </div>
           <div className={cn("mx-2 mb-1 h-px", dark ? "bg-white/10" : "bg-ink/[0.06]")} />
           <Link

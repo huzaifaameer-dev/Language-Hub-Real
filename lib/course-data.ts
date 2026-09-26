@@ -62,14 +62,15 @@ export const FALLBACK_COURSES: CourseInfo[] = [
     tagline: "Fluency that sounds like you.",
     description:
       "Build everyday speaking confidence through guided conversation, pronunciation drills and roleplay — from first words to fluent flow.",
-    fee: 8000,
+    fee: 22000,
     currency: "PKR",
-    duration: "4 months",
-    teacher: "Javeria Malik",
-    schedule: "Mon · Wed · Fri",
+    duration: "2 months",
+    teacher: "Javaria Malik",
+    schedule: "Mon – Sat",
     batches: [
-      { name: "Morning", time: "9:00 AM – 11:00 AM", seatsTotal: 16 },
-      { name: "Evening", time: "6:00 PM – 8:00 PM", seatsTotal: 20 },
+      { name: "Afternoon", time: "3:00 PM – 6:00 PM", seatsTotal: 16 },
+      { name: "Evening", time: "6:00 PM – 9:00 PM", seatsTotal: 20 },
+      { name: "Night", time: "9:00 PM – 12:00 AM", seatsTotal: 18 },
     ],
     order: 1,
     active: true,
@@ -83,7 +84,7 @@ export const FALLBACK_COURSES: CourseInfo[] = [
     modules: [
       {
         title: "Foundations of Fluency",
-        weeks: "Weeks 1–4",
+        weeks: "Weeks 1–2",
         topics: [
           "Greeting & introductions",
           "Everyday vocabulary building",
@@ -94,7 +95,7 @@ export const FALLBACK_COURSES: CourseInfo[] = [
       },
       {
         title: "Building Confidence",
-        weeks: "Weeks 5–8",
+        weeks: "Weeks 3–4",
         topics: [
           "Describing routines and habits",
           "Asking and answering questions",
@@ -104,7 +105,7 @@ export const FALLBACK_COURSES: CourseInfo[] = [
       },
       {
         title: "Conversational Flow",
-        weeks: "Weeks 9–12",
+        weeks: "Weeks 5–6",
         topics: [
           "Expressing opinions and preferences",
           "Telling stories and anecdotes",
@@ -114,7 +115,7 @@ export const FALLBACK_COURSES: CourseInfo[] = [
       },
       {
         title: "Advanced Speaking",
-        weeks: "Weeks 13–16",
+        weeks: "Weeks 7–8",
         topics: [
           "Group discussion skills",
           "Public speaking basics",
@@ -125,18 +126,19 @@ export const FALLBACK_COURSES: CourseInfo[] = [
     ],
   },
   {
-    name: "IELTS Preparation",
+    name: "IELTS General & Academic",
     tagline: "A band score you can bank on.",
     description:
-      "Structured prep across Listening, Reading, Writing and Speaking with mock tests, examiner-style feedback and score-review sessions.",
-    fee: 12000,
+      "Structured prep for both IELTS General and Academic across Listening, Reading, Writing and Speaking with mock tests, examiner-style feedback and score-review sessions.",
+    fee: 42000,
     currency: "PKR",
-    duration: "3 months",
-    teacher: "Javeria Malik",
-    schedule: "Tue · Thu · Sat",
+    duration: "2 months",
+    teacher: "Javaria Malik",
+    schedule: "Mon – Sat",
     batches: [
-      { name: "Morning", time: "10:00 AM – 12:00 PM", seatsTotal: 12 },
-      { name: "Weekend", time: "2:00 PM – 5:00 PM", seatsTotal: 14 },
+      { name: "Afternoon", time: "3:00 PM – 6:00 PM", seatsTotal: 12 },
+      { name: "Evening", time: "6:00 PM – 9:00 PM", seatsTotal: 14 },
+      { name: "Night", time: "9:00 PM – 12:00 AM", seatsTotal: 12 },
     ],
     order: 2,
     active: true,
@@ -150,7 +152,7 @@ export const FALLBACK_COURSES: CourseInfo[] = [
     modules: [
       {
         title: "IELTS Listening Mastery",
-        weeks: "Weeks 1–3",
+        weeks: "Weeks 1–2",
         topics: [
           "Section 1–2: Social conversations",
           "Section 3–4: Academic discussions",
@@ -161,7 +163,7 @@ export const FALLBACK_COURSES: CourseInfo[] = [
       },
       {
         title: "Reading Strategies",
-        weeks: "Weeks 4–6",
+        weeks: "Weeks 3–4",
         topics: [
           "Skimming and scanning techniques",
           "True/False/Not Given questions",
@@ -171,7 +173,7 @@ export const FALLBACK_COURSES: CourseInfo[] = [
       },
       {
         title: "Writing Task 1 & 2",
-        weeks: "Weeks 7–9",
+        weeks: "Weeks 5–6",
         topics: [
           "Graph and chart description",
           "Essay structure and coherence",
@@ -181,7 +183,7 @@ export const FALLBACK_COURSES: CourseInfo[] = [
       },
       {
         title: "Speaking Test Prep",
-        weeks: "Weeks 10–12",
+        weeks: "Weeks 7–8",
         topics: [
           "Part 1: Introduction and interview",
           "Part 2: Long turn with cue card",
@@ -192,63 +194,63 @@ export const FALLBACK_COURSES: CourseInfo[] = [
     ],
   },
   {
-    name: "PTE Preparation",
-    tagline: "Same score, less stress.",
+    name: "PTE · GRE · Duolingo",
+    tagline: "One training, three test paths.",
     description:
-      "Computer-first PTE Academic training: question-type mastery, time management and AI-scored practice so test day feels routine.",
-    fee: 12000,
+      "Computer-first training covering PTE Academic, GRE and the Duolingo English Test: question-type mastery, time management and AI-scored practice so test day feels routine.",
+    fee: 37000,
     currency: "PKR",
-    duration: "3 months",
-    teacher: "Javeria Malik",
-    schedule: "Tue · Thu · Sat",
+    duration: "1 month",
+    teacher: "Javaria Malik",
+    schedule: "Mon – Sat",
     batches: [
-      { name: "Evening", time: "7:00 PM – 9:00 PM", seatsTotal: 12 },
-      { name: "Weekend", time: "5:00 PM – 8:00 PM", seatsTotal: 14 },
+      { name: "Afternoon", time: "3:00 PM – 6:00 PM", seatsTotal: 12 },
+      { name: "Evening", time: "6:00 PM – 9:00 PM", seatsTotal: 14 },
     ],
     order: 3,
     active: true,
     demoVideoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     outcomes: [
-      "Master every PTE question type",
-      "Score 65+ with AI-scored practice",
+      "Master every question type across PTE, GRE and DET",
+      "Score 65+ / 110+ with AI-scored practice",
       "Complete tasks within strict time limits",
       "Build academic vocabulary fast",
     ],
     modules: [
       {
-        title: "Speaking & Writing Foundations",
-        weeks: "Weeks 1–3",
+        title: "Test Formats & Quick Wins",
+        weeks: "Week 1",
         topics: [
+          "Understanding PTE, GRE and DET formats",
           "Read Aloud and Repeat Sentence",
           "Describe Image and Retell Lecture",
           "Summarize Written Text",
-          "Essay writing strategies",
         ],
-        sampleLesson: "Begin with the speaking question types that contribute to both speaking and writing scores. Learn templates that work for every Describe Image task.",
+        sampleLesson: "Begin with the speaking question types that contribute to multiple scores. Learn templates that work for every Describe Image task.",
       },
       {
-        title: "Reading Mastery",
-        weeks: "Weeks 4–6",
+        title: "Reading & Listening Mastery",
+        weeks: "Week 2",
         topics: [
           "Reorder Paragraphs",
           "Fill in the Blanks (Reading & Writing)",
-          "Multiple Choice questions",
-          "Reading time management",
-        ],
-      },
-      {
-        title: "Listening Skills",
-        weeks: "Weeks 7–9",
-        topics: [
           "Summarize Spoken Text",
-          "Fill in the Blanks (Listening)",
-          "Highlight Correct Summary",
           "Write from Dictation",
         ],
       },
       {
+        title: "Writing & Vocabulary",
+        weeks: "Week 3",
+        topics: [
+          "Essay writing strategies",
+          "Academic vocabulary range",
+          "Time management per section",
+          "Common grammar fixes",
+        ],
+      },
+      {
         title: "Mock Tests & Strategy",
-        weeks: "Weeks 10–12",
+        weeks: "Week 4",
         topics: [
           "Full-length scored mock tests",
           "Weak area targeted drills",
@@ -259,58 +261,68 @@ export const FALLBACK_COURSES: CourseInfo[] = [
     ],
   },
   {
-    name: "Duolingo English Test",
-    tagline: "Online-first. Fast-tracked.",
+    name: "Writing & Communication",
+    tagline: "Write clearly. Sound professional.",
     description:
-      "A focused sprint for the DET: pattern drills, adaptive mock tests and writing/speaking feedback to lift your score fast.",
-    fee: 6000,
+      "Creative writing, business communication and professional writing in one intensive programme: emails, reports, storytelling and polished workplace language.",
+    fee: 27000,
     currency: "PKR",
-    duration: "6 weeks",
-    teacher: "Javeria Malik",
-    schedule: "Mon · Wed · Fri",
+    duration: "1 month",
+    teacher: "Javaria Malik",
+    schedule: "Mon – Sat",
     batches: [
-      { name: "Afternoon", time: "1:00 PM – 3:00 PM", seatsTotal: 10 },
-      { name: "Evening", time: "8:00 PM – 10:00 PM", seatsTotal: 24 },
+      { name: "Afternoon", time: "3:00 PM – 6:00 PM", seatsTotal: 10 },
+      { name: "Evening", time: "6:00 PM – 9:00 PM", seatsTotal: 24 },
     ],
     order: 4,
     active: true,
     demoVideoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     outcomes: [
-      "Score 110+ on the Duolingo English Test",
-      "Master adaptive question patterns",
-      "Write and speak confidently under time",
-      "Complete the test in one sitting",
+      "Write clear, professional emails and reports",
+      "Craft persuasive business messages",
+      "Develop a creative writing style",
+      "Communicate confidently in the workplace",
     ],
     modules: [
       {
-        title: "Test Format & Quick Wins",
-        weeks: "Weeks 1–2",
+        title: "Business Communication",
+        weeks: "Week 1",
         topics: [
-          "Understanding the adaptive format",
-          "Read Aloud and Write About the Image",
-          "Listening and Speaking samples",
-          "Quick vocabulary boost",
+          "Professional email writing",
+          "Report and memo structure",
+          "Meeting and presentation language",
+          "Tone and politeness in the workplace",
         ],
-        sampleLesson: "Get familiar with the unique DET format. Learn the question types that appear most often and start with quick score improvements.",
+        sampleLesson: "Start with the emails you actually send. Learn structures that make you sound clear, confident and professional in writing.",
       },
       {
-        title: "Reading & Listening Deep Dive",
-        weeks: "Weeks 3–4",
+        title: "Professional Writing",
+        weeks: "Week 2",
         topics: [
-          "Fill in the Blanks strategies",
-          "Comprehension questions",
-          "Interactive Listening practice",
-          "Context clue techniques",
+          "Resumes and cover letters",
+          "Persuasive proposals",
+          "Editing and proofreading",
+          "Clarity and conciseness",
         ],
       },
       {
-        title: "Writing & Speaking Polish",
-        weeks: "Weeks 5–6",
+        title: "Creative Writing",
+        weeks: "Week 3",
         topics: [
-          "Writing samples with scoring criteria",
-          "Speaking prompts practice",
-          "Video essay strategies",
-          "Final mock test and review",
+          "Story structure and hooks",
+          "Descriptive and narrative voice",
+          "Dialogue and pacing",
+          "Feedback and revision",
+        ],
+      },
+      {
+        title: "Portfolio & Polish",
+        weeks: "Week 4",
+        topics: [
+          "Building a writing portfolio",
+          "Peer review workshops",
+          "Final project",
+          "Publishing and sharing your work",
         ],
       },
     ],

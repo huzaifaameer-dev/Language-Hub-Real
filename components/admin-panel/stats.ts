@@ -1,7 +1,6 @@
 import type {
-  AdminApplication,
   AdminCounts,
-  AdminEnrollment,
+  AdminRegistration,
   AdminStats,
 } from "./types";
 
@@ -11,8 +10,7 @@ import type {
  *  the lists, which are sorted newest-first. Everything except those buckets
  *  is reachable without double-computing on the server refresh path. */
 export function deriveAdminStats(
-  applications: AdminApplication[],
-  enrollments: AdminEnrollment[],
+  registrations: AdminRegistration[],
   counts: AdminCounts
 ): AdminStats {
   const now = new Date();
@@ -30,28 +28,25 @@ export function deriveAdminStats(
   let thisWeek = 0;
   let thisMonth = 0;
 
-  for (const a of applications) {
-    const t = new Date(a.createdAt).getTime();
+  for (const r of registrations) {
+    const t = new Date(r.createdAt).getTime();
     if (t >= day) today += 1;
     if (t >= week) thisWeek += 1;
     if (t >= month) thisMonth += 1;
   }
 
   return {
-    total: counts.appsTotal,
-    pending: counts.appsPending,
-    approved: counts.appsApproved,
-    rejected: counts.appsRejected,
-    enrPending: counts.enrsPending + counts.enrsAwaiting + counts.enrsProof,
-    enrEnrolled: counts.enrsEnrolled,
-    enrRejected: counts.enrsRejected,
-    paymentsTotal: counts.paymentsTotal ?? 0,
+    total: counts.regTotal,
+    newCount: counts.regNew,
+    contacted: counts.regContacted,
+    enrolled: counts.regEnrolled,
     today,
     thisWeek,
     thisMonth,
     users: counts.users,
     courses: counts.courses,
     notifications: counts.notifications,
-    approvalRate: counts.appsTotal > 0 ? Math.round((counts.appsApproved / counts.appsTotal) * 100) : 0,
+    responseRate:
+      counts.regTotal > 0 ? Math.round((counts.regEnrolled / counts.regTotal) * 100) : 0,
   };
 }

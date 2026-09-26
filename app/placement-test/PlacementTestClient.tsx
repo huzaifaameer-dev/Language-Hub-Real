@@ -21,6 +21,8 @@ import {
   calculatePlacement,
   type PlacementResult,
 } from "@/lib/placement-test-data";
+import { registrationKeyForCatalogName } from "@/lib/registration-config";
+import { ApplyButton } from "@/components/courses/ApplyButton";
 
 const TOTAL_TIME = 10 * 60; // 10 minutes in seconds
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -434,12 +436,12 @@ export function PlacementTestClient() {
                 Based on your {result.percentage}% score, we recommend starting with this course to maximise your progress.
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
-                <Link
-                  href="/signup"
+                <ApplyButton
+                  courseKey={registrationKeyForCatalogName(result.recommendedCourse)}
                   className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-7 font-display text-[0.82rem] font-bold text-white transition-all hover:-translate-y-0.5 hover:brightness-110"
                 >
                   <BookOpen className="h-4 w-4" /> Apply now
-                </Link>
+                </ApplyButton>
                 <Link
                   href={`/courses/${result.recommendedCourse.toLowerCase().replace(/\s+/g, "-")}`}
                   className="inline-flex h-11 items-center gap-2 rounded-full border border-ink/10 bg-white px-7 font-display text-[0.82rem] font-bold text-ink transition-all hover:bg-ink hover:text-ivory"
