@@ -12,7 +12,7 @@ export const bodySizeLimit = "60mb";
 
 const MAX_TITLE = 180;
 const MAX_BODY = 50_000_000; // body now holds inline data-URI images → needs headroom
-const MAX_TAGS = 10;
+const MAX_TAGS = 20;
 const MAX_TAG_LEN = 30;
 const MAX_COVER = 8_000_000;
 
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     coverImage: parsed.data.coverImage?.trim() || null,
     authorName: parsed.data.authorName,
     authorRole: parsed.data.authorRole,
-    tags: (parsed.data.tags ?? []).map((t) => t.toLowerCase()).filter(Boolean),
+    tags: [...new Set((parsed.data.tags ?? []).map((t) => t.toLowerCase().trim()).filter(Boolean))],
     published: !!parsed.data.published,
     pinned: !!parsed.data.pinned,
     views: 0,
@@ -165,7 +165,8 @@ export async function PATCH(request: Request) {
   if (p.coverImage !== undefined) updates.coverImage = p.coverImage?.trim() || null;
   if (p.authorName !== undefined) updates.authorName = p.authorName;
   if (p.authorRole !== undefined) updates.authorRole = p.authorRole;
-  if (p.tags !== undefined) updates.tags = p.tags.map((t) => t.trim().toLowerCase()).filter(Boolean);
+  if (p.tags !== undefined)
+  updates.tags = [...new Set(p.tags.map((t) => t.trim().toLowerCase()).filter(Boolean))];
   if (typeof p.published === "boolean" && p.published !== existing.published) {
     updates.published = p.published;
     if (p.published && !existing.publishedAt) updates.publishedAt = new Date();
