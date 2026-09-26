@@ -20,12 +20,12 @@ const coverRefine = (v: string | null | undefined) =>
   v === null ||
   v === undefined ||
   v === "" ||
-  /^data:image\/(webp|jpeg|png);base64,/i.test(v) ||
+  /^data:image\/(webp|jpeg|png|avif);base64,/i.test(v) ||
   /^https:\/\/[^\s]+$/i.test(v);
 
 const NewsPostSchema = z.object({
   title: z.string().trim().min(1).max(MAX_TITLE),
-  body: z.string().min(1).max(MAX_BODY),
+  body: z.string().trim().max(MAX_BODY),
   coverImage: z.string().trim().max(MAX_COVER).nullable().optional().refine(coverRefine, {
     message: "Invalid cover image path.",
   }),
@@ -102,10 +102,14 @@ export async function POST(request: Request) {
   let slug = slugify(parsed.data.title);
   if (await posts.findOne({ slug })) slug = `${slug}-${Date.now().toString(36)}`;
 
+  // Guard: never publish a post with an empty body. Fall back to the title so
+  // "new news -> publish" never fails on a missing paragraph.
+  const finalBody = parsed.data.body || parsed.data.title;
+
   await posts.insertOne({
     slug,
     title: parsed.data.title,
-    body: parsed.data.body,
+    body: finalBody,
     coverImage: parsed.data.coverImage?.trim() || null,
     authorName: parsed.data.authorName,
     authorRole: parsed.data.authorRole,
@@ -157,7 +161,7 @@ export async function PATCH(request: Request) {
         : nextSlug;
     }
   }
-  if (p.body !== undefined) updates.body = p.body;
+  if (p.body !== undefined) updates.body = p.body.trim() || existing.title || existing.body;
   if (p.coverImage !== undefined) updates.coverImage = p.coverImage?.trim() || null;
   if (p.authorName !== undefined) updates.authorName = p.authorName;
   if (p.authorRole !== undefined) updates.authorRole = p.authorRole;

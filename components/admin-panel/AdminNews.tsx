@@ -279,6 +279,8 @@ function NewsEditor({ existing, onDone }: { existing: NewsRow | null; onDone: ()
   /* ─── Save ─── */
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!title.trim()) { setError("Please write a title first."); return; }
+    if (!body.trim()) { setError("Please write your news content first."); return; }
     setSaving(true); setError(null);
     try {
       const payload = { title, body, coverImage, authorName, authorRole, tags: tags.split(",").map((t) => t.trim()).filter(Boolean), published };
