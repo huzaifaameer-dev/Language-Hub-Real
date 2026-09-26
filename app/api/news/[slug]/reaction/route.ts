@@ -12,6 +12,36 @@ const ReactionSchema = z.object({
 });
 
 /** Public: set or clear a visitor's reaction (like / interested / not interested). */
+export async function GET(
+  _request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  const { slug } = await params;
+
+  const posts = await getNewsPostsCollection();
+  const post = await posts.findOne({ slug, published: true });
+  if (!post) return NextResponse.json({ message: "Post not found." }, { status: 404 });
+
+  const reactions = await getNewsReactionsCollection();
+  const actor = await resolveNewsActor();
+  const my = await reactions.findOne({ postSlug: slug, actorId: actor.actorId });
+
+  const [likeCount, interestedCount, notInterestedCount] = await Promise.all([
+    reactions.countDocuments({ postSlug: slug, type: "like" }),
+    reactions.countDocuments({ postSlug: slug, type: "interested" }),
+    reactions.countDocuments({ postSlug: slug, type: "not_interested" }),
+  ]);
+
+  return NextResponse.json(
+    {
+      myReaction: my?.type ?? null,
+      counts: { like: likeCount, interested: interestedCount, not_interested: notInterestedCount },
+    },
+    { headers: { "Cache-Control": "no-store" } }
+  );
+}
+
+/** Public: set or clear a visitor's reaction (like / interested / not interested). */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }

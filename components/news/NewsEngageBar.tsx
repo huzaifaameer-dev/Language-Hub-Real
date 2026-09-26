@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { MessageCircle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ export function NewsEngageBar({
   interestedCount,
   notInterestedCount,
   commentCount,
+  myReaction = null,
 }: {
   slug: string;
   title: string;
@@ -29,8 +30,9 @@ export function NewsEngageBar({
   interestedCount: number;
   notInterestedCount: number;
   commentCount: number;
+  myReaction?: Reaction | null;
 }) {
-  const [my, setMy] = useState<Reaction>(null);
+  const [my, setMy] = useState<Reaction>(myReaction);
   const [counts, setCounts] = useState({
     like: likeCount,
     interested: interestedCount,
@@ -38,6 +40,23 @@ export function NewsEngageBar({
   });
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentCountState, setCommentCountState] = useState(commentCount);
+
+  // The post page can be server-rendered/cached, so per-viewer state is fetched
+  // client-side: hydrate the "already liked" state + authoritative counts.
+  useEffect(() => {
+    let on = true;
+    fetch(`/api/news/${encodeURIComponent(slug)}/reaction`, { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!on || !d) return;
+        if (typeof d.myReaction === "string" || d.myReaction === null) setMy(d.myReaction);
+        if (d.counts) setCounts(d.counts);
+      })
+      .catch(() => {});
+    return () => {
+      on = false;
+    };
+  }, [slug]);
 
   const react = async (type: Exclude<Reaction, null>) => {
     const next: Reaction = my === type ? null : type;
@@ -56,7 +75,10 @@ export function NewsEngageBar({
         body: JSON.stringify({ type: next }),
       });
       const d = await res.json().catch(() => null);
-      if (res.ok && d?.counts) setCounts(d.counts);
+      if (res.ok && d) {
+        if (typeof d.myReaction === "string" || d.myReaction === null) setMy(d.myReaction);
+        if (d.counts) setCounts(d.counts);
+      }
     } catch { /* rely on optimistic */ }
   };
 

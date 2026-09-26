@@ -24,6 +24,7 @@ interface FeedPost {
   notInterestedCount: number;
   commentCount: number;
   pinned: boolean;
+  myReaction?: Reaction | null;
   publishedAt: string;
 }
 
@@ -32,7 +33,7 @@ type Reaction = "like" | "interested" | "not_interested" | null;
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function NewsPostCard({ post, index = 0 }: { post: FeedPost; index?: number }) {
-  const [my, setMy] = useState<Reaction>(null);
+  const [my, setMy] = useState<Reaction>(post.myReaction ?? null);
   const [counts, setCounts] = useState({
     like: post.likeCount ?? 0,
     interested: post.interestedCount ?? 0,
@@ -59,7 +60,10 @@ export function NewsPostCard({ post, index = 0 }: { post: FeedPost; index?: numb
         body: JSON.stringify({ type: next }),
       });
       const d = await res.json().catch(() => null);
-      if (res.ok && d?.counts) setCounts(d.counts);
+      if (res.ok && d) {
+        if (typeof d.myReaction === "string" || d.myReaction === null) setMy(d.myReaction);
+        if (d.counts) setCounts(d.counts);
+      }
     } catch {
       // server sync failed — count display may drift until refresh
     }

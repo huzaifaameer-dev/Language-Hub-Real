@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getNewsPostsCollection } from "@/lib/db";
+import { getNewsPostsCollection, getNewsReactionsCollection } from "@/lib/db";
+import { resolveNewsActor } from "@/lib/news-identity";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,24 @@ export async function GET(request: Request) {
     posts.countDocuments(filter),
   ]);
 
+  // Attach the viewer's own reaction to each post so cards can hydrate the
+  // "liked" state on refresh (no double-likes / confused toggling).
+  let myBySlug: Record<string, string> = {};
+  try {
+    const actor = await resolveNewsActor();
+    if (actor.actorId) {
+      const rows = await (await getNewsReactionsCollection())
+        .find(
+          { actorId: actor.actorId, postSlug: { $in: docs.map((d) => d.slug) } },
+          { projection: { postSlug: 1, type: 1 } }
+        )
+        .toArray();
+      for (const r of rows) myBySlug[r.postSlug] = r.type as string;
+    }
+  } catch {
+    // viewer context unavailable → leave everything unreacted
+  }
+
   return NextResponse.json(
     {
       posts: docs.map((d) => ({
@@ -49,6 +68,7 @@ export async function GET(request: Request) {
         notInterestedCount: d.notInterestedCount ?? 0,
         commentCount: d.commentCount ?? 0,
         pinned: d.pinned,
+        myReaction: myBySlug[d.slug] ?? null,
         publishedAt: d.publishedAt?.toISOString() ?? d.createdAt.toISOString(),
       })),
       total,

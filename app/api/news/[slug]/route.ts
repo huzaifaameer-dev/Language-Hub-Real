@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getNewsPostsCollection } from "@/lib/db";
+import { getNewsPostsCollection, getNewsReactionsCollection } from "@/lib/db";
+import { resolveNewsActor } from "@/lib/news-identity";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,17 @@ export async function GET(
   const doc = await posts.findOne({ slug, published: true });
   if (!doc) return NextResponse.json({ message: "Not found." }, { status: 404 });
   posts.updateOne({ _id: doc._id }, { $inc: { views: 1 } }).catch(() => {});
+
+  let myReaction: string | null = null;
+  try {
+    const actor = await resolveNewsActor();
+    if (actor.actorId) {
+      const mine = await (await getNewsReactionsCollection()).findOne({ postSlug: slug, actorId: actor.actorId });
+      if (mine) myReaction = mine.type as string;
+    }
+  } catch {
+    // viewer context unavailable → unreacted
+  }
 
   return NextResponse.json(
     {
@@ -29,6 +41,7 @@ export async function GET(
       interestedCount: doc.interestedCount ?? 0,
       notInterestedCount: doc.notInterestedCount ?? 0,
       commentCount: doc.commentCount ?? 0,
+      myReaction,
       publishedAt: doc.publishedAt?.toISOString() ?? doc.createdAt.toISOString(),
     },
     {
