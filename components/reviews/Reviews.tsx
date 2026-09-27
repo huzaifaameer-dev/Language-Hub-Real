@@ -42,9 +42,22 @@ function Stars({ count = 5 }: { count?: number }) {
 export function Reviews() {
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [active, setActive] = useState<ReviewItem | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  // Responsive "front" limit: ~4 on mobile, ~6 on tablet, up to 8 on desktop.
+  const [frontLimit, setFrontLimit] = useState(8);
   const { dict, lang } = useLang();
   const isUr = lang === "ur";
   const reduce = useReducedMotion();
+
+  useEffect(() => {
+    const apply = () => {
+      const mq = (q: string) => window.matchMedia(q).matches;
+      setFrontLimit(mq("(min-width: 1024px)") ? 8 : mq("(min-width: 720px)") ? 6 : 4);
+    };
+    apply();
+    window.addEventListener("resize", apply);
+    return () => window.removeEventListener("resize", apply);
+  }, []);
 
   useEffect(() => {
     let on = true;
@@ -119,7 +132,17 @@ export function Reviews() {
               <>{dict["reviews.title1"]} <span className="brand-text">{dict["reviews.title2"]}</span></>
             ) : (
               <>
-                Proven results, <span className="brand-text">verified.</span>
+                Proven results,{" "}
+                <span
+                  style={{
+                    backgroundImage: "linear-gradient(100deg,#1D4ED8,#2563EB,#38BDF8)",
+                    WebkitBackgroundClip: "text",
+                    backgroundClip: "text",
+                    color: "transparent",
+                  }}
+                >
+                  verified.
+                </span>
               </>
             )
           }
@@ -201,7 +224,10 @@ export function Reviews() {
 
         {/* ─── Regular review grid (ordered) ─── */}
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {[...rest].sort((a, b) => String(a.outcome).localeCompare(String(b.outcome))).slice(0, featured ? 7 : 8).map((t, i) => (
+          {[...rest]
+            .sort((a, b) => String(a.outcome).localeCompare(String(b.outcome)))
+            .slice(0, expanded ? undefined : Math.min(frontLimit, featured ? 7 : 8))
+            .map((t, i) => (
             <motion.article
               key={t.id}
               initial={{ opacity: 0, y: 28 }}
@@ -266,11 +292,27 @@ export function Reviews() {
           ))}
         </div>
 
+        {/* Show more / less */}
+        {rest.length > Math.min(frontLimit, featured ? 7 : 8) ? (
+          <div className="mt-8 text-center">
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="inline-flex h-11 items-center gap-2 rounded-full border-2 border-[#2563EB]/25 bg-white px-6 font-display text-[0.76rem] font-bold uppercase tracking-[0.14em] text-[#1647C7] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2563EB] hover:bg-[#2563EB] hover:text-white"
+            >
+              {expanded
+                ? "Show less"
+                : `Show more reviews (${rest.length - Math.min(frontLimit, featured ? 7 : 8)})`}
+              <ArrowRight className={`h-4 w-4 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`} strokeWidth={2.2} />
+            </button>
+          </div>
+        ) : null}
+
         {/* CTA */}
         <div className="mt-12 text-center">
           <Link
             href="/success-stories"
-            className="group inline-flex h-12 items-center gap-2.5 rounded-full border border-[#2563EB]/30 bg-white px-8 font-display text-[0.88rem] font-bold text-[#1647C7] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#2563EB] hover:text-white hover:shadow-[0_18px_44px_-16px_rgb(37_99_235/0.5)]"
+            className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] px-8 font-display text-[0.85rem] font-bold uppercase tracking-[0.08em] text-white shadow-[0_16px_34px_-16px_rgb(37_99_235/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-18px_rgb(37_99_235/0.95)] hover:brightness-110"
           >
             {dict["reviews.allStories"]} <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
