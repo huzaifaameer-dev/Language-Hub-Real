@@ -18,6 +18,7 @@ const LINK_SECTIONS = [
       { id: "journey", label: "The Journey" },
       { id: "courses", label: "Courses" },
       { id: "why", label: "Why Language Hub" },
+      { id: "enroll", label: "How It Works" },
       { id: "cta", label: "Start Today" },
     ],
   },
@@ -27,17 +28,16 @@ const LINK_SECTIONS = [
       { id: "about", label: "Beyond English" },
       { id: "courses", label: "Programmes & Fees" },
       { id: "contact", label: "Opening Hours" },
-      { id: "cta", label: "Start Today" },
+      { href: "/placement-test", id: "placement", label: "Placement Test" },
     ],
   },
   {
     title: "Support",
     items: [
-      { id: "faq", label: "FAQ" },
-      { id: "news", label: "Daily News", href: "/news" },
-      { id: "success-stories", label: "Success Stories", href: "/success-stories" },
-      { id: "team", label: "Meet the Team", href: "/team" },
-      { id: "feedback", label: "Send Feedback", href: "/feedback" },
+      { href: "/news", id: "news", label: "News" },
+      { href: "/success-stories", id: "success-stories", label: "Success Stories" },
+      { href: "/team", id: "team", label: "Meet the Team" },
+      { href: "/feedback", id: "feedback", label: "Send Feedback" },
       { id: "contact", label: "Contact & Help" },
     ],
   },
@@ -48,11 +48,11 @@ function FooterLink({ id, label, href }: { id: string; label: string; href?: str
   const router = useRouter();
   const onSite = pathname === "/";
   const cls =
-    "group flex items-center gap-2 py-1.5 text-start text-[0.88rem] text-ivory/55 transition-colors duration-300 hover:text-gold-light";
+    "group flex items-center gap-2 py-1.5 text-start text-[0.88rem] text-ivory/55 transition-colors duration-300 hover:text-[#60A5FA]";
   const bar = (
     <span
       aria-hidden="true"
-      className="h-px w-0 bg-gold transition-all duration-300 group-hover:w-4"
+      className="h-px w-0 bg-[#38BDF8] transition-all duration-300 group-hover:w-4"
     />
   );
   if (href) {
@@ -109,10 +109,10 @@ export function Footer() {
   return (
     <footer className="relative overflow-hidden bg-[#0b0a12] text-ivory" aria-label="Footer">
       <div className="aurora-blob left-[-12%] top-[-18%] h-[40vh] w-[40vh] bg-brand/12" />
-      <div className="aurora-blob right-[-14%] bottom-[-20%] h-[44vh] w-[44vh] bg-brand-magenta/10" />
+      <div className="aurora-blob right-[-14%] bottom-[-20%] h-[44vh] w-[44vh] bg-[#3B82F6]/10" />
 
       {/* animated shimmering top border */}
-      <div aria-hidden className="shine-sweep top-0 h-px bg-gradient-to-r from-transparent via-brand/60 to-transparent" />
+      <div aria-hidden className="shine-sweep top-0 h-px bg-gradient-to-r from-transparent via-[#3B82F6]/60 to-transparent" />
 
       <div className="relative mx-auto max-w-6xl px-6 pt-16 pb-10">
         {/* CTA strip */}
@@ -121,11 +121,11 @@ export function Footer() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-6% 0px" }}
           transition={{ duration: 0.7, ease }}
-          className="relative mb-16 overflow-hidden rounded-[1.75rem] border border-white/10 bg-gradient-to-r from-brand/[0.16] via-white/[0.04] to-brand-magenta/[0.14] p-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-8"
+          className="relative mb-16 overflow-hidden rounded-[1.75rem] border border-white/10 bg-gradient-to-r from-[#1D4ED8]/25 via-white/[0.05] to-[#38BDF8]/20 p-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-8"
         >
           <div aria-hidden className="absolute -left-16 -top-16 h-48 w-48 rounded-full bg-brand/30 blur-3xl" />
           <div className="relative flex items-start gap-4">
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/10 text-gold-light">
+            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/10 text-[#60A5FA]">
               <Sparkles className="h-6 w-6" strokeWidth={1.7} />
             </span>
             <div>
@@ -167,7 +167,7 @@ export function Footer() {
                 <Logo size="xs" eager />
               </span>
               <span className="font-display text-xl font-extrabold tracking-[0.14em]">
-                LANGUAGE<span className="gold-text"> HUB</span>
+                LANGUAGE<span className="text-[#60A5FA]"> HUB</span>
               </span>
             </div>
             <p className="mt-6 max-w-sm text-[0.95rem] leading-relaxed text-ivory/60">
@@ -194,10 +194,10 @@ export function Footer() {
               aria-label={section.title}
               className="flex flex-col"
             >
-              <p className="font-display text-[0.66rem] font-bold uppercase tracking-[0.32em] text-gold-light/80">
+              <p className="font-display text-[0.66rem] font-bold uppercase tracking-[0.32em] text-[#93C5FD]">
                 {section.title}
               </p>
-              <span aria-hidden="true" className="mt-3 h-px w-10 bg-gold/40" />
+              <span aria-hidden="true" className="mt-3 h-px w-10 bg-[#3B82F6]/40" />
               <div className="mt-5 flex flex-col">
                 {section.items.map((item) => (
                   <FooterLink key={item.id} id={item.id} label={item.label} href={item.href} />
@@ -215,15 +215,15 @@ export function Footer() {
             aria-label="Contact"
             className="flex flex-col"
           >
-            <p className="font-display text-[0.66rem] font-bold uppercase tracking-[0.32em] text-gold-light/80">
+            <p className="font-display text-[0.66rem] font-bold uppercase tracking-[0.32em] text-[#93C5FD]">
               Get in touch
             </p>
-            <span aria-hidden="true" className="mt-3 h-px w-10 bg-gold/40" />
+            <span aria-hidden="true" className="mt-3 h-px w-10 bg-[#3B82F6]/40" />
             <div className="mt-5 flex flex-col gap-4">
               {contactItems.map((item) => {
                 const inner = (
                   <>
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-ivory/10 bg-ivory/[0.04] text-gold-light/80 transition-all duration-300 group-hover:border-gold/40 group-hover:text-gold-light">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-ivory/10 bg-ivory/[0.04] text-[#93C5FD] transition-all duration-300 group-hover:border-[#3B82F6]/50 group-hover:text-[#60A5FA]">
                       <item.Icon className="h-4 w-4" strokeWidth={1.8} />
                     </span>
                     <span className="flex flex-col">
@@ -272,7 +272,7 @@ export function Footer() {
               <Link
                 key={l.href}
                 href={l.href}
-                className="font-display text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ivory/40 transition-colors duration-300 hover:text-gold-light"
+                className="font-display text-[0.62rem] font-bold uppercase tracking-[0.2em] text-ivory/40 transition-colors duration-300 hover:text-[#60A5FA]"
               >
                 {l.label}
               </Link>
@@ -287,7 +287,7 @@ export function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={s.label}
-                className="grid h-9 w-9 place-items-center rounded-full border border-ivory/10 bg-ivory/[0.04] text-ivory/60 transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/40 hover:bg-gold/10 hover:text-gold-light"
+                className="grid h-9 w-9 place-items-center rounded-full border border-ivory/10 bg-ivory/[0.04] text-ivory/60 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#3B82F6]/50 hover:bg-[#38BDF8]/10 hover:text-[#60A5FA]"
               >
                 <s.Icon className="h-4 w-4" strokeWidth={1.8} />
               </a>

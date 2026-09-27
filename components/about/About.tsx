@@ -247,7 +247,7 @@ export function About() {
                 transition={{ delay: 0.26, duration: 0.5, ease }}
                 className="mt-1.5 font-display text-[0.92rem] font-semibold text-slate-400"
               >
-                Founder of Pakistan's conversation-first English academy
+                Founder of Pakistan&apos;s conversation-first English academy
               </motion.p>
 
               {/* Bio */}

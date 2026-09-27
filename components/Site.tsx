@@ -9,8 +9,7 @@ import { Features } from "@/components/philosophy/Features";
 import { Courses } from "@/components/courses/Courses";
 import { EnrollmentPath } from "@/components/courses/EnrollmentPath";
 import { Reviews } from "@/components/reviews/Reviews";
-import { FaqSection } from "@/components/faq/FaqSection";
-import { CtaBanner } from "@/components/contact/CtaBanner";
+import { ClosingStrip } from "@/components/contact/ClosingStrip";
 import { Footer } from "@/components/footer/Footer";
 import { LiveEnrollmentBanner } from "@/components/social-proof/LiveEnrollmentBanner";
 import { SupportHelp } from "@/components/support/SupportHelp";
@@ -63,8 +62,7 @@ export function Site() {
           <Courses />
           <EnrollmentPath />
           <Reviews />
-          <FaqSection />
-          <CtaBanner />
+          <ClosingStrip />
         </main>
         <SupportHelp />
         <Footer />

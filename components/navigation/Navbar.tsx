@@ -14,7 +14,6 @@ import {
   Layers,
   LayoutGrid,
   Menu,
-  MessageCircle,
   Newspaper,
   Sparkles,
   Star,
@@ -59,7 +58,7 @@ const SITE_LINKS = [
   { id: "why", key: "nav.why-choose", label: "Why choose us", icon: Star, note: "The Language Hub difference" },
   { id: "journey", key: "nav.journey", label: "Journey", icon: Layers, note: "Your path to fluency" },
   { id: "reviews", key: "nav.reviews", label: "Reviews", icon: Star, note: "Real results from learners" },
-  { id: "faq", key: "nav.faq", label: "FAQ", icon: MessageCircle, note: "Answers to common questions" },
+  { id: "enroll", key: "nav.enroll", label: "How It Works", icon: ClipboardList, note: "Three simple steps to begin" },
 ] as const;
 
 const ease = [0.16, 1, 0.3, 1] as const;
