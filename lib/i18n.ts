@@ -141,7 +141,7 @@ export const enDict: Dict = {
   "features.subtitle": "A method built around real communication, real people and real results — not textbooks alone.",
   "features.f1.title": "Live Conversation Practice",
   "features.f1.desc": "Speak from your very first session. Real, guided dialogues — not scripted drills — so fluency builds naturally and confidently.",
-  "features.f2.title": "Small Cohort Sizes",
+  "features.f2.title": "Small Batches",
   "features.f2.desc": "Classes capped at 10–20 learners. Every voice is heard with personal attention, so progress stays visible week after week.",
   "features.f3.title": "Personalised Expression",
   "features.f3.desc": "Find your own English voice — the tone, rhythm and vocabulary that are unmistakably you. Not textbook English, but yours.",
