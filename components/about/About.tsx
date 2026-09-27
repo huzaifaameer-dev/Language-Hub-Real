@@ -232,13 +232,13 @@ export function About() {
 
                 {/* Colorful chips (static) */}
                 <span className="absolute -left-3 -top-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-display text-[0.62rem] font-bold text-emerald-700 shadow-lg">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> 8+ Years
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Founder-led
                 </span>
                 <span className="absolute -right-3 top-1/4 inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 font-display text-[0.62rem] font-bold text-sky-700 shadow-lg">
                   <span className="h-1.5 w-1.5 rounded-full bg-sky-500" /> IELTS · PTE
                 </span>
                 <span className="absolute -bottom-3 -right-3 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 font-display text-[0.62rem] font-bold text-amber-700 shadow-lg">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> 600+ Students
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Small batches
                 </span>
                 </motion.div>
 
