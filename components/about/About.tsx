@@ -146,168 +146,168 @@ export function About() {
           </div>
         </div>
 
-        {/* Founder spotlight — light premium */}
+        {/* Founder spotlight — vibrant premium */}
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.7, ease }}
-          className="relative mt-20 overflow-hidden rounded-[2.5rem] border border-ink/[0.07] bg-[linear-gradient(135deg,#F7FAFF_0%,#EEF4FF_55%,#F2EFFF_100%)] shadow-[0_40px_90px_-50px_rgb(37_99_235/0.4)]"
+          className="relative mt-20 rounded-[2.5rem] bg-[conic-gradient(from_140deg,#6366F1,#0EA5E9,#F0C36D,#EC4899,#6366F1)] p-0.5 shadow-[0_50px_110px_-50px_rgb(79_70_229/0.55)]"
         >
-          {/* Calm ambient glow + faint texture (subtle, professional) */}
-          <div aria-hidden className="pointer-events-none absolute inset-0">
-            <div
-              className="absolute -right-24 -top-24 h-72 w-72 rounded-[50%]"
-              style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(37 99 235 / 0.10), transparent 70%)" }}
-            />
-            <div
-              className="absolute inset-0 opacity-[0.22]"
-              style={{
-                backgroundImage: "radial-gradient(rgb(37 99 235 / 0.14) 1px, transparent 1px)",
-                backgroundSize: "26px 26px",
-                maskImage: "radial-gradient(ellipse at 30% 20%, black 0%, transparent 60%)",
-                WebkitMaskImage: "radial-gradient(ellipse at 30% 20%, black 0%, transparent 60%)",
-              }}
-            />
-          </div>
-
-          <div className="relative grid gap-10 p-8 sm:p-12 lg:grid-cols-[280px_1fr] lg:gap-14">
-            {/* Photo */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1, duration: 0.6, ease }}
-              className="relative mx-auto w-full max-w-[20rem] lg:mx-0"
-            >
-              <span className="block overflow-hidden rounded-[1.6rem] ring-1 ring-[#2563EB]/10 shadow-[0_28px_64px_-34px_rgb(37_99_235/0.65)]">
-                {FOUNDER.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={FOUNDER.image} alt={FOUNDER.name} className="aspect-[4/5] w-full object-cover" />
-                ) : (
-                  <span className="grid aspect-[4/5] w-full place-items-center bg-gradient-to-br from-[#2563EB] to-[#6D4AFF]">
-                    <span className="font-display text-5xl font-extrabold text-white">{initials}</span>
-                  </span>
-                )}
-              </span>
-              <span className="absolute -bottom-3 -right-3 grid h-10 w-10 place-items-center rounded-full border border-[#2563EB]/15 bg-white font-display text-[0.62rem] font-bold text-[#2563EB] shadow-[0_10px_26px_-12px_rgb(37_99_235/0.6)]">
-                CEO
-              </span>
-            </motion.div>
-
-            {/* Identity + bio */}
-            <div className="flex flex-col justify-center text-center lg:text-start">
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.15, duration: 0.5, ease }}
-                className="flex items-center justify-center gap-3 font-mono text-[0.6rem] font-bold uppercase tracking-[0.3em] text-[#2563EB] lg:justify-start"
-              >
-                <span aria-hidden className="hidden h-px w-8 bg-[#2563EB]/40 sm:block" />
-                {FOUNDER.role}
-              </motion.p>
-              <motion.h3
-                initial={{ opacity: 0, y: 8 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2, duration: 0.5, ease }}
-                className="mt-3 font-display text-[clamp(1.8rem,4vw,2.6rem)] font-extrabold leading-tight tracking-[-0.02em] text-ink"
-              >
-                {FOUNDER.name}
-              </motion.h3>
-              <motion.p
-                initial={{ opacity: 0, y: 8 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.26, duration: 0.5, ease }}
-                className="mt-1.5 font-display text-[0.92rem] font-semibold text-[#64748B]"
-              >
-                Building the conversation-first academy in Pakistan
-              </motion.p>
-
-              {/* Bio */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.32, duration: 0.5, ease }}
-                className="mt-5 flex flex-col gap-3 text-start"
-              >
-                <p className="text-[0.95rem] leading-relaxed text-ink-2">
-                  Ms. Javaria Malik is the CEO and founder of Language Hub, where she has
-                  spent over 8 years turning hesitant speakers into confident
-                  communicators. Her conversation-first method treats English as a living
-                  skill — something learners actually use, not merely study.
-                </p>
-                <p className="text-[0.95rem] leading-relaxed text-ink-2">
-                  Under her leadership, every programme pairs structured lessons with real
-                  speaking practice, mock interviews and honest feedback — so progress in
-                  the classroom shows up in real conversations.
-                </p>
-              </motion.div>
-
-              {/* Credentials */}
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.4, duration: 0.5, ease }}
-                className="mt-6 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
-              >
-                {FOUNDER.credentials.map((c) => (
-                  <span
-                    key={c}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[#2563EB]/15 bg-white px-3.5 py-1.5 font-display text-[0.66rem] font-bold uppercase tracking-[0.12em] text-[#1647C7] shadow-[0_6px_16px_-10px_rgb(37_99_235/0.5)]"
-                  >
-                    <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-[#2563EB] to-[#6D4AFF]" />
-                    {c}
-                  </span>
-                ))}
-              </motion.div>
+          <div className="relative overflow-hidden rounded-[calc(2.5rem-2px)] bg-white p-7 sm:p-10">
+            {/* Colorful ambient glows */}
+            <div aria-hidden className="pointer-events-none absolute inset-0">
+              <div className="absolute -right-24 -top-24 h-72 w-72 rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(99 102 241 / 0.14), transparent 70%)" }} />
+              <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(168 85 247 / 0.12), transparent 70%)" }} />
+              <div className="absolute right-10 top-1/2 h-40 w-40 rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(245 158 11 / 0.12), transparent 70%)" }} />
             </div>
-          </div>
 
-          {/* Bottom row: stats + quote */}
-          <div className="relative grid gap-8 border-t border-[#2563EB]/10 px-8 py-7 sm:px-12 lg:grid-cols-2 lg:items-center">
-            {/* Stats */}
+            <div className="relative grid gap-10 lg:grid-cols-[300px_1fr] lg:gap-14">
+              {/* Photo — conic ring + colorful chips */}
+              <div className="relative mx-auto w-full max-w-[20rem] lg:mx-0">
+                <motion.span
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+                  aria-hidden
+                  className="absolute -inset-1.5 rounded-[1.8rem] bg-[conic-gradient(from_0deg,#6366F1,#0EA5E9,#F0C36D,#EC4899,#6366F1)] opacity-80"
+                />
+                <span className="relative block overflow-hidden rounded-[1.55rem] ring-4 ring-white shadow-[0_30px_70px_-30px_rgb(79_70_229/0.55)]">
+                  {FOUNDER.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={FOUNDER.image} alt={FOUNDER.name} className="aspect-[4/5] w-full object-cover" />
+                  ) : (
+                    <span className="grid aspect-[4/5] w-full place-items-center bg-gradient-to-br from-[#6366F1] to-[#EC4899]">
+                      <span className="font-display text-5xl font-extrabold text-white">{initials}</span>
+                    </span>
+                  )}
+                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#6366F1]/10 to-transparent" aria-hidden />
+                </span>
+
+                {/* Colorful chips (static) */}
+                <span className="absolute -left-3 -top-3 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 font-display text-[0.62rem] font-bold text-emerald-700 shadow-lg">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> 8+ Years
+                </span>
+                <span className="absolute -right-3 top-1/4 inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 font-display text-[0.62rem] font-bold text-sky-700 shadow-lg">
+                  <span className="h-1.5 w-1.5 rounded-full bg-sky-500" /> IELTS · PTE
+                </span>
+                <span className="absolute -bottom-3 -right-3 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 font-display text-[0.62rem] font-bold text-amber-700 shadow-lg">
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> 600+ Students
+                </span>
+              </div>
+
+              {/* Identity + bio */}
+              <div className="flex flex-col justify-center text-center lg:text-start">
+                <motion.span
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.15, duration: 0.5, ease }}
+                  className="mx-auto inline-flex items-center gap-2 rounded-full border border-[#C7D2FE] bg-gradient-to-r from-[#EEF2FF] to-[#FAF5FF] px-4 py-1.5 font-mono text-[0.6rem] font-bold uppercase tracking-[0.26em] text-[#4F46E5] lg:mx-0"
+                >
+                  <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-gradient-to-r from-[#6366F1] to-[#EC4899]" />
+                  {FOUNDER.role}
+                </motion.span>
+
+                <motion.h3
+                  initial={{ opacity: 0, y: 8 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2, duration: 0.5, ease }}
+                  className="mt-4 font-display text-[clamp(2rem,4.5vw,3rem)] font-black leading-tight tracking-[-0.02em] text-ink"
+                >
+                  <span style={{ backgroundImage: "linear-gradient(100deg,#6366F1,#0EA5E9,#EC4899)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
+                    {FOUNDER.name}
+                  </span>
+                </motion.h3>
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.26, duration: 0.5, ease }}
+                  className="mt-2 font-display text-[0.92rem] font-semibold text-[#64748B]"
+                >
+                  Founder of Pakistan's conversation-first English academy
+                </motion.p>
+
+                {/* Bio */}
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.32, duration: 0.5, ease }}
+                  className="mt-5 flex flex-col gap-3 text-start"
+                >
+                  <p className="text-[0.95rem] leading-relaxed text-ink-2">
+                    Ms. Javaria Malik is the CEO and founder of Language Hub, where she has
+                    spent over 8 years turning hesitant speakers into confident
+                    communicators. Her conversation-first method treats English as a living
+                    skill — something learners actually use, not merely study.
+                  </p>
+                  <p className="text-[0.95rem] leading-relaxed text-ink-2">
+                    Under her leadership, every programme pairs structured lessons with real
+                    speaking practice, mock interviews and honest feedback — so progress in
+                    the classroom shows up in real conversations.
+                  </p>
+                </motion.div>
+
+                {/* Credentials — colorful chips */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4, duration: 0.5, ease }}
+                  className="mt-6 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
+                >
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50 px-3.5 py-1.5 font-display text-[0.64rem] font-bold uppercase tracking-[0.12em] text-indigo-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" /> English Language Specialist
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50 px-3.5 py-1.5 font-display text-[0.64rem] font-bold uppercase tracking-[0.12em] text-violet-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-violet-500" /> IELTS · PTE Coach
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1.5 font-display text-[0.64rem] font-bold uppercase tracking-[0.12em] text-amber-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> Conversation-first method
+                  </span>
+                </motion.div>
+              </div>
+            </div>
+
+            {/* Bottom: stats + quote — colorful band */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.5, ease }}
-              className="flex flex-wrap items-center justify-center gap-6 lg:justify-start lg:gap-10"
+              transition={{ delay: 0.24, duration: 0.6, ease }}
+              className="relative mt-9 grid gap-7 rounded-2xl border border-[#C7D2FE]/70 bg-gradient-to-r from-[#EEF2FF] via-[#F5F3FF] to-[#FFF7ED] p-6 sm:p-7 lg:grid-cols-2 lg:items-center"
             >
-              {ACADEMY_STATS.map((s) => (
-                <div key={s.label} className="flex flex-col items-center gap-1 lg:items-start">
-                  <span className="font-display text-[1.35rem] font-black text-ink">{s.value}</span>
-                  <span className="font-mono text-[0.54rem] uppercase tracking-[0.16em] text-ink-3">
-                    {s.label}
+              {/* Stats */}
+              <div className="flex flex-wrap items-center justify-center gap-6 lg:justify-start lg:gap-10">
+                {ACADEMY_STATS.map((s, si) => {
+                  const tones = ["#6366F1", "#0EA5E9", "#8B5CF6", "#F59E0B"];
+                  const tone = tones[si % tones.length];
+                  return (
+                    <div key={s.label} className="flex flex-col items-center gap-1 lg:items-start">
+                      <span className="font-display text-[1.5rem] font-black" style={{ color: tone }}>{s.value}</span>
+                      <span className="font-mono text-[0.54rem] uppercase tracking-[0.16em] text-ink-3">{s.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Quote */}
+              <div className="relative rounded-xl border-l-4 border-amber-400 bg-white/80 p-5 backdrop-blur-sm">
+                <Quote className="h-6 w-6 text-amber-400" aria-hidden />
+                <p className="mt-2 font-serif text-[1.02rem] italic leading-relaxed text-ink">
+                  &ldquo;{FOUNDER.quote}&rdquo;
+                </p>
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.2em] text-ink-3">
+                    — {FOUNDER.name}
+                  </p>
+                  <span className="flex items-center gap-1 text-[0.54rem] text-ink-3">
+                    <ExternalLink className="h-3 w-3" />
+                    <span className="uppercase tracking-wider">Verified</span>
                   </span>
                 </div>
-              ))}
-            </motion.div>
-
-            {/* Quote */}
-            <motion.div
-              initial={{ opacity: 0, x: 14 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.28, duration: 0.55, ease }}
-              className="relative rounded-2xl border border-[#2563EB]/10 bg-white/80 p-5 backdrop-blur-sm"
-            >
-              <Quote className="h-6 w-6 text-[#2563EB]/30" aria-hidden />
-              <p className="mt-2 font-serif text-[1.02rem] italic leading-relaxed text-ink">
-                &ldquo;{FOUNDER.quote}&rdquo;
-              </p>
-              <div className="mt-3 flex items-center justify-between">
-                <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.2em] text-ink-3">
-                  — {FOUNDER.name}
-                </p>
-                <span className="flex items-center gap-1 text-[0.54rem] text-ink-3">
-                  <ExternalLink className="h-3 w-3" />
-                  <span className="uppercase tracking-wider">Verified</span>
-                </span>
               </div>
             </motion.div>
           </div>
