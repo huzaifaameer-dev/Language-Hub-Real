@@ -94,7 +94,7 @@ export function Hero() {
         </svg>
       </div>
       {/* ─── Main grid ─── */}
-      <div className="relative mx-auto grid max-w-[1440px] items-center gap-10 px-6 pt-32 pb-14 sm:px-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-6 lg:px-14 lg:pt-40 lg:pb-16 2xl:px-16">
+      <div className="relative mx-auto grid max-w-[1440px] items-center gap-10 px-6 pt-24 pb-10 sm:px-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-6 lg:px-14 lg:pt-28 lg:pb-12 2xl:px-16">
         {/* ═══════════════ LEFT — Content ═══════════════ */}
         <div className="max-w-2xl" dir={isUr ? "rtl" : "ltr"}>
           {/* Badge */}

@@ -17,7 +17,7 @@ export function ClosingStrip() {
     <section
       id="cta"
       data-section
-      className="relative overflow-hidden bg-[linear-gradient(180deg,#F4F7FF_0%,#EDF3FF_100%)] px-6 py-20 sm:px-12 sm:py-24"
+      className="relative overflow-hidden bg-[linear-gradient(180deg,#F4F7FF_0%,#EDF3FF_100%)] px-6 py-14 sm:px-12 sm:py-16"
       aria-label="Start your journey"
     >
       <div className="relative mx-auto max-w-4xl">

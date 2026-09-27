@@ -91,7 +91,7 @@ export function Reviews() {
     <section
       id="reviews"
       data-section
-      className="relative overflow-hidden bg-[#F4F7FF] px-6 py-24 sm:px-12"
+      className="relative overflow-hidden bg-[#F4F7FF] px-6 pt-14 pb-16 sm:px-12"
       aria-label="Student reviews"
     >
       {/* Ambient glow orbs — blue/violet */}

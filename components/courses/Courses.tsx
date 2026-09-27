@@ -111,7 +111,7 @@ export function Courses() {
     <section
       id="courses"
       data-section
-      className="relative overflow-hidden bg-site px-6 py-24 sm:px-12"
+      className="relative overflow-hidden bg-site px-6 pt-12 pb-16 sm:px-12"
       aria-label="Courses"
     >
       <div className="mx-auto max-w-6xl">

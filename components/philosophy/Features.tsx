@@ -53,7 +53,7 @@ export function Features() {
     <section
       id="why"
       data-section
-      className="relative overflow-hidden bg-site px-6 py-24 sm:px-12"
+      className="relative overflow-hidden bg-site px-6 pt-10 pb-16 sm:px-12"
       aria-label="Why Language Hub"
     >
       {/* ambient accents */}

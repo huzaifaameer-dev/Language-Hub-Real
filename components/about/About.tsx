@@ -29,7 +29,7 @@ export function About() {
     <section
       id="about"
       data-section
-      className="relative overflow-hidden bg-white px-6 pt-12 pb-24 sm:px-12"
+      className="relative overflow-hidden bg-white px-6 pt-6 pb-12 sm:px-12 sm:pt-8 sm:pb-16"
       aria-label="Beyond English"
     >
       <div className="mx-auto max-w-6xl">

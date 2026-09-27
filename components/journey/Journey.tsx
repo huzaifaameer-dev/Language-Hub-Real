@@ -50,7 +50,7 @@ export function Journey() {
     <section
       id="journey"
       data-section
-      className="relative overflow-hidden bg-site px-6 pt-8 pb-12 sm:px-12 sm:pt-14"
+      className="relative overflow-hidden bg-site px-6 pt-6 pb-10 sm:px-12 sm:pt-8"
       aria-label="What makes a Language Hub programme"
     >
       <div className="mx-auto max-w-6xl">

@@ -40,7 +40,7 @@ export function EnrollmentPath() {
     <section
       id="enroll"
       data-section
-      className="relative overflow-hidden bg-white px-6 py-24 sm:px-12"
+      className="relative overflow-hidden bg-white px-6 pt-12 pb-16 sm:px-12"
       aria-label="How to enrol"
     >
       <div
