@@ -2,13 +2,15 @@
 
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Reveal } from "@/components/ui/Reveal";
+import Link from "next/link";
 import {
-  MessageCircle,
-  Users,
-  Lightbulb,
-  Rocket,
-  Languages,
+  ArrowRight,
   CalendarClock,
+  Lightbulb,
+  MessageCircle,
+  Rocket,
+  Users,
+  Languages,
 } from "lucide-react";
 import { useLang } from "@/components/LanguageProvider";
 
@@ -56,7 +58,15 @@ export function Features() {
       className="relative overflow-hidden bg-site px-6 py-24 sm:px-12"
       aria-label="Why Language Hub"
     >
-      <div className="mx-auto max-w-6xl">
+      {/* ambient accents */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute left-1/2 top-0 h-64 w-[42rem] -translate-x-1/2"
+          style={{ background: "radial-gradient(50% 100% at 50% 0%, rgb(99 102 241 / 0.08), transparent 70%)" }}
+        />
+      </div>
+
+      <div className="relative mx-auto max-w-6xl">
         <SectionHeader
           eyebrow={dict["features.eyebrow"]}
           title={
@@ -82,7 +92,7 @@ export function Features() {
                 key={title}
                 delay={(i % 2) * 0.08}
                 duration={0.55}
-                className="group relative overflow-hidden rounded-2xl border border-ink/[0.07] bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-ink/[0.12] hover:shadow-[0_28px_60px_-32px_rgb(15_23_42/0.35)]"
+                className="group relative overflow-hidden rounded-2xl border border-ink/[0.07] bg-white p-6 shadow-[0_16px_40px_-36px_rgb(15_23_42/0.4)] transition-all duration-300 hover:-translate-y-1 hover:border-ink/[0.12] hover:shadow-[0_30px_60px_-32px_rgb(15_23_42/0.4)]"
               >
                 {/* accent hairline */}
                 <span
@@ -90,20 +100,29 @@ export function Features() {
                   className="absolute inset-y-0 left-0 w-1 origin-top scale-y-0 bg-gradient-to-b transition-transform duration-500 group-hover:scale-y-100"
                   style={{ background: `linear-gradient(180deg, ${f.bar}, ${f.bar}88)` }}
                 />
+                {/* ghost number */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -right-1 -top-2 font-display text-[2.6rem] font-black leading-none opacity-[0.06]"
+                  style={{ color: f.bar }}
+                >
+                  {num}
+                </span>
 
                 <div className="flex items-start gap-4">
-                  {/* icon + number */}
-                  <span className="relative flex flex-col items-center gap-1.5">
-                    <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${f.tint}`}>
-                      <f.icon className="h-6 w-6" strokeWidth={1.7} />
-                    </span>
-                    <span className="font-mono text-[0.55rem] font-bold tracking-[0.2em] text-ink-3">{num}</span>
+                  {/* icon */}
+                  <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${f.tint} ring-1 ring-inset transition-transform duration-300 group-hover:scale-105`}>
+                    <f.icon className="h-6 w-6" strokeWidth={1.7} />
                   </span>
 
                   {/* title + desc */}
                   <span className="min-w-0">
+                    <span className="flex items-center gap-2">
+                      <span className="font-mono text-[0.55rem] font-bold tracking-[0.2em] text-ink-3">{num}</span>
+                      <span aria-hidden className="h-px w-6" style={{ backgroundColor: `${f.bar}55` }} />
+                    </span>
                     <h3
-                      className="font-display text-[1.02rem] font-extrabold leading-snug tracking-tight text-ink"
+                      className="mt-1.5 font-display text-[1.02rem] font-extrabold leading-snug tracking-tight text-ink"
                       dir={isUr ? "rtl" : "ltr"}
                     >
                       {title}
@@ -115,6 +134,17 @@ export function Features() {
             );
           })}
         </div>
+
+        {/* CTA footer */}
+        <Reveal delay={0.1} duration={0.6} className="mt-10 flex justify-center">
+          <Link
+            href="/courses"
+            className="group inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] px-7 font-display text-[0.85rem] font-bold uppercase tracking-[0.08em] text-white shadow-[0_16px_34px_-16px_rgb(37_99_235/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-18px_rgb(37_99_235/0.95)]"
+          >
+            Explore all programmes
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.4} />
+          </Link>
+        </Reveal>
       </div>
     </section>
   );

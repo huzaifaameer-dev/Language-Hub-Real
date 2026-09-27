@@ -110,7 +110,7 @@ export function Stats() {
     <section
       id="stats"
       data-section
-      className="relative overflow-hidden bg-[linear-gradient(180deg,#F2F6FF_0%,#E8EFFD_55%,#E2EAFB_100%)] px-6 py-20 sm:px-12 sm:py-24"
+      className="relative overflow-hidden bg-[linear-gradient(180deg,#F2F6FF_0%,#E8EFFD_55%,#E2EAFB_100%)] px-6 pt-20 pb-8 sm:px-12 sm:pt-24 sm:pb-12"
       aria-label="Language Hub in numbers"
     >
       {/* Soft ambient glows + faint dot texture */}
