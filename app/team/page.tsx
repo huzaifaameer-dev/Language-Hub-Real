@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Crown, GraduationCap, Quote, Users } from "lucide-react";
+import { ArrowRight, BadgeCheck, GraduationCap, Users } from "lucide-react";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/footer/Footer";
 import { ApplyButton } from "@/components/courses/ApplyButton";
+import { TeamCeoCard } from "@/components/team/TeamCeoCard";
 import { appBaseUrl } from "@/lib/base-url";
 import { ensureIndexesAndAdmin, getTeamMembersCollection } from "@/lib/db";
-import { ACADEMY_STATS } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Our Teachers & Team | Language Hub",
@@ -118,103 +118,7 @@ export default async function TeamPage() {
             <>
               {/* ── CEO · Founder — premium flagship, always on top ── */}
               {ceo ? (
-                <section className="relative mt-14 overflow-hidden rounded-[2rem] bg-ink text-ivory shadow-[0_50px_110px_-60px_rgb(11_27_58/0.85)]">
-                  {/* ambient brand + gold glows */}
-                  <div aria-hidden className="pointer-events-none absolute inset-0">
-                    <div className="absolute -right-24 -top-32 h-96 w-96 rounded-full bg-brand/40 blur-[80px]" />
-                    <div className="absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-gold/25 blur-[90px]" />
-                    <div className="absolute right-10 bottom-8 select-none font-display text-[9rem] font-black leading-none text-ivory/[0.03]">
-                      LH
-                    </div>
-                  </div>
-
-                  {/* top bar */}
-                  <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-ivory/[0.08] px-8 py-4 sm:px-10">
-                    <p className="inline-flex items-center gap-2 font-display text-[0.62rem] font-bold uppercase tracking-[0.34em] text-gold-light">
-                      <Crown className="h-4 w-4" /> Founder & CEO
-                    </p>
-                    <p className="hidden font-mono text-[0.58rem] uppercase tracking-[0.26em] text-ivory/40 sm:block">
-                      A founder-led academy
-                    </p>
-                  </div>
-
-                  <div className="relative flex flex-col gap-10 px-8 py-10 sm:px-10 lg:flex-row lg:items-center lg:gap-12 lg:py-14">
-                    {/* Portrait */}
-                    <div className="relative mx-auto shrink-0 lg:mx-0">
-                      <div aria-hidden className="absolute -inset-4 rounded-[2rem] bg-gradient-to-br from-gold/40 via-brand-magenta/30 to-transparent blur-xl" />
-                      <span className="relative grid h-44 w-44 place-items-center overflow-hidden rounded-[1.6rem] bg-gradient-to-br from-gold via-brand to-brand-magenta p-[3px] shadow-[0_34px_70px_-30px_rgb(110_90_224/0.9)] sm:h-56 sm:w-56">
-                        <span className="grid h-full w-full place-items-center overflow-hidden rounded-[1.4rem] bg-ink">
-                          {ceo.image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={ceo.image} alt={ceo.name} className="h-full w-full object-cover" />
-                          ) : (
-                            <span className="font-display text-6xl font-black text-white">{iniciales(ceo.name)}</span>
-                          )}
-                        </span>
-                      </span>
-                      <span className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-gold/40 bg-ink px-4 py-1 font-mono text-[0.58rem] font-bold uppercase tracking-[0.2em] text-gold-light shadow-lg">
-                        ♛ Chief Executive
-                      </span>
-                    </div>
-
-                    {/* Identity */}
-                    <div className="min-w-0 flex-1 text-center lg:text-left">
-                      <p className="font-display text-[0.64rem] font-bold uppercase tracking-[0.38em] text-gold-light">
-                        {ceo.role}
-                      </p>
-                      <h2 className="mt-2 font-display text-[clamp(1.9rem,4.5vw,3rem)] font-extrabold leading-tight tracking-[-0.02em]">
-                        {ceo.headline ?? ceo.name}
-                      </h2>
-                      <p className="mt-1 font-display text-[1.05rem] font-bold text-ivory/80">
-                        {ceo.name}
-                      </p>
-
-                      {ceo.credentials.length > 0 ? (
-                        <div className="mt-5 flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-                          {ceo.credentials.map((c) => (
-                            <span
-                              key={c}
-                              className="inline-flex items-center gap-1.5 rounded-full border border-ivory/15 bg-ivory/[0.06] px-3.5 py-1.5 font-display text-[0.64rem] font-bold uppercase tracking-[0.1em] text-ivory/85 backdrop-blur"
-                            >
-                              <BadgeCheck className="h-3.5 w-3.5 text-gold-light" /> {c}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-
-                      {ceo.focus.length > 0 ? (
-                        <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5 lg:justify-start">
-                          {ceo.focus.map((f) => (
-                            <span
-                              key={f}
-                              className="rounded-full border border-ivory/10 px-3 py-1 font-display text-[0.6rem] font-bold uppercase tracking-[0.12em] text-ivory/50"
-                            >
-                              {f}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-
-                    {/* Quotation + proof */}
-                    <div className="relative max-w-md lg:self-center">
-                      <Quote className="absolute -left-3 -top-5 h-10 w-10 text-gold/40" aria-hidden />
-                      <p className="font-serif text-[1.05rem] italic leading-relaxed text-ivory/90">
-                        “{ceo.bio}”
-                      </p>
-                      <div className="mt-6 grid grid-cols-3 gap-px overflow-hidden rounded-xl bg-ivory/10">
-                        {ACADEMY_STATS.map((s) => (
-                          <div key={s.label} className="bg-ink/95 px-4 py-4 text-center">
-                            <p className="font-display text-[1.35rem] font-extrabold text-gold-light">{s.value}</p>
-                            <p className="mt-0.5 font-mono text-[0.52rem] uppercase tracking-[0.16em] text-ivory/50">
-                              {s.label}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </section>
+                <TeamCeoCard ceo={ceo} />
               ) : null}
 
               {/* ── Team grid ── */}
