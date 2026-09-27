@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { ACADEMY, ACADEMY_STATS, FOUNDER } from "@/lib/content";
+import { ACADEMY, FOUNDER } from "@/lib/content";
 import { Quote, ExternalLink, ArrowUpRight } from "lucide-react";
 import { useLang } from "@/components/LanguageProvider";
 
@@ -326,18 +326,19 @@ export function About() {
               transition={{ delay: 0.24, duration: 0.6, ease }}
               className="relative mt-9 grid gap-7 rounded-2xl border border-[#C7D2FE]/70 bg-gradient-to-r from-[#EEF2FF] via-[#F5F3FF] to-[#FFF7ED] p-6 sm:p-7 lg:grid-cols-2 lg:items-center"
             >
-              {/* Stats */}
-              <div className="flex flex-wrap items-center justify-center gap-6 lg:justify-start lg:gap-10">
-                {ACADEMY_STATS.map((s, si) => {
-                  const tones = ["#6366F1", "#0EA5E9", "#8B5CF6", "#F59E0B"];
-                  const tone = tones[si % tones.length];
-                  return (
-                    <div key={s.label} className="flex flex-col items-center gap-1 lg:items-start">
-                      <span className="font-display text-[1.5rem] font-black" style={{ color: tone }}>{s.value}</span>
-                      <span className="font-mono text-[0.54rem] uppercase tracking-[0.16em] text-ink-3">{s.label}</span>
-                    </div>
-                  );
-                })}
+              {/* Founder quick facts — non-numeric, no repetition */}
+              <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 lg:justify-start">
+                {[
+                  { text: "Conversation-first method", tone: "#6366F1" },
+                  { text: "IELTS · PTE Coach", tone: "#0EA5E9" },
+                  { text: "Small-batch teaching", tone: "#8B5CF6" },
+                  { text: "Personal mentorship", tone: "#F59E0B" },
+                ].map((f) => (
+                  <div key={f.text} className="flex items-center gap-2">
+                    <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: f.tone }} />
+                    <span className="font-display text-[0.78rem] font-bold text-ink">{f.text}</span>
+                  </div>
+                ))}
               </div>
 
               {/* Quote */}
