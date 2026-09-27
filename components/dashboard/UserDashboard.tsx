@@ -194,7 +194,7 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
             className="inline-flex items-center gap-1.5 rounded-full border border-[#E6EDFF] bg-white px-3.5 py-2 font-display text-[0.74rem] font-bold text-[#1647C7] shadow-sm transition-all duration-300 hover:border-[#2563EB]/50 md:inline-flex"
           >
             <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
-            Feedback
+            AI Feedback
           </Link>
           <Link
             href="/feedback"
