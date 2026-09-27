@@ -306,7 +306,7 @@ export const TEAM: TeamMember[] = [
     ],
     bio: "As CEO, Founder and Chairman of Language Hub, Javaria built the conversation-first method that runs through every Language Hub session. She leads the academy on one belief: English is a living skill, not a textbook subject.",
     focus: ["IELTS Speaking", "PTE Speaking", "Spoken English"],
-    image: "/javeria-malik.jpg",
+image: "/ceo.jpg",
   },
   {
     name: "Aiman Raza",

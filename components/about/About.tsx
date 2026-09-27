@@ -161,31 +161,31 @@ export function About() {
             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
             className="absolute -inset-[150%] bg-[conic-gradient(from_0deg,#6366F1,#0EA5E9,#F0C36D,#EC4899,#D946EF,#6366F1)]"
           />
-          <div className="relative overflow-hidden rounded-[calc(2.5rem-2px)] bg-[linear-gradient(135deg,#F7FAFF_0%,#EDF3FF_50%,#F8F2FF_100%)] p-7 sm:p-10">
+          <div className="relative overflow-hidden rounded-[calc(2.5rem-2px)] bg-[linear-gradient(135deg,#EDF3FF_0%,#DFEAFF_45%,#F1E8FF_100%)] p-7 sm:p-10">
             {/* living aurora background */}
             <div aria-hidden className="pointer-events-none absolute inset-0">
               <motion.div
-                animate={{ x: [0, 26, 0], y: [0, -18, 0], scale: [1, 1.1, 1] }}
+                animate={{ x: [0, 30, 0], y: [0, -22, 0], scale: [1, 1.12, 1] }}
                 transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
                 className="absolute -right-24 -top-24 h-80 w-80 rounded-[50%]"
-                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(99 102 241 / 0.18), transparent 70%)" }}
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(99 102 241 / 0.30), transparent 70%)" }}
               />
               <motion.div
-                animate={{ x: [0, -22, 0], y: [0, 16, 0], scale: [1, 1.08, 1] }}
+                animate={{ x: [0, -26, 0], y: [0, 18, 0], scale: [1, 1.1, 1] }}
                 transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                 className="absolute -bottom-24 -left-20 h-80 w-80 rounded-[50%]"
-                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(168 85 247 / 0.15), transparent 70%)" }}
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(168 85 247 / 0.26), transparent 70%)" }}
               />
               <motion.div
-                animate={{ x: [0, 14, 0], y: [0, -10, 0] }}
+                animate={{ x: [0, 16, 0], y: [0, -12, 0] }}
                 transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
                 className="absolute right-8 top-1/3 h-44 w-44 rounded-[50%]"
-                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(245 158 11 / 0.14), transparent 70%)" }}
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(245 158 11 / 0.22), transparent 70%)" }}
               />
               <div
-                className="absolute inset-0 opacity-[0.18]"
+                className="absolute inset-0 opacity-[0.30]"
                 style={{
-                  backgroundImage: "radial-gradient(rgb(99 102 241 / 0.18) 1px, transparent 1px)",
+                  backgroundImage: "radial-gradient(rgb(99 102 241 / 0.24) 1px, transparent 1px)",
                   backgroundSize: "30px 30px",
                   maskImage: "radial-gradient(ellipse at 60% 30%, black 0%, transparent 65%)",
                   WebkitMaskImage: "radial-gradient(ellipse at 60% 30%, black 0%, transparent 65%)",
@@ -201,12 +201,12 @@ export function About() {
                   className="relative mx-auto w-full max-w-[20rem] lg:mx-0"
                 >
                 <motion.span
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
                   aria-hidden
-                  className="absolute -inset-1.5 rounded-[1.8rem] bg-[conic-gradient(from_0deg,#6366F1,#0EA5E9,#F0C36D,#EC4899,#6366F1)] opacity-85"
+                  animate={{ scale: [1, 1.08, 1], opacity: [0.5, 0.85, 0.5] }}
+                  transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute -inset-4 rounded-[2rem] bg-[radial-gradient(60% 60% at 40% 40%, rgb(99 102 241 / 0.35), rgb(236 72 153 / 0.16), transparent 72%)] blur-xl"
                 />
-                <span className="relative block overflow-hidden rounded-[1.55rem] ring-4 ring-white shadow-[0_30px_70px_-30px_rgb(79_70_229/0.55)]">
+                <span className="relative block overflow-hidden rounded-[1.55rem] ring-4 ring-white shadow-[0_30px_70px_-30px_rgb(79_70_229/0.6)]">
                   {FOUNDER.image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={FOUNDER.image} alt={FOUNDER.name} className="aspect-[4/5] w-full object-cover" />
