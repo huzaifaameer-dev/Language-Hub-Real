@@ -279,7 +279,7 @@ export const FOUNDER = {
   quote:
     "Teaching is not only about giving knowledge. It is about helping someone discover what they are capable of becoming.",
   bio: [
-    "Ms. Javaria Malik founded Language Hub on one belief: that English is a living skill, not a textbook subject.",
+    "Javaria Malik founded Language Hub on one belief: that English is a living skill, not a textbook subject.",
     "As CEO and Chairman of Language Hub, she leads every session with the conviction that learners are people with something real to say — because fluency lives where confidence and communication meet.",
   ],
   credentials: ["English Language Specialist", "IELTS · PTE · DET Coach", "Conversation-first method"],

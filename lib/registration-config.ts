@@ -22,7 +22,7 @@ export const PAYMENT_ACCOUNTS = {
     label: "Easypaisa",
     rows: [
       { label: "Easypaisa account no.", value: "0317-9627809" },
-      { label: "Account title", value: "Language Hub (Ms. Javaria Malik)" },
+      { label: "Account title", value: "Language Hub (Javaria Malik)" },
     ],
   },
   bank: {
@@ -31,7 +31,7 @@ export const PAYMENT_ACCOUNTS = {
       { label: "Bank", value: "Soneri Bank Limited" },
       { label: "Account no.", value: "20013740071" },
       { label: "IBAN", value: "PK91SONE0042420013740071" },
-      { label: "Account title", value: "Language Hub (Ms. Javaria Malik)" },
+      { label: "Account title", value: "Language Hub (Javaria Malik)" },
     ],
   },
 } as const;

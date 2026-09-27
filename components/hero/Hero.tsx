@@ -182,7 +182,7 @@ export function Hero() {
             <span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB]/10">
               <User className="h-3.5 w-3.5 text-[#1647C7]" strokeWidth={2.2} />
             </span>
-            <span className="font-display text-[0.98rem] font-semibold">Ms. Javaria Malik.</span>
+            <span className="font-display text-[0.98rem] font-semibold">Javaria Malik.</span>
           </motion.div>
           {/* CTA row */}
           <motion.div

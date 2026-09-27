@@ -62,7 +62,7 @@ export default async function CertificateSharePage({ params }: SharePageProps) {
             <h1 className="relative mt-2 font-display text-3xl font-extrabold tracking-tight sm:text-4xl">
               Certificate of Completion
             </h1>
-            <p className="relative mt-2 font-serif text-sm italic text-white/80">Founded by Ms. Javaria Malik</p>
+            <p className="relative mt-2 font-serif text-sm italic text-white/80">Founded by Javaria Malik</p>
           </div>
 
           {/* Body */}

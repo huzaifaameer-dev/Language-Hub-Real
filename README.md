@@ -1,7 +1,7 @@
 # Language Hub — Hub of Language Excellence
 
 Production-grade web app for **Language Hub**, an online English-language
-institute founded by **Ms. Javaria Malik**. It is a full learning-management
+institute founded by **Javaria Malik**. It is a full learning-management
 platform on top of a premium, scroll-driven marketing brand experience:
 
 - **Marketing site** — cinematic one-page experience: kinetic intro, GSAP

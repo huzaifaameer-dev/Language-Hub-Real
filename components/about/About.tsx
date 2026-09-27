@@ -156,7 +156,7 @@ export function About() {
         >
           {/* Background: image at 8% + calm emerald/blue glows */}
           <div aria-hidden className="pointer-events-none absolute inset-0">
-            <img src="/ceo-bg.jpg" alt="" className="h-full w-full object-cover opacity-[0.08]" />
+            <img src="/ceo-bg.jpg" alt="" className="h-full w-full object-cover opacity-[0.04]" />
             <motion.div
               animate={{ opacity: [0.22, 0.4, 0.22] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
@@ -249,7 +249,7 @@ export function About() {
                 className="mt-5 flex flex-col gap-3 text-start"
               >
                 <p className="text-[0.95rem] leading-relaxed text-slate-300">
-                  Ms. Javaria Malik is the CEO and founder of Language Hub, where she has
+                  Javaria Malik is the CEO and founder of Language Hub, where she has
                   spent over 8 years turning hesitant speakers into confident
                   communicators. Her conversation-first method treats English as a living
                   skill — something learners actually use, not merely study.
