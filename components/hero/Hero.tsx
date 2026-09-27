@@ -94,7 +94,7 @@ export function Hero() {
         </svg>
       </div>
       {/* ─── Main grid ─── */}
-      <div className="relative mx-auto grid max-w-[1440px] items-center gap-10 px-6 pt-24 pb-10 sm:px-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-6 lg:px-14 lg:pt-28 lg:pb-12 2xl:px-16">
+      <div className="relative mx-auto grid max-w-[1440px] items-center gap-10 px-6 pt-24 pb-6 sm:px-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-6 lg:px-14 lg:pt-28 lg:pb-8 2xl:px-16">
         {/* ═══════════════ LEFT — Content ═══════════════ */}
         <div className="max-w-2xl" dir={isUr ? "rtl" : "ltr"}>
           {/* Badge */}
@@ -291,8 +291,8 @@ export function Hero() {
         </div>
       </div>
       {/* ─── Bottom soft curve — elegant, clearly visible, no text ─── */}
-      <div className="pointer-events-none -mt-8" aria-hidden>
-        <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="block h-[80px] w-full sm:h-[110px]">
+      <div className="pointer-events-none -mt-6" aria-hidden>
+        <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="block h-[52px] w-full sm:h-[68px]">
           <defs>
             <linearGradient id="curveGrad" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="#DCE9FF" />
