@@ -12,17 +12,38 @@ import {
 } from "lucide-react";
 import { useLang } from "@/components/LanguageProvider";
 
-const FEATURE_ICONS = [MessageCircle, Users, Lightbulb, Languages, Rocket, CalendarClock];
-const FEATURE_TONES = ["#6366f1", "#0ea5e9", "#d63a8c", "#f59e0b", "#10b981", "#8b5cf6"];
-const FEATURE_TINTS = [
-  "bg-brand/[0.08] text-brand-deep",
-  "bg-sky-50 text-sky-600",
-  "bg-pink-50 text-pink-600",
-  "bg-amber-50 text-amber-600",
-  "bg-emerald-50 text-emerald-600",
-  "bg-violet-50 text-violet-600",
-];
-const FEATURE_NUMBERS = ["01", "02", "03", "04", "05", "06"];
+const FEATURES = [
+  {
+    icon: MessageCircle,
+    tint: "bg-indigo-50 text-indigo-600",
+    bar: "#6366F1",
+  },
+  {
+    icon: Users,
+    tint: "bg-sky-50 text-sky-600",
+    bar: "#0EA5E9",
+  },
+  {
+    icon: Lightbulb,
+    tint: "bg-pink-50 text-pink-600",
+    bar: "#D946EF",
+  },
+  {
+    icon: Languages,
+    tint: "bg-amber-50 text-amber-600",
+    bar: "#F59E0B",
+  },
+  {
+    icon: Rocket,
+    tint: "bg-emerald-50 text-emerald-600",
+    bar: "#10B981",
+  },
+  {
+    icon: CalendarClock,
+    tint: "bg-violet-50 text-violet-600",
+    bar: "#8B5CF6",
+  },
+] as const;
 
 export function Features() {
   const { dict, lang } = useLang();
@@ -50,38 +71,46 @@ export function Features() {
           subtitle={dict["features.subtitle"]}
         />
 
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURE_ICONS.map((Icon, i) => {
+        {/* Benefit grid — scannable, professional rows */}
+        <div className="mt-14 grid gap-5 sm:grid-cols-2">
+          {FEATURES.map((f, i) => {
             const title = dict[`features.f${i + 1}.title`];
             const desc = dict[`features.f${i + 1}.desc`];
-            const tone = FEATURE_TONES[i];
-            const tint = FEATURE_TINTS[i];
-            const num = FEATURE_NUMBERS[i];
+            const num = String(i + 1).padStart(2, "0");
             return (
               <Reveal
                 key={title}
-                delay={(i % 3) * 0.08}
+                delay={(i % 2) * 0.08}
                 duration={0.55}
-                hover={false}
-                className="group relative overflow-hidden rounded-3xl border border-ink/[0.07] bg-[#fafbfe] p-7 transition-all duration-300 hover:border-ink/12 hover:shadow-[0_28px_60px_-30px_rgb(15_23_42/0.3)]"
+                className="group relative overflow-hidden rounded-2xl border border-ink/[0.07] bg-white p-6 transition-all duration-300 hover:-translate-y-1 hover:border-ink/[0.12] hover:shadow-[0_28px_60px_-32px_rgb(15_23_42/0.35)]"
               >
+                {/* accent hairline */}
                 <span
                   aria-hidden
-                  className="absolute inset-x-0 top-0 h-[2px] origin-left scale-x-0 bg-gradient-to-r transition-transform duration-500 group-hover:scale-x-100"
-                  style={{
-                    background: `linear-gradient(90deg, ${tone}, ${tone}88)`,
-                  }}
+                  className="absolute inset-y-0 left-0 w-1 origin-top scale-y-0 bg-gradient-to-b transition-transform duration-500 group-hover:scale-y-100"
+                  style={{ background: `linear-gradient(180deg, ${f.bar}, ${f.bar}88)` }}
                 />
-                <span className="absolute right-4 top-4 font-mono text-[0.6rem] font-bold text-ink-3/40">
-                  {num}
-                </span>
-                <span className={`grid h-14 w-14 place-items-center rounded-2xl ${tint}`}>
-                  <Icon className="h-7 w-7" strokeWidth={1.6} />
-                </span>
-                <h3 className="mt-5 font-display text-xl font-extrabold tracking-tight text-ink" dir={isUr ? "rtl" : "ltr"}>
-                  {title}
-                </h3>
-                <p className="mt-2 text-[0.88rem] leading-relaxed text-ink-2">{desc}</p>
+
+                <div className="flex items-start gap-4">
+                  {/* icon + number */}
+                  <span className="relative flex flex-col items-center gap-1.5">
+                    <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${f.tint}`}>
+                      <f.icon className="h-6 w-6" strokeWidth={1.7} />
+                    </span>
+                    <span className="font-mono text-[0.55rem] font-bold tracking-[0.2em] text-ink-3">{num}</span>
+                  </span>
+
+                  {/* title + desc */}
+                  <span className="min-w-0">
+                    <h3
+                      className="font-display text-[1.02rem] font-extrabold leading-snug tracking-tight text-ink"
+                      dir={isUr ? "rtl" : "ltr"}
+                    >
+                      {title}
+                    </h3>
+                    <p className="mt-2 text-[0.86rem] leading-relaxed text-ink-2">{desc}</p>
+                  </span>
+                </div>
               </Reveal>
             );
           })}
