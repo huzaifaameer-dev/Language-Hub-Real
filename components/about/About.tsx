@@ -152,24 +152,59 @@ export function About() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.7, ease }}
-          className="relative mt-20 rounded-[2.5rem] bg-[conic-gradient(from_140deg,#6366F1,#0EA5E9,#F0C36D,#EC4899,#6366F1)] p-0.5 shadow-[0_50px_110px_-50px_rgb(79_70_229/0.55)]"
+          className="relative mt-20 overflow-hidden rounded-[2.5rem] p-0.5 shadow-[0_60px_120px_-50px_rgb(79_70_229/0.5)]"
         >
-          <div className="relative overflow-hidden rounded-[calc(2.5rem-2px)] bg-white p-7 sm:p-10">
-            {/* Colorful ambient glows */}
+          {/* animated conic border */}
+          <motion.span
+            aria-hidden
+            animate={{ rotate: 360 }}
+            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            className="absolute -inset-[150%] bg-[conic-gradient(from_0deg,#6366F1,#0EA5E9,#F0C36D,#EC4899,#D946EF,#6366F1)]"
+          />
+          <div className="relative overflow-hidden rounded-[calc(2.5rem-2px)] bg-[linear-gradient(135deg,#F7FAFF_0%,#EDF3FF_50%,#F8F2FF_100%)] p-7 sm:p-10">
+            {/* living aurora background */}
             <div aria-hidden className="pointer-events-none absolute inset-0">
-              <div className="absolute -right-24 -top-24 h-72 w-72 rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(99 102 241 / 0.14), transparent 70%)" }} />
-              <div className="absolute -bottom-24 -left-20 h-72 w-72 rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(168 85 247 / 0.12), transparent 70%)" }} />
-              <div className="absolute right-10 top-1/2 h-40 w-40 rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(245 158 11 / 0.12), transparent 70%)" }} />
+              <motion.div
+                animate={{ x: [0, 26, 0], y: [0, -18, 0], scale: [1, 1.1, 1] }}
+                transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -right-24 -top-24 h-80 w-80 rounded-[50%]"
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(99 102 241 / 0.18), transparent 70%)" }}
+              />
+              <motion.div
+                animate={{ x: [0, -22, 0], y: [0, 16, 0], scale: [1, 1.08, 1] }}
+                transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                className="absolute -bottom-24 -left-20 h-80 w-80 rounded-[50%]"
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(168 85 247 / 0.15), transparent 70%)" }}
+              />
+              <motion.div
+                animate={{ x: [0, 14, 0], y: [0, -10, 0] }}
+                transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                className="absolute right-8 top-1/3 h-44 w-44 rounded-[50%]"
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(245 158 11 / 0.14), transparent 70%)" }}
+              />
+              <div
+                className="absolute inset-0 opacity-[0.18]"
+                style={{
+                  backgroundImage: "radial-gradient(rgb(99 102 241 / 0.18) 1px, transparent 1px)",
+                  backgroundSize: "30px 30px",
+                  maskImage: "radial-gradient(ellipse at 60% 30%, black 0%, transparent 65%)",
+                  WebkitMaskImage: "radial-gradient(ellipse at 60% 30%, black 0%, transparent 65%)",
+                }}
+              />
             </div>
 
             <div className="relative grid gap-10 lg:grid-cols-[300px_1fr] lg:gap-14">
               {/* Photo — conic ring + colorful chips */}
-              <div className="relative mx-auto w-full max-w-[20rem] lg:mx-0">
+              <motion.div
+                  animate={{ y: [0, -6, 0] }}
+                  transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="relative mx-auto w-full max-w-[20rem] lg:mx-0"
+                >
                 <motion.span
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
                   aria-hidden
-                  className="absolute -inset-1.5 rounded-[1.8rem] bg-[conic-gradient(from_0deg,#6366F1,#0EA5E9,#F0C36D,#EC4899,#6366F1)] opacity-80"
+                  className="absolute -inset-1.5 rounded-[1.8rem] bg-[conic-gradient(from_0deg,#6366F1,#0EA5E9,#F0C36D,#EC4899,#6366F1)] opacity-85"
                 />
                 <span className="relative block overflow-hidden rounded-[1.55rem] ring-4 ring-white shadow-[0_30px_70px_-30px_rgb(79_70_229/0.55)]">
                   {FOUNDER.image ? (
@@ -193,7 +228,7 @@ export function About() {
                 <span className="absolute -bottom-3 -right-3 inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 font-display text-[0.62rem] font-bold text-amber-700 shadow-lg">
                   <span className="h-1.5 w-1.5 rounded-full bg-amber-500" /> 600+ Students
                 </span>
-              </div>
+                </motion.div>
 
               {/* Identity + bio */}
               <div className="flex flex-col justify-center text-center lg:text-start">
