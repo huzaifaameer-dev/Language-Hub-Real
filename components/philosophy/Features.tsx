@@ -74,7 +74,7 @@ export function Features() {
               <>{dict["features.title1"]} <span className="brand-text">{dict["features.title2"]}</span></>
             ) : (
               <>
-                Why learners <span className="brand-text">choose us.</span>
+                Why learners choose <span className="brand-text">Language Hub.</span>
               </>
             )
           }
