@@ -221,14 +221,14 @@ export function AccountChip() {
             </div>
 
             {/* Sign out */}
-            <div className="border-t border-[#E2E8F0] p-1.5">
+            <div className="border-t border-[#E2E8F0] px-3 pb-3 pt-2">
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}
                 role="menuitem"
-                className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left font-display text-[0.82rem] font-bold text-rose-600 transition-colors hover:bg-rose-50"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2.5 font-display text-[0.78rem] font-bold uppercase tracking-[0.06em] text-rose-600 transition-all duration-300 hover:bg-rose-100 hover:shadow-[0_10px_24px_-12px_rgb(225_29_72/0.45)]"
               >
-                <LogOut className="h-4 w-4" strokeWidth={2} />
+                <LogOut className="h-4 w-4" strokeWidth={2.2} />
                 Sign out
               </button>
             </div>
