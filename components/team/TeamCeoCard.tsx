@@ -1,10 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BadgeCheck, Quote } from "lucide-react";
-import { ACADEMY_STATS } from "@/lib/content";
+import { BadgeCheck, Quote, Sparkles } from "lucide-react";
 
 const ease = [0.16, 1, 0.3, 1] as const;
+
+const QUICK_FACTS = [
+  { text: "Conversation-first method", tone: "#10B981" },
+  { text: "IELTS · PTE Coach", tone: "#38BDF8" },
+  { text: "Small-batch teaching", tone: "#60A5FA" },
+  { text: "Personal mentorship", tone: "#2DD4BF" },
+];
 
 interface Ceo {
   name: string;
@@ -51,7 +57,7 @@ export function TeamCeoCard({ ceo }: { ceo: Ceo }) {
         className="absolute inset-x-0 top-0 h-[3px] origin-left bg-gradient-to-r from-emerald-400 via-sky-400 to-blue-500"
       />
 
-      <div className="relative grid gap-10 p-7 sm:p-10 lg:grid-cols-[240px_1fr] lg:gap-12">
+      <div className="relative grid gap-10 p-7 sm:p-10 lg:grid-cols-[250px_1fr] lg:gap-12">
         {/* Portrait */}
         <motion.div
           animate={{ y: [0, -5, 0] }}
@@ -113,20 +119,55 @@ export function TeamCeoCard({ ceo }: { ceo: Ceo }) {
             {ceo.name}
           </motion.p>
 
+          {/* Bio */}
+          {ceo.bio ? (
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.32, duration: 0.5, ease }}
+              className="mt-5 text-start text-[0.95rem] leading-relaxed text-slate-300"
+            >
+              {ceo.bio}
+            </motion.p>
+          ) : null}
+
+          {/* Focus */}
+          {ceo.focus.length > 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.36, duration: 0.5, ease }}
+              className="mt-5 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
+            >
+              {ceo.focus.map((f) => (
+                <span
+                  key={f}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-slate-300"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/70" />
+                  {f}
+                </span>
+              ))}
+            </motion.div>
+          ) : null}
+
+          {/* Credentials */}
           {ceo.credentials.length > 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.32, duration: 0.5, ease }}
+              transition={{ delay: 0.42, duration: 0.5, ease }}
               className="mt-5 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
             >
               {ceo.credentials.map((c) => (
                 <span
                   key={c}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.05] px-3.5 py-1.5 font-display text-[0.62rem] font-bold uppercase tracking-[0.1em] text-slate-200"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/25 bg-emerald-500/[0.08] px-3.5 py-1.5 font-display text-[0.62rem] font-bold uppercase tracking-[0.1em] text-emerald-300"
                 >
-                  <BadgeCheck className="h-3.5 w-3.5 text-emerald-400" /> {c}
+                  <BadgeCheck className="h-3.5 w-3.5" /> {c}
                 </span>
               ))}
             </motion.div>
@@ -134,7 +175,7 @@ export function TeamCeoCard({ ceo }: { ceo: Ceo }) {
         </div>
       </div>
 
-      {/* Bottom: proof + quote */}
+      {/* Bottom: quick facts + quote */}
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -142,30 +183,26 @@ export function TeamCeoCard({ ceo }: { ceo: Ceo }) {
         transition={{ delay: 0.24, duration: 0.6, ease }}
         className="relative grid gap-7 border-t border-white/10 bg-white/[0.03] p-7 sm:p-9 lg:grid-cols-2 lg:items-center"
       >
-        {/* Proof band */}
+        {/* Quick facts — non-numeric */}
         <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 lg:justify-start">
-          {ACADEMY_STATS.map((s, i) => {
-            const tones = ["#10B981", "#38BDF8", "#60A5FA", "#2DD4BF"];
-            return (
-              <div key={s.label} className="flex flex-col items-center gap-0.5 lg:items-start">
-                <span className="font-display text-[1.4rem] font-black leading-none" style={{ color: tones[i % tones.length] }}>
-                  {s.value}
-                </span>
-                <span className="font-mono text-[0.5rem] uppercase tracking-[0.16em] text-slate-400">{s.label}</span>
-              </div>
-            );
-          })}
+          {QUICK_FACTS.map((f) => (
+            <div key={f.text} className="flex items-center gap-2">
+              <span aria-hidden className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: f.tone }} />
+              <span className="font-display text-[0.8rem] font-bold text-slate-200">{f.text}</span>
+            </div>
+          ))}
         </div>
 
-        {/* Quote */}
-        {ceo.bio ? (
-          <div className="relative rounded-xl border-l-4 border-emerald-400 bg-white/[0.05] p-5">
-            <Quote className="h-6 w-6 text-emerald-400" aria-hidden />
-            <p className="mt-2 font-serif text-[1.02rem] italic leading-relaxed text-slate-200">
-              &ldquo;{ceo.bio}&rdquo;
-            </p>
-          </div>
-        ) : null}
+        {/* Belief line */}
+        <div className="relative rounded-xl border-l-4 border-emerald-400 bg-white/[0.05] p-5">
+          <Quote className="h-6 w-6 text-emerald-400" aria-hidden />
+          <p className="mt-2 font-serif text-[1.02rem] italic leading-relaxed text-slate-200">
+            &ldquo;English is a living skill — something learners use, not just study.&rdquo;
+          </p>
+          <p className="mt-3 flex items-center gap-1.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.18em] text-slate-400">
+            <Sparkles className="h-3 w-3 text-emerald-400" /> {ceo.role}
+          </p>
+        </div>
       </motion.div>
     </motion.div>
   );
