@@ -156,7 +156,7 @@ export function About() {
         >
           {/* Background: image at 8% + calm emerald/blue glows */}
           <div aria-hidden className="pointer-events-none absolute inset-0">
-            <img src="/ceo-bg.jpg" alt="" className="h-full w-full object-cover opacity-[0.04]" />
+            <img src="/ceo-bg.jpg" alt="" className="h-full w-full object-cover opacity-[0.25]" />
             <motion.div
               animate={{ opacity: [0.22, 0.4, 0.22] }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
