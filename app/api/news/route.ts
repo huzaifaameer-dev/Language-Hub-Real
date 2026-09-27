@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 
   // Attach the viewer's own reaction to each post so cards can hydrate the
   // "liked" state on refresh (no double-likes / confused toggling).
-  let myBySlug: Record<string, string> = {};
+  const myBySlug: Record<string, string> = {};
   try {
     const actor = await resolveNewsActor();
     if (actor.actorId) {

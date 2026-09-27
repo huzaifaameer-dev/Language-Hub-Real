@@ -104,7 +104,7 @@ export function SupportHelp() {
   return createPortal(
     <>
 {/* Floating actions — bottom right, side by side: Feedback + Help */}
-      <div className="fixed bottom-6 right-6 z-[90] flex items-center gap-3">
+      <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end gap-3">
         {/* Feedback */}
         <button
           type="button"

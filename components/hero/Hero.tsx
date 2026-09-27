@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Mic, PlayCircle, Sparkles, TrendingUp, User } from "lucide-react";
+import { ArrowRight, Award, BookOpen, MessageSquareHeart, PlayCircle, Sparkles, User } from "lucide-react";
 import { BookDemoButton } from "@/components/contact/BookDemoButton";
 import { useLang } from "@/components/LanguageProvider";
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -202,18 +202,18 @@ export function Hero() {
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.2} />
             </button>
           </motion.div>
-          {/* Trust / stats row */}
+          {/* Trust / differentiators row — service promises, not repeated numbers */}
           <motion.div
             initial={{ opacity: 0, y: reduce ? 0 : 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease, delay: 0.54 }}
             className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4"
           >
-            <TrustItem icon={<TrendingUp className="h-4 w-4" />} title="600+" sub="Students guided" />
+            <TrustItem icon={<BookOpen className="h-4 w-4" />} title="Free placement test" sub="AI-powered · 10 minutes" />
             <span className="hidden h-8 w-px bg-[#E2E8F0] sm:block" />
-            <TrustItem icon={<Mic className="h-4 w-4" />} title="IELTS · PTE" sub="Specialist coaching" />
+            <TrustItem icon={<Award className="h-4 w-4" />} title="Certificate on completion" sub="Issued at 80% progress" />
             <span className="hidden h-8 w-px bg-[#E2E8F0] sm:block" />
-            <TrustItem icon={<PlayCircle className="h-4 w-4" />} title="Proven results" sub="Real success stories" />
+            <TrustItem icon={<MessageSquareHeart className="h-4 w-4" />} title="Fast support" sub="WhatsApp · reply in 24h" />
           </motion.div>
         </div>
         {/* ═══════════════ RIGHT — Student Character ═══════════════ */}
