@@ -110,7 +110,7 @@ export function Stats() {
     <section
       id="stats"
       data-section
-      className="relative overflow-hidden bg-[linear-gradient(180deg,#F6F7FB_0%,#EEF1FF_100%)] px-6 py-20 sm:px-12 sm:py-24"
+      className="relative overflow-hidden bg-[linear-gradient(180deg,#F2F6FF_0%,#E8EFFD_55%,#E2EAFB_100%)] px-6 py-20 sm:px-12 sm:py-24"
       aria-label="Language Hub in numbers"
     >
       {/* Soft ambient glows + faint dot texture */}
@@ -118,19 +118,19 @@ export function Stats() {
         <div
           className="absolute -left-32 top-1/3 h-[26rem] w-[26rem] rounded-[50%]"
           style={{
-            background: "radial-gradient(50% 50% at 50% 50%, rgb(99 102 241 / 0.16), transparent 70%)",
+            background: "radial-gradient(50% 50% at 50% 50%, rgb(37 99 235 / 0.20), transparent 70%)",
           }}
         />
         <div
           className="absolute -right-24 bottom-0 h-[24rem] w-[24rem] rounded-[50%]"
           style={{
-            background: "radial-gradient(50% 50% at 50% 50%, rgb(139 92 246 / 0.14), transparent 70%)",
+            background: "radial-gradient(50% 50% at 50% 50%, rgb(59 130 246 / 0.16), transparent 70%)",
           }}
         />
         <div
           className="absolute inset-0 opacity-[0.35]"
           style={{
-            backgroundImage: "radial-gradient(rgb(79 70 229 / 0.16) 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(rgb(37 99 235 / 0.20) 1px, transparent 1px)",
             backgroundSize: "26px 26px",
             maskImage: "radial-gradient(ellipse at 50% 40%, black 10%, transparent 75%)",
             WebkitMaskImage: "radial-gradient(ellipse at 50% 40%, black 10%, transparent 75%)",
@@ -148,9 +148,9 @@ export function Stats() {
             transition={{ duration: 0.5, ease }}
             className="flex items-center justify-center gap-4 font-display text-[0.62rem] font-bold uppercase tracking-[0.34em] text-ink-3"
           >
-            <span aria-hidden className="h-px w-10 bg-ink/15" />
-            Language Hub <span className="text-brand-deep">in numbers</span>
-            <span aria-hidden className="h-px w-10 bg-ink/15" />
+            <span aria-hidden className="h-px w-10 bg-[#2563EB]/25" />
+            Language Hub <span className="text-[#2563EB]">in numbers</span>
+            <span aria-hidden className="h-px w-10 bg-[#2563EB]/25" />
           </motion.p>
           <motion.h2
             initial={{ opacity: 0, y: 12 }}
@@ -159,9 +159,9 @@ export function Stats() {
             transition={{ duration: 0.55, ease, delay: 0.06 }}
             className="mt-5 font-display text-[clamp(1.7rem,3.8vw,2.5rem)] font-extrabold tracking-[-0.02em] text-ink"
           >
-            Results that speak{" "}
-            <span className="bg-gradient-to-r from-[#4f46e5] via-[#7c3aed] to-[#d97706] bg-clip-text text-transparent">
-              for themselves.
+            Progress you can{" "}
+            <span className="bg-gradient-to-r from-[#1E3A8A] via-[#2563EB] to-[#38BDF8] bg-clip-text text-transparent">
+              count on.
             </span>
           </motion.h2>
           <motion.p
@@ -185,11 +185,11 @@ export function Stats() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
               transition={{ duration: 0.55, delay: i * 0.08, ease }}
-              className="group relative border-t border-ink/[0.08] pt-8 lg:border-t-0 lg:px-10 lg:pt-0"
+              className="group relative border-t border-[#2563EB]/[0.10] pt-8 lg:border-t-0 lg:px-10 lg:pt-0"
             >
               {/* Big number */}
               <p className="font-display text-[clamp(2.6rem,5vw,4rem)] font-black leading-none tracking-[-0.03em]">
-                <span className="bg-gradient-to-br from-ink via-[#4B5BC4] to-[#8B5CF6] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-br from-[#1E3A8A] via-[#2563EB] to-[#60A5FA] bg-clip-text text-transparent">
                   <CountUp target={stats[s.key]} suffix={s.suffix} />
                 </span>
               </p>
@@ -205,7 +205,7 @@ export function Stats() {
               {/* Fine hover accent */}
               <span
                 aria-hidden
-                className="absolute -top-px left-0 h-px w-12 bg-gradient-to-r from-[#4f46e5] to-transparent lg:left-1/2 lg:top-0 lg:-translate-x-1/2 lg:w-0 lg:transition-all lg:duration-500 lg:group-hover:w-14"
+                className="absolute -top-px left-0 h-px w-12 bg-gradient-to-r from-[#2563EB] to-transparent lg:left-1/2 lg:top-0 lg:-translate-x-1/2 lg:w-0 lg:transition-all lg:duration-500 lg:group-hover:w-14"
               />
             </motion.div>
           ))}
@@ -218,7 +218,7 @@ export function Stats() {
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.8, ease }}
           aria-hidden
-          className="mt-14 h-px w-full origin-left bg-gradient-to-r from-transparent via-brand/40 to-transparent"
+          className="mt-14 h-px w-full origin-left bg-gradient-to-r from-transparent via-[#2563EB]/50 to-transparent"
         />
       </div>
     </section>

@@ -24,6 +24,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { AuthNavButtons } from "@/components/navigation/AuthNavButtons";
+import { AccountChip } from "@/components/navigation/AccountChip";
 import { cn } from "@/lib/utils";
 import { useBodyScrollLock } from "@/lib/hooks";
 import { FocusTrap, useEscapeKey } from "@/components/ui/FocusTrap";
@@ -338,15 +339,15 @@ export function Navbar() {
                 </AnimatePresence>
               </div>
 
-              {/* NEWS — blue live CTA */}
+              {/* NEWS — green live CTA (label only changed to NEWS) */}
               <Link
                 href="/news"
                 onClick={() => setMenuOpen(false)}
                 className={cn(
                   "relative inline-flex items-center gap-1.5 rounded-full px-4 py-2 font-display text-[0.78rem] font-extrabold uppercase tracking-[0.06em] transition-all duration-300",
                   isNews
-                    ? "bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] text-white shadow-[0_10px_24px_-10px_rgb(37_99_235/0.7)]"
-                    : "border border-[#BFD3FF] bg-white/70 text-[#1647C7] hover:bg-white hover:shadow-[0_10px_24px_-12px_rgb(37_99_235/0.45)]"
+                    ? "bg-emerald-500 text-white shadow-[0_10px_24px_-10px_rgb(16_185_129/0.7)]"
+                    : "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:shadow-[0_10px_24px_-12px_rgb(16_185_129/0.55)]"
                 )}
               >
                 {/* pulsing live dot */}
@@ -355,20 +356,20 @@ export function Navbar() {
                     aria-hidden
                     className={cn(
                       "absolute inline-flex h-full w-full rounded-full",
-                      isNews ? "bg-white/70" : "bg-[#2563EB]/50"
+                      isNews ? "bg-white/70" : "bg-emerald-400/70"
                     )}
                     style={{ animation: "ping 1.6s cubic-bezier(0,0,0.2,1) infinite" }}
                   />
-                  <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", isNews ? "bg-white" : "bg-[#2563EB]")} />
+                  <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", isNews ? "bg-white" : "bg-emerald-500")} />
                 </span>
-                <Newspaper className={cn("h-4 w-4", isNews ? "text-white" : "text-[#2563EB]")} strokeWidth={2.2} />
+                <Newspaper className={cn("h-4 w-4", isNews ? "text-white" : "text-emerald-600")} strokeWidth={2.2} />
                 NEWS
               </Link>
             </div>
 
             {/* Right */}
             <div className="relative z-[60] flex items-center gap-2 sm:gap-2.5">
-              <BookDemoButton className="hidden h-11 rounded-full px-5 text-[0.78rem] lg:inline-flex" />
+              <AccountChip />
               <button
                 type="button"
                 onClick={() => setMenuOpen(true)}
