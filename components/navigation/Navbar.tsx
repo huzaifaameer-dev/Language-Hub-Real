@@ -12,6 +12,7 @@ import {
   Info,
   Languages,
   Layers,
+  LayoutGrid,
   Menu,
   MessageCircle,
   Newspaper,
@@ -21,7 +22,6 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
 import { Logo } from "@/components/ui/Logo";
 import { AuthNavButtons } from "@/components/navigation/AuthNavButtons";
 import { cn } from "@/lib/utils";
@@ -155,10 +155,10 @@ export function Navbar() {
             aria-label="Primary"
             dir="ltr"
             className={cn(
-              "relative flex items-center justify-between gap-3 rounded-[1.5rem] border backdrop-blur-xl transition-all duration-500 sm:px-6",
+              "relative flex items-center justify-between gap-3 rounded-[1.75rem] border backdrop-blur-xl ring-1 ring-inset ring-white/50 transition-all duration-500 sm:px-6",
               scrolled
-                ? "h-16 border-[#CBD6E8] bg-[#E3E9F3]/96 shadow-[0_18px_48px_-26px_rgb(11_27_58/0.3)]"
-                : "h-[4.3rem] border-[#D4DEED] bg-[#EAF0F8]/94 shadow-[0_14px_40px_-24px_rgb(11_27_58/0.24)]"
+                ? "h-16 border-[#C7D6EE] bg-[#DFE8F6]/92 shadow-[0_18px_48px_-26px_rgb(11_27_58/0.32)]"
+                : "h-[4.3rem] border-[#D2DEED] bg-[#E8EEF8]/92 shadow-[0_14px_40px_-24px_rgb(11_27_58/0.26)]"
             )}
           >
             {/* Logo */}
@@ -199,7 +199,7 @@ export function Navbar() {
                     isCourses || coursesOpen ? "text-[#2563EB]" : "text-ink-2 hover:text-ink"
                   )}
                 >
-                  <span className="relative inline-flex items-center gap-1.5 px-3.5 font-display text-[0.8rem] font-extrabold uppercase tracking-[0.06em]">
+                  <span className="relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-[0.8rem] font-extrabold uppercase tracking-[0.06em] transition-colors hover:bg-white/70">
                     <GraduationCap className={cn("h-4 w-4", isCourses || coursesOpen ? "text-[#2563EB]" : "text-[#94A3B8]")} strokeWidth={2.2} />
                     COURSES
                     <ChevronDown className={cn("h-3.5 w-3.5 text-[#94A3B8] transition-transform duration-300", coursesOpen && "rotate-180")} strokeWidth={2.6} />
@@ -291,9 +291,9 @@ export function Navbar() {
                     siteOpen ? "text-[#2563EB]" : "text-ink-2 hover:text-ink"
                   )}
                 >
-                  <span className="relative inline-flex items-center gap-1.5 px-3.5 font-display text-[0.8rem] font-extrabold uppercase tracking-[0.06em]">
-                    <Layers className={cn("h-4 w-4", siteOpen ? "text-[#2563EB]" : "text-[#94A3B8]")} strokeWidth={2.2} />
-                    PROGRAMME
+                  <span className="relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-[0.8rem] font-extrabold uppercase tracking-[0.06em] transition-colors hover:bg-white/70">
+                    <LayoutGrid className={cn("h-4 w-4", siteOpen ? "text-[#2563EB]" : "text-[#94A3B8]")} strokeWidth={2.2} />
+                    OVERVIEW
                     <ChevronDown className={cn("h-3.5 w-3.5 text-[#94A3B8] transition-transform duration-300", siteOpen && "rotate-180")} strokeWidth={2.6} />
                   </span>
                   {siteOpen && under(true)}
@@ -311,7 +311,7 @@ export function Navbar() {
                       <span aria-hidden className="absolute -top-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 rounded-[3px] border-l border-t border-[#E6EDFF] bg-white" />
                       <div className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white/95 p-2 shadow-[0_30px_70px_-30px_rgb(11_27_58/0.25)] backdrop-blur-xl">
                         <p className="px-3 pb-1 pt-2 font-mono text-[0.56rem] font-bold uppercase tracking-[0.3em] text-[#1647C7]">
-                          {dict["nav.programme"] ?? "Programme"}
+                          {dict["nav.programme"] ?? "Overview"}
                         </p>
                         {SITE_LINKS.map((l) => (
                           <button
@@ -338,15 +338,15 @@ export function Navbar() {
                 </AnimatePresence>
               </div>
 
-              {/* DAILY NEWS — green live CTA */}
+              {/* NEWS — blue live CTA */}
               <Link
                 href="/news"
                 onClick={() => setMenuOpen(false)}
                 className={cn(
                   "relative inline-flex items-center gap-1.5 rounded-full px-4 py-2 font-display text-[0.78rem] font-extrabold uppercase tracking-[0.06em] transition-all duration-300",
                   isNews
-                    ? "bg-emerald-500 text-white shadow-[0_10px_24px_-10px_rgb(16_185_129/0.7)]"
-                    : "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:shadow-[0_10px_24px_-12px_rgb(16_185_129/0.55)]"
+                    ? "bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] text-white shadow-[0_10px_24px_-10px_rgb(37_99_235/0.7)]"
+                    : "border border-[#BFD3FF] bg-white/70 text-[#1647C7] hover:bg-white hover:shadow-[0_10px_24px_-12px_rgb(37_99_235/0.45)]"
                 )}
               >
                 {/* pulsing live dot */}
@@ -355,20 +355,20 @@ export function Navbar() {
                     aria-hidden
                     className={cn(
                       "absolute inline-flex h-full w-full rounded-full",
-                      isNews ? "bg-white/70" : "bg-emerald-400/70"
+                      isNews ? "bg-white/70" : "bg-[#2563EB]/50"
                     )}
                     style={{ animation: "ping 1.6s cubic-bezier(0,0,0.2,1) infinite" }}
                   />
-                  <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", isNews ? "bg-white" : "bg-emerald-500")} />
+                  <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", isNews ? "bg-white" : "bg-[#2563EB]")} />
                 </span>
-                <Newspaper className={cn("h-4 w-4", isNews ? "text-white" : "text-emerald-600")} strokeWidth={2.2} />
-                DAILY NEWS
+                <Newspaper className={cn("h-4 w-4", isNews ? "text-white" : "text-[#2563EB]")} strokeWidth={2.2} />
+                NEWS
               </Link>
             </div>
 
             {/* Right */}
             <div className="relative z-[60] flex items-center gap-2 sm:gap-2.5">
-              <ProfileChip />
+              <BookDemoButton className="hidden h-11 rounded-full px-5 text-[0.78rem] lg:inline-flex" />
               <button
                 type="button"
                 onClick={() => setMenuOpen(true)}
@@ -439,7 +439,7 @@ export function Navbar() {
 
                 <div className="mt-4 border-t border-ink/[0.06] pt-4">
                   <p className="mb-2 flex items-center gap-2 font-mono text-[0.6rem] font-bold uppercase tracking-[0.3em] text-[#6D4AFF]">
-                    <Layers className="h-3.5 w-3.5" /> {dict["nav.programme"] ?? "Programme"}
+                    <LayoutGrid className="h-3.5 w-3.5" /> {dict["nav.programme"] ?? "Overview"}
                   </p>
                   {SITE_LINKS.map((l, i) => (
                     <button
@@ -470,7 +470,7 @@ export function Navbar() {
                     <span className="flex items-center gap-3">
                       <span className="w-6 font-mono text-[0.6rem] font-bold text-ink-3">0{SITE_LINKS.length + 1}</span>
                       <Newspaper className="h-5 w-5 text-ink/30" strokeWidth={1.9} />
-                      {dict["nav.daily-news"] ?? "Daily News"}
+                      News
                     </span>
                     <ArrowRight className="h-5 w-5 text-ink/25" strokeWidth={2} />
                   </Link>
@@ -488,83 +488,5 @@ export function Navbar() {
         )}
       </AnimatePresence>
     </>
-  );
-}
-
-/** Premium profile chip — gradient-ring avatar + name; click routes to account. */
-function ProfileChip() {
-  const { data: session, status } = useSession();
-  const [img, setImg] = useState<string | null>(null);
-  const router = useRouter();
-
-  // JWT doesn't carry the photo; pull the freshest stored avatar from /api/me
-  // (same pattern as AuthNavButtons) so the navbar shows the real profile image.
-  useEffect(() => {
-    if (status !== "authenticated" || !session?.user?.id) return;
-    if (session.user.role === "ADMIN") return;
-    let on = true;
-    fetch("/api/me", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (on && d?.user?.image) setImg(d.user.image);
-      })
-      .catch(() => {});
-    return () => {
-      on = false;
-    };
-  }, [status, session?.user?.id, session?.user?.role]);
-
-  if (status === "loading") {
-    return <span aria-hidden className="hidden h-10 w-10 animate-pulse rounded-full bg-ink/[0.06] md:block" />;
-  }
-
-  const isAuthed = !!session?.user;
-  const href = isAuthed
-    ? session!.user!.role === "ADMIN"
-      ? "/management"
-      : session!.user!.role === "TEACHER"
-        ? "/management"
-        : "/dashboard"
-    : "/login";
-  const name = session?.user?.name ?? (isAuthed ? "Account" : "Sign in");
-  const initial = (session?.user?.name ?? "G").charAt(0).toUpperCase();
-  const image = img ?? (session?.user?.image as string | null | undefined);
-
-  return (
-    <button
-      type="button"
-      onClick={() => router.push(href)}
-      aria-label={isAuthed ? "Open account" : "Sign in"}
-      className={cn(
-        "hidden items-center gap-2.5 rounded-full py-1 pl-1 pr-3.5 transition-all duration-300 md:inline-flex",
-        isAuthed
-          ? "border border-[#E6EDFF] bg-white shadow-sm hover:border-[#2563EB]/40"
-          : "border border-[#2563EB]/25 bg-[#2563EB]/[0.06] text-[#1647C7] hover:bg-[#2563EB]/[0.12]"
-      )}
-    >
-      {/* Avatar wrapped in a subtle gradient ring */}
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#6D4AFF] p-[2px]">
-        <span className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white">
-          {image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={image} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <span className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#6D4AFF]">
-              <span className="font-display text-[0.7rem] font-black text-white">{initial}</span>
-            </span>
-          )}
-          <span aria-hidden className="absolute bottom-0 right-0 h-2 w-2 rounded-full border-[1.5px] border-white bg-emerald-500" />
-        </span>
-      </span>
-      <span className="flex flex-col items-start leading-none">
-        <span className={cn("font-display text-[0.74rem] font-bold", isAuthed ? "text-ink" : "text-[#1647C7]")}>
-          {name}
-        </span>
-        <span className="font-mono text-[0.48rem] font-semibold uppercase tracking-[0.14em] text-[#64748B]">
-          {isAuthed ? "Student" : "Guest"}
-        </span>
-      </span>
-      <ChevronDown className="h-3.5 w-3.5 text-[#94A3B8]" strokeWidth={2.4} />
-    </button>
   );
 }
