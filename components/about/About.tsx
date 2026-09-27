@@ -40,7 +40,17 @@ export function About() {
               <>{dict["about.title"]} <span className="brand-text">{dict["about.title2"]}</span></>
             ) : (
               <>
-                Beyond <span className="brand-text">English.</span>
+                Beyond{" "}
+                <span
+                  style={{
+                    backgroundImage: "linear-gradient(100deg,#1D4ED8,#2563EB,#38BDF8)",
+                    WebkitBackgroundClip: "text",
+                    backgroundClip: "text",
+                    color: "transparent",
+                  }}
+                >
+                  English.
+                </span>
               </>
             )
           }
@@ -73,7 +83,7 @@ export function About() {
               className="mt-4 font-display text-[clamp(1.7rem,3.4vw,2.4rem)] font-extrabold leading-tight tracking-[-0.02em] text-ink"
             >
               Fluency is just the{" "}
-              <span className="bg-gradient-to-r from-[#2563EB] via-[#7C3AED] to-[#D97706] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#1D4ED8] via-[#2563EB] to-[#38BDF8] bg-clip-text text-transparent">
                 beginning.
               </span>
             </motion.h3>
