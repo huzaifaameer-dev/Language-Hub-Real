@@ -42,7 +42,6 @@ function Stars({ count = 5 }: { count?: number }) {
 export function Reviews() {
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [active, setActive] = useState<ReviewItem | null>(null);
-  const [expanded, setExpanded] = useState(false);
   // Responsive "front" limit: ~4 on mobile, ~6 on tablet, up to 8 on desktop.
   const [frontLimit, setFrontLimit] = useState(8);
   const { dict, lang } = useLang();
@@ -226,7 +225,7 @@ export function Reviews() {
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {[...rest]
             .sort((a, b) => String(a.outcome).localeCompare(String(b.outcome)))
-            .slice(0, expanded ? undefined : Math.min(frontLimit, featured ? 7 : 8))
+            .slice(0, Math.min(frontLimit, 8))
             .map((t, i) => (
             <motion.article
               key={t.id}
@@ -291,22 +290,6 @@ export function Reviews() {
             </motion.article>
           ))}
         </div>
-
-        {/* Show more / less */}
-        {rest.length > Math.min(frontLimit, featured ? 7 : 8) ? (
-          <div className="mt-8 text-center">
-            <button
-              type="button"
-              onClick={() => setExpanded((v) => !v)}
-              className="inline-flex h-11 items-center gap-2 rounded-full border-2 border-[#2563EB]/25 bg-white px-6 font-display text-[0.76rem] font-bold uppercase tracking-[0.14em] text-[#1647C7] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2563EB] hover:bg-[#2563EB] hover:text-white"
-            >
-              {expanded
-                ? "Show less"
-                : `Show more reviews (${rest.length - Math.min(frontLimit, featured ? 7 : 8)})`}
-              <ArrowRight className={`h-4 w-4 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`} strokeWidth={2.2} />
-            </button>
-          </div>
-        ) : null}
 
         {/* CTA */}
         <div className="mt-12 text-center">
