@@ -108,7 +108,7 @@ export function AccountChip() {
           "group flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-3.5 transition-all duration-300",
           open
             ? "bg-white shadow-[0_16px_36px_-16px_rgb(37_99_235/0.45)] ring-1 ring-[#2563EB]/15"
-            : "border border-[#E6EDFF] bg-white/80 shadow-[0_8px_22px_-14px_rgb(11_27_58/0.2)] hover:-translate-y-0.5 hover:border-[#2563EB]/35 hover:shadow-[0_14px_32px_-16px_rgb(37_99_235/0.5)]"
+            : "border border-[#E6EDFF] bg-white/80 shadow-[0_8px_22px_-14px_rgb(11_27_58/0.2)] ring-1 ring-inset ring-white/40 hover:-translate-y-0.5 hover:border-[#2563EB]/35 hover:shadow-[0_14px_32px_-16px_rgb(37_99_235/0.5)]"
         )}
       >
         {/* Conic-ring avatar */}
@@ -149,44 +149,79 @@ export function AccountChip() {
         />
       </button>
 
-      {/* Dropdown */}
+      {/* Dropdown — courses-style premium panel */}
       <AnimatePresence>
         {open && (
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
-            transition={{ duration: 0.22, ease }}
+            transition={{ duration: 0.24, ease }}
             role="menu"
-            className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-64 overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white/95 shadow-[0_30px_70px_-30px_rgb(11_27_58/0.35)] backdrop-blur-xl"
+            className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-[26rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white/95 shadow-[0_30px_70px_-30px_rgb(11_27_58/0.35)] backdrop-blur-xl"
           >
             {/* Gradient head band */}
-            <div className="bg-gradient-to-br from-[#2563EB] via-[#1647C7] to-[#6D4AFF] px-4 py-3.5 text-white">
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white">
+            <div className="relative overflow-hidden bg-gradient-to-br from-[#2563EB] via-[#1647C7] to-[#6D4AFF] px-5 py-4 text-white">
+              <span aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+              <div className="relative flex items-center gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-white">
                   {image ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={image} alt="" className="h-full w-full object-cover" />
                   ) : (
                     <span className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#6D4AFF]">
-                      <span className="font-display text-[0.8rem] font-black text-white">{initial}</span>
+                      <span className="font-display text-[0.85rem] font-black text-white">{initial}</span>
                     </span>
                   )}
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate font-display text-[0.88rem] font-extrabold">{name}</span>
-                  <span className="block truncate font-mono text-[0.6rem] text-white/70">{email}</span>
+                  <span className="block truncate font-display text-[0.95rem] font-extrabold">{name}</span>
+                  <span className="block truncate font-mono text-[0.62rem] text-white/70">{email}</span>
                 </span>
               </div>
             </div>
 
-            <div className="p-1.5">
-              <MenuItem icon={<LayoutDashboard className="h-4 w-4" />} label="Dashboard" href={href} onClick={() => setOpen(false)} />
-              <MenuItem icon={<Trophy className="h-4 w-4" />} label="Placement Test" href="/placement-test" onClick={() => setOpen(false)} />
-              <MenuItem icon={<GraduationCap className="h-4 w-4" />} label="Browse Courses" href="/courses" onClick={() => setOpen(false)} />
-              <MenuItem icon={<User className="h-4 w-4" />} label="My Profile" href="/dashboard" onClick={() => setOpen(false)} />
+            {/* Two-column: quick actions + feature card (courses-dropdown style) */}
+            <div className="grid grid-cols-[1.15fr_0.85fr]">
+              {/* Menu actions */}
+              <div className="p-2">
+                <p className="px-3 pb-1 pt-2 font-mono text-[0.56rem] font-bold uppercase tracking-[0.3em] text-[#1647C7]">
+                  Quick actions
+                </p>
+                <MenuItem icon={<LayoutDashboard className="h-5 w-5" />} label="Dashboard" note="Your learning home" href={href} onClick={() => setOpen(false)} />
+                <MenuItem icon={<Trophy className="h-5 w-5" />} label="Placement Test" note="Find your level in 10 min" href="/placement-test" onClick={() => setOpen(false)} />
+                <MenuItem icon={<GraduationCap className="h-5 w-5" />} label="Courses" note="Browse all programmes" href="/courses" onClick={() => setOpen(false)} />
+                <MenuItem icon={<User className="h-5 w-5" />} label="My Profile" note="Edit account & photo" href="/dashboard?settings=1" onClick={() => setOpen(false)} />
+              </div>
 
-              <div className="my-1.5 h-px bg-ink/[0.06]" />
+              {/* Feature card */}
+              <div className="flex border-l border-[#E2E8F0] p-2.5">
+                <div className="flex w-full flex-col justify-between overflow-hidden rounded-xl bg-gradient-to-br from-[#2563EB] via-[#1647C7] to-[#6D4AFF] p-3.5 text-white shadow-[0_18px_40px_-20px_rgb(37_99_235/0.8)]">
+                  <div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 font-mono text-[0.5rem] font-bold uppercase tracking-[0.16em] text-white backdrop-blur">
+                      <Sparkles className="h-2.5 w-2.5" /> Free · AI
+                    </span>
+                    <p className="mt-2.5 font-display text-[0.82rem] font-black leading-snug">
+                      Not sure where to start?
+                    </p>
+                    <p className="mt-1 text-[0.6rem] font-medium leading-relaxed text-white/70">
+                      Take the free placement test and get a plan.
+                    </p>
+                  </div>
+                  <Link
+                    href="/placement-test"
+                    onClick={() => setOpen(false)}
+                    className="group mt-3 inline-flex w-full items-center justify-between rounded-lg bg-white px-2.5 py-2 font-display text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#1647C7] transition-all duration-300 hover:shadow-lg"
+                  >
+                    Start test
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2.4} />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* Sign out */}
+            <div className="border-t border-[#E2E8F0] p-1.5">
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}
@@ -207,11 +242,13 @@ export function AccountChip() {
 function MenuItem({
   icon,
   label,
+  note,
   href,
   onClick,
 }: {
   icon: React.ReactNode;
   label: string;
+  note?: string;
   href: string;
   onClick?: () => void;
 }) {
@@ -220,13 +257,16 @@ function MenuItem({
       href={href}
       role="menuitem"
       onClick={onClick}
-      className="group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-display text-[0.82rem] font-bold text-ink transition-colors hover:bg-[#2563EB]/[0.05] hover:text-[#1647C7]"
+      className="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#2563EB]/[0.05]"
     >
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#2563EB]/[0.08] text-[#1647C7] transition-transform group-hover:scale-105">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2563EB]/[0.08] text-[#1647C7] transition-transform group-hover:scale-105">
         {icon}
       </span>
-      {label}
-      <ArrowRight className="ml-auto h-3.5 w-3.5 text-[#94A3B8] opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:opacity-100" strokeWidth={2.2} />
+      <span className="flex min-w-0 flex-1 flex-col leading-tight">
+        <span className="font-display text-[0.84rem] font-bold text-ink group-hover:text-[#1647C7]">{label}</span>
+        {note ? <span className="mt-0.5 text-[0.66rem] font-medium text-ink-3">{note}</span> : null}
+      </span>
+      <ArrowRight className="mt-2 h-4 w-4 shrink-0 -translate-x-1 text-[#2563EB] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" strokeWidth={2.2} />
     </Link>
   );
 }

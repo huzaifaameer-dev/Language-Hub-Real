@@ -66,6 +66,24 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // "My Profile" from the navbar routes here with ?settings=1 and opens the
+  // account settings modal — distinct from the plain Dashboard view.
+  useEffect(() => {
+    let open = false;
+    try {
+      open = new URLSearchParams(window.location.search).has("settings");
+    } catch {}
+    if (!open) return;
+    const id = setTimeout(() => {
+      setSettingsOpen(true);
+      try {
+        window.history.replaceState({}, "", window.location.pathname);
+      } catch {}
+    }, 0);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const load = useCallback(() => {
     fetch("/api/registrations", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
