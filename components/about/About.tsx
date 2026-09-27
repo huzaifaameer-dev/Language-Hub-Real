@@ -29,7 +29,7 @@ export function About() {
     <section
       id="about"
       data-section
-      className="relative overflow-hidden bg-white px-6 py-24 sm:px-12"
+      className="relative overflow-hidden bg-white px-6 pt-12 pb-24 sm:px-12"
       aria-label="Beyond English"
     >
       <div className="mx-auto max-w-6xl">
@@ -84,8 +84,11 @@ export function About() {
               transition={{ duration: 0.55, ease, delay: 0.12 }}
               className="mt-4 max-w-md text-[0.95rem] leading-relaxed text-ink-2"
             >
-              Every lesson builds something bigger than grammar — the presence,
-              the confidence and the voice that carry you beyond the classroom.
+              Every lesson builds something bigger than grammar — the presence, the
+              confidence and the voice that carry you beyond the classroom. You walk
+              into interviews, meetings and everyday conversations with the poise to
+              be heard, the clarity to be understood and the personality to be
+              remembered.
             </motion.p>
             <motion.div
               initial={{ opacity: 0 }}
