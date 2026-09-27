@@ -2,9 +2,7 @@
 
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Reveal } from "@/components/ui/Reveal";
-import Link from "next/link";
 import {
-  ArrowRight,
   CalendarClock,
   Lightbulb,
   MessageCircle,
@@ -135,15 +133,13 @@ export function Features() {
           })}
         </div>
 
-        {/* CTA footer */}
-        <Reveal delay={0.1} duration={0.6} className="mt-10 flex justify-center">
-          <Link
-            href="/courses"
-            className="group inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] px-7 font-display text-[0.85rem] font-bold uppercase tracking-[0.08em] text-white shadow-[0_16px_34px_-16px_rgb(37_99_235/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-18px_rgb(37_99_235/0.95)]"
-          >
-            Explore all programmes
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.4} />
-          </Link>
+        {/* CTA footer — professional blue line */}
+        <Reveal delay={0.1} duration={0.6} className="mt-12 flex items-center justify-center gap-4">
+          <span aria-hidden className="h-px w-14 bg-[#2563EB]/30 sm:w-20" />
+          <p className="text-center font-display text-[0.86rem] font-bold tracking-wide text-[#2563EB]">
+            One method. Every programme. Real results — the Language Hub difference.
+          </p>
+          <span aria-hidden className="h-px w-14 bg-[#2563EB]/30 sm:w-20" />
         </Reveal>
       </div>
     </section>
