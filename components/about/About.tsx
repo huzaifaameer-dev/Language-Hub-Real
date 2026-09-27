@@ -161,34 +161,46 @@ export function About() {
             transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
             className="absolute -inset-[150%] bg-[conic-gradient(from_0deg,#6366F1,#0EA5E9,#F0C36D,#EC4899,#D946EF,#6366F1)]"
           />
-          <div className="relative overflow-hidden rounded-[calc(2.5rem-2px)] bg-[linear-gradient(135deg,#EDF3FF_0%,#DFEAFF_45%,#F1E8FF_100%)] p-7 sm:p-10">
-            {/* living aurora background */}
+          <div className="relative overflow-hidden rounded-[calc(2.5rem-2px)] bg-[linear-gradient(135deg,#E2EBFF_0%,#C7D9FF_28%,#E2D6FF_52%,#FFDFEE_78%,#FFF3DC_100%)] p-7 sm:p-10">
+            {/* full-card aurora background */}
             <div aria-hidden className="pointer-events-none absolute inset-0">
+              {/* slow rotating color wash across the whole card */}
               <motion.div
-                animate={{ x: [0, 30, 0], y: [0, -22, 0], scale: [1, 1.12, 1] }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+                className="absolute -inset-[100%] opacity-[0.07]"
+                style={{ background: "conic-gradient(from 0deg, #6366F1, #0EA5E9, #EC4899, #F0C36D, #6366F1)" }}
+              />
+              <motion.div
+                animate={{ x: [0, 34, 0], y: [0, -24, 0], scale: [1, 1.15, 1] }}
                 transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -right-24 -top-24 h-80 w-80 rounded-[50%]"
-                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(99 102 241 / 0.30), transparent 70%)" }}
+                className="absolute -left-24 -top-28 h-96 w-96 rounded-[50%]"
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(99 102 241 / 0.34), transparent 70%)" }}
               />
               <motion.div
-                animate={{ x: [0, -26, 0], y: [0, 18, 0], scale: [1, 1.1, 1] }}
+                animate={{ x: [0, -30, 0], y: [0, 20, 0], scale: [1, 1.12, 1] }}
                 transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                className="absolute -bottom-24 -left-20 h-80 w-80 rounded-[50%]"
-                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(168 85 247 / 0.26), transparent 70%)" }}
+                className="absolute -right-24 top-1/4 h-96 w-96 rounded-[50%]"
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(236 72 153 / 0.30), transparent 70%)" }}
               />
               <motion.div
-                animate={{ x: [0, 16, 0], y: [0, -12, 0] }}
-                transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                className="absolute right-8 top-1/3 h-44 w-44 rounded-[50%]"
-                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(245 158 11 / 0.22), transparent 70%)" }}
+                animate={{ x: [0, 20, 0], y: [0, -18, 0], scale: [1, 1.1, 1] }}
+                transition={{ duration: 15, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+                className="absolute -bottom-32 left-1/3 h-96 w-96 rounded-[50%]"
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(168 85 247 / 0.30), transparent 70%)" }}
               />
+              <motion.div
+                animate={{ x: [0, 18, 0], y: [0, -12, 0] }}
+                transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+                className="absolute right-1/4 top-1/2 h-40 w-40 rounded-[50%]"
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(56 189 248 / 0.30), transparent 70%)" }}
+              />
+              {/* dotted sheen across whole surface */}
               <div
-                className="absolute inset-0 opacity-[0.30]"
+                className="absolute inset-0 opacity-[0.16]"
                 style={{
-                  backgroundImage: "radial-gradient(rgb(99 102 241 / 0.24) 1px, transparent 1px)",
-                  backgroundSize: "30px 30px",
-                  maskImage: "radial-gradient(ellipse at 60% 30%, black 0%, transparent 65%)",
-                  WebkitMaskImage: "radial-gradient(ellipse at 60% 30%, black 0%, transparent 65%)",
+                  backgroundImage: "radial-gradient(rgb(79 70 229 / 0.35) 1px, transparent 1px)",
+                  backgroundSize: "28px 28px",
                 }}
               />
             </div>
