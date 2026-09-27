@@ -3,12 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { useLang } from "@/components/LanguageProvider";
-import {
-  CalendarClock,
-  GraduationCap,
-  Layers,
-  TrendingUp,
-} from "lucide-react";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -27,40 +21,30 @@ const STAT_CARDS: {
   caption: string;
   key: keyof StatsData;
   suffix: string;
-  icon: typeof TrendingUp;
-  tone: string;
 }[] = [
   {
     label: "Students guided",
-    caption: "Learners we have helped so far",
+    caption: "Learners we have helped find their voice",
     key: "students",
     suffix: "+",
-    icon: TrendingUp,
-    tone: "#4f46e5",
   },
   {
     label: "Years teaching",
     caption: "Hands-on experience in the classroom",
     key: "yearsTeaching",
     suffix: "+",
-    icon: CalendarClock,
-    tone: "#0ea5e9",
   },
   {
     label: "Programmes",
     caption: "Spoken English · IELTS · PTE · Duolingo",
     key: "programmes",
     suffix: "",
-    icon: Layers,
-    tone: "#8b5cf6",
   },
   {
     label: "Daily batches",
     caption: "Morning · evening · late-night slots",
     key: "dailyBatches",
     suffix: "",
-    icon: GraduationCap,
-    tone: "#d97706",
   },
 ];
 
@@ -85,7 +69,7 @@ function CountUp({ target, suffix }: { target: number; suffix: string }) {
   }, [inView, target]);
 
   return (
-    <span ref={ref}>
+    <span ref={ref} className="tabular-nums">
       {val}
       {suffix}
     </span>
@@ -102,7 +86,7 @@ const labelFor = (s: { key: keyof StatsData; label: string }, dict: Record<strin
   return dict[map[s.key]] ?? s.label;
 };
 
-/** Editorial "in numbers" band — premium, restrained, live counts from the DB. */
+/** Premium light "track record" band — no icons, big gradient numerals. */
 export function Stats() {
   const [data, setData] = useState<StatsData | null>(null);
   const { dict } = useLang();
@@ -126,14 +110,33 @@ export function Stats() {
     <section
       id="stats"
       data-section
-      className="relative overflow-hidden bg-[#f6f7fb] px-6 py-20 sm:px-12 sm:py-24"
+      className="relative overflow-hidden bg-[linear-gradient(180deg,#F6F7FB_0%,#EEF1FF_100%)] px-6 py-20 sm:px-12 sm:py-24"
       aria-label="Language Hub in numbers"
     >
-      {/* Soft ambient top glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-brand/[0.04] to-transparent"
-      />
+      {/* Soft ambient glows + faint dot texture */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute -left-32 top-1/3 h-[26rem] w-[26rem] rounded-[50%]"
+          style={{
+            background: "radial-gradient(50% 50% at 50% 50%, rgb(99 102 241 / 0.16), transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute -right-24 bottom-0 h-[24rem] w-[24rem] rounded-[50%]"
+          style={{
+            background: "radial-gradient(50% 50% at 50% 50%, rgb(139 92 246 / 0.14), transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage: "radial-gradient(rgb(79 70 229 / 0.16) 1px, transparent 1px)",
+            backgroundSize: "26px 26px",
+            maskImage: "radial-gradient(ellipse at 50% 40%, black 10%, transparent 75%)",
+            WebkitMaskImage: "radial-gradient(ellipse at 50% 40%, black 10%, transparent 75%)",
+          }}
+        />
+      </div>
 
       <div className="relative mx-auto max-w-6xl">
         {/* Header */}
@@ -154,65 +157,69 @@ export function Stats() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.55, ease, delay: 0.06 }}
-            className="mt-4 font-display text-[clamp(1.6rem,3.6vw,2.35rem)] font-extrabold tracking-[-0.02em] text-ink"
+            className="mt-5 font-display text-[clamp(1.7rem,3.8vw,2.5rem)] font-extrabold tracking-[-0.02em] text-ink"
           >
-            Progress you can <span className="text-brand-deep">measure.</span>
+            Results that speak{" "}
+            <span className="bg-gradient-to-r from-[#4f46e5] via-[#7c3aed] to-[#d97706] bg-clip-text text-transparent">
+              for themselves.
+            </span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.55, ease, delay: 0.12 }}
-            className="mx-auto mt-3 max-w-xl text-[0.92rem] leading-relaxed text-ink-2"
+            className="mx-auto mt-4 max-w-xl text-[0.92rem] leading-relaxed text-ink-2"
           >
-            Real numbers from our classrooms — the practice, the programmes and the
-            batches that keep every learner talking.
+            Years of practice in live classrooms — the programmes, the batches and
+            the learners who keep coming back.
           </motion.p>
         </div>
 
-        {/* Stat panel */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.65, ease, delay: 0.1 }}
-          className="mt-12 rounded-[1.75rem] border border-ink/[0.07] bg-white/80 shadow-[0_30px_70px_-40px_rgb(15_23_42/0.25)] backdrop-blur-md"
-        >
-          <div className="grid grid-cols-1 gap-y-8 p-8 sm:grid-cols-2 sm:gap-x-6 sm:p-10 lg:grid-cols-4 lg:gap-0 lg:p-2">
-            {STAT_CARDS.map((s, i) => (
-              <motion.div
-                key={s.key}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
-                transition={{ duration: 0.5, delay: 0.14 + i * 0.08, ease }}
-                className="group relative flex flex-col items-start lg:border-r lg:border-ink/[0.07] lg:px-10 lg:py-12 lg:last:border-r-0"
-              >
-                <span
-                  className="grid h-11 w-11 place-items-center rounded-xl ring-1 ring-inset transition-transform duration-300 group-hover:scale-105"
-                  style={{
-                    backgroundColor: `${s.tone}10`,
-                    color: s.tone,
-                    borderColor: `${s.tone}1c`,
-                  }}
-                >
-                  <s.icon className="h-5 w-5" strokeWidth={1.9} />
+        {/* Numerals */}
+        <div className="mt-14 grid grid-cols-1 gap-y-10 sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-4 lg:gap-0">
+          {STAT_CARDS.map((s, i) => (
+            <motion.div
+              key={s.key}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.55, delay: i * 0.08, ease }}
+              className="group relative border-t border-ink/[0.08] pt-8 lg:border-t-0 lg:px-10 lg:pt-0"
+            >
+              {/* Big number */}
+              <p className="font-display text-[clamp(2.6rem,5vw,4rem)] font-black leading-none tracking-[-0.03em]">
+                <span className="bg-gradient-to-br from-ink via-[#4B5BC4] to-[#8B5CF6] bg-clip-text text-transparent">
+                  <CountUp target={stats[s.key]} suffix={s.suffix} />
                 </span>
+              </p>
 
-                <p className="mt-4 flex items-baseline gap-1 font-display text-[clamp(2rem,3.6vw,2.75rem)] font-black leading-none tracking-[-0.02em]">
-                  <span className="bg-gradient-to-br from-ink via-ink to-ink/70 bg-clip-text text-transparent">
-                    <CountUp target={stats[s.key]} suffix={s.suffix} />
-                  </span>
-                </p>
+              {/* Label + caption */}
+              <p className="mt-4 font-display text-[0.98rem] font-bold text-ink">
+                {labelFor(s, dict) || s.label}
+              </p>
+              <p className="mt-1.5 max-w-[16rem] text-[0.78rem] leading-snug text-ink-3">
+                {s.caption}
+              </p>
 
-                <p className="mt-2.5 font-display text-[0.9rem] font-extrabold text-ink">
-                  {labelFor(s, dict) || s.label}
-                </p>
-                <p className="mt-1 text-[0.72rem] leading-snug text-ink-3">{s.caption}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+              {/* Fine hover accent */}
+              <span
+                aria-hidden
+                className="absolute -top-px left-0 h-px w-12 bg-gradient-to-r from-[#4f46e5] to-transparent lg:left-1/2 lg:top-0 lg:-translate-x-1/2 lg:w-0 lg:transition-all lg:duration-500 lg:group-hover:w-14"
+              />
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Gold master-line under the band */}
+        <motion.div
+          initial={{ scaleX: 0 }}
+          whileInView={{ scaleX: 1 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.8, ease }}
+          aria-hidden
+          className="mt-14 h-px w-full origin-left bg-gradient-to-r from-transparent via-brand/40 to-transparent"
+        />
       </div>
     </section>
   );
