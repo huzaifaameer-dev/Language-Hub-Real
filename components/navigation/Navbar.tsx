@@ -176,8 +176,8 @@ export function Navbar() {
                 <span className="font-display text-[0.95rem] font-extrabold tracking-[0.02em] text-[#0B1B3A]">
                   LANGUAGE<span className="text-[#2563EB]"> HUB</span>
                 </span>
-                <span className="mt-1 hidden font-mono text-[0.48rem] font-bold uppercase tracking-[0.24em] text-ink-3 sm:block">
-                  English Academy &amp; Learning Centre
+                <span className="mt-1 hidden font-mono text-[0.56rem] font-bold uppercase tracking-[0.2em] text-[#2563EB] sm:block">
+                  Hub of Language Excellence
                 </span>
               </span>
             </button>
