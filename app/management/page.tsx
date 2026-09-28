@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import { getStaffSession } from "@/lib/admin-session";
+import { getUsersCollection } from "@/lib/db";
 import { ManageLogin } from "@/components/manage/ManageLogin";
 import { ManagementApp } from "@/components/manage/ManagementApp";
 
@@ -14,18 +16,34 @@ export const dynamic = "force-dynamic";
 
 /**
  * Dedicated teacher/admission portal. Students are served by /manage; staff
- * (ADMIN + TEACHER) land here and get the full management dashboard. Anyone
- * without a session sees the staff login rather than the generic student one.
+ * (ADMIN + TEACHER) land here and get the full management dashboard. Access is
+ * granted via the separate staff cookie (like the admin panel), so the public
+ * navbar never shows an admin identity after using this portal.
  */
 export default async function ManagementPage() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return <ManageLogin target="/management" />;
+  const staff = await getStaffSession();
+  if (staff?.email) {
+    const users = await getUsersCollection();
+    const user = await users.findOne(
+      { email: staff.email.toLowerCase() },
+      { projection: { role: 1 } }
+    );
+    const role = (user?.role as string | undefined) ?? "";
+    if (role === "ADMIN" || role === "TEACHER") {
+      return <ManagementApp />;
+    }
   }
 
-  const role = session.user.role;
-  // Students have no business in the teacher portal — send them home.
-  if (role !== "ADMIN" && role !== "TEACHER") redirect("/dashboard");
+  // Not staff-verified: students go to their dashboard, everyone else sees
+  // the staff login (which issues the separate staff cookie only).
+  const session = await auth();
+  if (
+    session?.user?.role &&
+    session.user.role !== "ADMIN" &&
+    session.user.role !== "TEACHER"
+  ) {
+    redirect("/dashboard");
+  }
 
-  return <ManagementApp />;
+  return <ManageLogin target="/management" />;
 }

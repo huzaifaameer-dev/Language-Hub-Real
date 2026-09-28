@@ -21,7 +21,6 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/ui/Logo";
@@ -165,7 +164,12 @@ export function ManagementApp() {
         <div className="border-t border-slate-100 p-3">
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/" })}
+            onClick={async () => {
+              try {
+                await fetch("/api/management/logout", { method: "POST" });
+              } catch {}
+              window.location.href = "/";
+            }}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-display text-[0.84rem] font-bold text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600"
           >
             <LogOut className="h-4 w-4" /> Sign out

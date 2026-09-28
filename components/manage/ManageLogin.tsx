@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { redirect } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { Lock, Mail } from "lucide-react";
 
 import { AuthShell, Field } from "@/components/auth/AuthShell";
@@ -10,13 +9,13 @@ import { cn } from "@/lib/utils";
 
 /**
  * Dedicated, secure staff login for the /manage area (and the /management
- * teacher portal — pass the redirect target through `target`).
+ *  teacher portal — pass the redirect target through `target`).
  *
- * - Reuses the exact NextAuth credentials flow (no parallel auth system),
- *   so a single byte change is enforced server-side — nothing can bypass it.
+ * - Logs in through the separate STAFF cookie (never a public NextAuth
+ *   session), so the public navbar stays clean — exactly like the admin panel.
  * - Generic password error ("Invalid email or password") on purpose: we never
  *   reveal whether an account exists.
- * - Redirects only after the session cookie actually sticks.
+ * - Redirects only after the staff cookie actually sticks.
  */
 export function ManageLogin({ target = "/manage" }: { target?: string }) {
   const [email, setEmail] = useState("");
@@ -24,10 +23,10 @@ export function ManageLogin({ target = "/manage" }: { target?: string }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Race-proof redirect: if we're somehow already signed in, leave immediately.
+  // Race-proof redirect: if the staff cookie is somehow already there, leave.
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      if (document.cookie.includes("language-hub")) redirect(target);
+      if (document.cookie.includes("hub_staff_token")) redirect(target);
     }, 60);
     return () => window.clearTimeout(timer);
   }, [target]);
@@ -36,16 +35,22 @@ export function ManageLogin({ target = "/manage" }: { target?: string }) {
     e.preventDefault();
     setError(null);
     setBusy(true);
-    const res = await signIn("credentials", {
-      email: email.trim(),
-      password,
-      redirect: false,
-    });
-    setBusy(false);
-    if (res?.error) {
-      setError("Invalid email or password. Staff accounts only.");
-    } else {
-      window.location.href = target;
+    try {
+      const res = await fetch("/api/management/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      if (res.ok) {
+        window.location.href = target;
+      } else {
+        const d = await res.json().catch(() => ({}));
+        setError(d?.message ?? "Invalid email or password. Staff accounts only.");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setBusy(false);
     }
   };
 

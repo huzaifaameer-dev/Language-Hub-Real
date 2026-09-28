@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import type { NextResponse } from "next/server";
 
 export const ADMIN_COOKIE = "hub_admin_token";
+export const STAFF_COOKIE = "hub_staff_token";
 const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 function secret(): Buffer {
@@ -89,6 +90,88 @@ export function setAdminCookie(res: NextResponse, email: string): NextResponse {
 
 export function clearAdminCookie(res: NextResponse): NextResponse {
   res.cookies.set(ADMIN_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 0,
+  });
+  return res;
+}
+
+/* ─────────────────── Staff (management portal) token ─────────────────── */
+// This is separate from both the public NextAuth session AND the admin-panel
+// cookie, so logging into /management never leaks an admin identity onto the
+// public site (the navbar stays clean, exactly like the admin panel).
+
+interface StaffTokenPayload {
+  email: string;
+  role: "STAFF";
+  iat: number;
+  exp: number;
+}
+
+export function signStaffToken(email: string): string {
+  const payload = b64url(
+    Buffer.from(
+      JSON.stringify({
+        email,
+        role: "STAFF",
+        iat: Date.now(),
+        exp: Date.now() + MAX_AGE * 1000,
+      } satisfies StaffTokenPayload)
+    )
+  );
+  const signature = b64url(
+    crypto.createHmac("sha256", secret()).update(payload).digest()
+  );
+  return `${payload}.${signature}`;
+}
+
+export function verifyStaffToken(
+  token: string | undefined
+): { email: string } | null {
+  if (!token) return null;
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature) return null;
+
+  const expected = crypto.createHmac("sha256", secret()).update(payload).digest();
+  const received = Buffer.from(signature, "base64url");
+  if (received.length !== expected.length || !crypto.timingSafeEqual(received, expected)) {
+    return null;
+  }
+
+  try {
+    const data = JSON.parse(
+      Buffer.from(payload, "base64url").toString("utf8")
+    ) as StaffTokenPayload;
+    if (data.role === "STAFF" && data.exp > Date.now() && data.email) {
+      return { email: data.email };
+    }
+  } catch {
+    // invalid payload
+  }
+  return null;
+}
+
+export async function getStaffSession(): Promise<{ email: string } | null> {
+  const store = await cookies();
+  return verifyStaffToken(store.get(STAFF_COOKIE)?.value);
+}
+
+export function setStaffCookie(res: NextResponse, email: string): NextResponse {
+  res.cookies.set(STAFF_COOKIE, signStaffToken(email), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: MAX_AGE,
+  });
+  return res;
+}
+
+export function clearStaffCookie(res: NextResponse): NextResponse {
+  res.cookies.set(STAFF_COOKIE, "", {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 
-import { auth } from "@/auth";
+import { getStaffSession } from "@/lib/admin-session";
 import {
   getDb,
   getGroupsCollection,
@@ -31,15 +31,21 @@ export interface MgUser {
   role: MgRole;
 }
 
-/** Resolve the signed-in user into a management actor. Returns null when not
- *  signed in or the account is missing. */
+/** Resolve the management actor from the separate staff token (not NextAuth),
+ *  so /management behaves like /admin-panel and never logs an admin identity
+ *  into the public site.  Returns null when the staff cookie is invalid or the
+ *  account is not a staff member. */
 export async function currentMgUser(): Promise<MgUser | null> {
-  const session = await auth();
-  if (!session?.user?.id || !ObjectId.isValid(session.user.id)) return null;
+  const staff = await getStaffSession();
+  if (!staff?.email) return null;
   const users = await getDb().then((db) => db.collection("users"));
-  const user = await users.findOne({ _id: new ObjectId(session.user.id) });
+  const user = await users.findOne({ email: staff.email.toLowerCase() });
   if (!user) return null;
-  const role = (user.role as string) === "ADMIN" ? "ADMIN" : (user.role as string) === "TEACHER" ? "TEACHER" : "STUDENT";
+  const role =
+    (user.role as string) === "ADMIN" ? "ADMIN"
+    : (user.role as string) === "TEACHER" ? "TEACHER"
+    : "STUDENT";
+  if (role === "STUDENT") return null;
   return {
     id: String(user._id),
     name: String(user.name ?? "User"),
