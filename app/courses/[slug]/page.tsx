@@ -1,11 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpen, CalendarDays, Clock, GraduationCap, Play, Users, CheckCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Award,
+  BookOpen,
+  CalendarDays,
+  CheckCircle,
+  Clock,
+  GraduationCap,
+  MessageCircle,
+  Mic,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { FALLBACK_COURSES, formatPKR, courseSlug, type CourseInfo, type CourseModule } from "@/lib/course-data";
 import { COURSE_FEATURES, CONTACT, COURSE_FAQS, whatsappLink } from "@/lib/content";
 import { registrationKeyForCatalogName } from "@/lib/registration-config";
 import { ApplyButton } from "@/components/courses/ApplyButton";
+import { BookDemoButton } from "@/components/contact/BookDemoButton";
 import { appBaseUrl } from "@/lib/base-url";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/footer/Footer";
@@ -50,17 +64,14 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
 
   const features = COURSE_FEATURES[course.name] ?? [];
   const whatsapp = whatsappLink(`Hi Language Hub! I'd like to know more about ${course.name}.`);
+  const batchSummary = course.batches.map((b) => b.name).join(" · ");
 
   const courseJsonLd = {
     "@context": "https://schema.org",
     "@type": "Course",
     name: course.name,
     description: course.description,
-    provider: {
-      "@type": "EducationalOrganization",
-      name: "Language Hub",
-      url: baseUrl,
-    },
+    provider: { "@type": "EducationalOrganization", name: "Language Hub", url: baseUrl },
     offers: {
       "@type": "Offer",
       price: course.fee,
@@ -88,7 +99,6 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
       : {}),
   };
 
-  // WebPage schema unifies the page's metadata + course for rich search results.
   const webpageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
@@ -100,7 +110,6 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
     primaryImageOfPage: { "@type": "ImageObject", url: `${baseUrl}/opengraph-image` },
   };
 
-  // Per-course FAQPage schema for rich results.
   const courseFaqJsonLd = COURSE_FAQS[course.name]?.length
     ? {
         "@context": "https://schema.org",
@@ -115,85 +124,118 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }}
-      />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(webpageJsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webpageJsonLd) }} />
       {courseFaqJsonLd ? (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(courseFaqJsonLd) }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(courseFaqJsonLd) }} />
       ) : null}
+
       <Navbar />
       <div className="min-h-screen bg-site pt-[4.25rem]">
-        <div className="mx-auto max-w-4xl px-5 py-12 lg:px-8">
+        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 lg:px-10">
+          {/* Breadcrumb */}
           <Link
             href="/#courses"
-            className="inline-flex items-center gap-1.5 rounded-full border border-ink/12 bg-white/70 px-4 py-2 font-display text-[0.72rem] font-bold text-ink-2 transition-all hover:border-brand/45 hover:text-brand-deep"
+            className="inline-flex items-center gap-1.5 rounded-full border border-ink/12 bg-white/70 px-4 py-2 font-display text-[0.72rem] font-bold text-ink-2 backdrop-blur transition-all hover:border-brand/45 hover:text-brand-deep"
           >
             <ArrowLeft className="h-3.5 w-3.5" /> All courses
           </Link>
 
-          <header className="mt-8">
-            <p className="flex items-center gap-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-brand-deep">
-              <span aria-hidden className="h-px w-7 bg-gradient-to-r from-brand/80 to-transparent" />
-              {course.teacher}
-            </p>
-            <h1 className="mt-2 font-display text-[clamp(2rem,5vw,3rem)] font-extrabold tracking-[-0.03em] text-ink">
-              {course.name}
-            </h1>
-            <p className="mt-2 font-display text-[1.2rem] font-semibold text-brand-deep">{course.tagline}</p>
-          </header>
+          {/* ─── Hero — premium gradient card ─── */}
+          <section className="relative mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(135deg,#0B1B3A_0%,#1647C7_62%,#4A6CF7_100%)] text-white shadow-[0_60px_120px_-50px_rgb(22_71_199/0.75)]">
+            {/* texture + glow */}
+            <div aria-hidden className="pointer-events-none absolute inset-0">
+              <div
+                className="absolute inset-0 opacity-[0.09]"
+                style={{
+                  backgroundImage: "radial-gradient(rgb(255 255 255 / 0.7) 1px, transparent 1px)",
+                  backgroundSize: "22px 22px",
+                }}
+              />
+              <div className="absolute -right-20 -top-20 h-64 w-64 rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(56 189 248 / 0.35), transparent 70%)" }} />
+              <div className="absolute -bottom-24 -left-16 h-64 w-64 rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(99 102 241 / 0.4), transparent 70%)" }} />
+            </div>
 
-          <div className="mt-8 grid gap-4 rounded-2xl border border-ink/10 bg-white p-6 sm:grid-cols-3">
-            <Meta icon={<Clock className="h-4 w-4" />} label="Duration" value={course.duration} />
-            <Meta icon={<CalendarDays className="h-4 w-4" />} label="Schedule" value={course.schedule} />
-            <Meta
-              icon={<GraduationCap className="h-4 w-4" />}
-              label="Fee (incl. registration)"
-              value={formatPKR(course.fee)}
-              accent
-            />
-          </div>
+            <div className="relative grid gap-8 p-8 sm:p-10 lg:grid-cols-[1.12fr_0.88fr] lg:items-center lg:gap-12">
+              {/* Left */}
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 font-display text-[0.6rem] font-bold uppercase tracking-[0.26em] text-white/90 backdrop-blur">
+                  <Sparkles className="h-3.5 w-3.5" /> {course.teacher}
+                </span>
+                <h1 className="mt-4 font-display text-[clamp(2.2rem,6vw,3.4rem)] font-black leading-[1.05] tracking-[-0.03em]">
+                  {course.name}
+                </h1>
+                <p className="mt-2 font-display text-[1.15rem] font-semibold text-[#BFD6FF]">{course.tagline}</p>
+                <p className="mt-4 max-w-xl text-[0.98rem] leading-relaxed text-white/85">{course.description}</p>
 
-          {/* Video Demo Embed */}
-          {course.demoVideoUrl ? (
-            <section className="mt-10">
-              <h2 className="font-display text-[1.3rem] font-extrabold text-ink flex items-center gap-2">
-                <Play className="h-5 w-5 text-brand-deep" />
-                Course Preview
-              </h2>
-              <div className="mt-5 overflow-hidden rounded-2xl border border-ink/10 bg-ink/5 shadow-[0_20px_60px_-20px_rgb(15_23_42/0.15)]">
-                <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-                  <iframe
-                    src={course.demoVideoUrl}
-                    title={`${course.name} demo video`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="absolute inset-0 h-full w-full"
-                  />
+                {/* key chips */}
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {[
+                    { icon: <Clock className="h-3.5 w-3.5" />, label: course.duration },
+                    { icon: <CalendarDays className="h-3.5 w-3.5" />, label: course.schedule },
+                    { icon: <Users className="h-3.5 w-3.5" />, label: "10–20 per batch" },
+                    { icon: <Award className="h-3.5 w-3.5" />, label: `From ${formatPKR(course.fee)}/mo` },
+                  ].map((chip) => (
+                    <span
+                      key={chip.label}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.08] px-3.5 py-1.5 font-display text-[0.72rem] font-bold tracking-wide text-white backdrop-blur"
+                    >
+                      {chip.icon} {chip.label}
+                    </span>
+                  ))}
+                </div>
+
+                {/* CTAs */}
+                <div className="mt-8 flex flex-wrap items-center gap-3">
+                  <ApplyButton
+                    courseKey={registrationKeyForCatalogName(course.name)}
+                    className="group inline-flex h-12 items-center gap-2 rounded-full bg-white px-7 font-display text-[0.85rem] font-bold text-[#1647C7] shadow-[0_18px_40px_-18px_rgb(255_255_255/0.6)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-20px_rgb(255_255_255/0.8)]"
+                  >
+                    Apply now
+                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.4} />
+                  </ApplyButton>
+                  {whatsapp ? (
+                    <a
+                      href={whatsapp}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex h-12 items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 font-display text-[0.8rem] font-bold text-white backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20"
+                    >
+                      <MessageCircle className="h-4 w-4" /> Ask on WhatsApp
+                    </a>
+                  ) : null}
                 </div>
               </div>
-            </section>
-          ) : null}
 
-          <section className="mt-10">
-            <h2 className="font-display text-[1.3rem] font-extrabold text-ink">About this course</h2>
-            <p className="mt-3 text-[1rem] leading-relaxed text-ink-2">{course.description}</p>
+              {/* Right — at a glance */}
+              <div className="rounded-2xl border border-white/15 bg-white/[0.07] p-5 backdrop-blur-md sm:p-6">
+                <p className="font-mono text-[0.56rem] font-bold uppercase tracking-[0.3em] text-white/60">
+                  At a glance
+                </p>
+                <div className="mt-4 flex flex-col divide-y divide-white/10">
+                  <GlanceRow icon={<Clock className="h-4 w-4" />} label="Duration" value={course.duration} />
+                  <GlanceRow icon={<CalendarDays className="h-4 w-4" />} label="Schedule" value={course.schedule} />
+                  <GlanceRow icon={<Users className="h-4 w-4" />} label="Batches" value={batchSummary} />
+                  <GlanceRow icon={<GraduationCap className="h-4 w-4" />} label="Fee (incl. registration)" value={formatPKR(course.fee)} accent />
+                </div>
+                <p className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-500/15 px-3.5 py-2.5 font-display text-[0.72rem] font-bold text-emerald-200">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-70" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+                  </span>
+                  Live classes · Free demo available
+                </p>
+              </div>
+            </div>
           </section>
 
-          {/* What you'll learn — outcomes */}
+          {/* ─── What you'll learn ─── */}
           {course.outcomes && course.outcomes.length > 0 ? (
-            <section className="mt-10">
-              <h2 className="font-display text-[1.3rem] font-extrabold text-ink">What you&apos;ll learn</h2>
+            <section className="mt-14">
+              <SectionTitle>What you&apos;ll learn</SectionTitle>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {course.outcomes.map((o) => (
-                  <div key={o} className="flex items-start gap-3 rounded-xl border border-brand/10 bg-white/70 px-4 py-3">
+                  <div key={o} className="flex items-start gap-3 rounded-2xl border border-brand/10 bg-white px-4 py-3.5 shadow-[0_12px_34px_-20px_rgb(15_23_42/0.25)]">
                     <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-brand/10 text-brand-deep">
                       <CheckCircle className="h-3 w-3" />
                     </span>
@@ -204,12 +246,13 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             </section>
           ) : null}
 
+          {/* ─── What you get ─── */}
           {features.length > 0 ? (
-            <section className="mt-10">
-              <h2 className="font-display text-[1.3rem] font-extrabold text-ink">What you get</h2>
+            <section className="mt-14">
+              <SectionTitle>What you get</SectionTitle>
               <ul className="mt-5 grid gap-3 sm:grid-cols-2">
                 {features.map((f) => (
-                  <li key={f} className="flex items-center gap-3 rounded-xl border border-brand/10 bg-white/70 px-4 py-3 text-[0.9rem] font-medium text-ink">
+                  <li key={f} className="flex items-center gap-3 rounded-2xl border border-brand/10 bg-white px-4 py-3.5 text-[0.9rem] font-medium text-ink shadow-[0_12px_34px_-20px_rgb(15_23_42/0.25)]">
                     <span aria-hidden className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand/10 text-xs text-brand-deep">
                       ✓
                     </span>
@@ -220,10 +263,10 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             </section>
           ) : null}
 
-          {/* Syllabus / Module Breakdown */}
+          {/* ─── Syllabus ─── */}
           {course.modules && course.modules.length > 0 ? (
-            <section className="mt-10">
-              <h2 className="font-display text-[1.3rem] font-extrabold text-ink">Syllabus</h2>
+            <section className="mt-14">
+              <SectionTitle>Syllabus</SectionTitle>
               <p className="mt-2 text-[0.92rem] text-ink-2">
                 {course.name} is split into {course.modules.length} focused modules over {course.duration}.
               </p>
@@ -235,12 +278,13 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             </section>
           ) : null}
 
+          {/* ─── Batches ─── */}
           {course.batches.length > 0 ? (
-            <section className="mt-10">
-              <h2 className="font-display text-[1.3rem] font-extrabold text-ink">Batches</h2>
+            <section className="mt-14">
+              <SectionTitle>Batches</SectionTitle>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {course.batches.map((b) => (
-                  <div key={b.name} className="flex items-center justify-between rounded-xl border border-ink/10 bg-white/70 px-5 py-4">
+                  <div key={b.name} className="flex items-center justify-between rounded-2xl border border-ink/10 bg-white px-5 py-4 shadow-[0_12px_34px_-20px_rgb(15_23_42/0.25)]">
                     <div className="flex items-center gap-3">
                       <span aria-hidden className="grid h-9 w-9 place-items-center rounded-xl bg-brand/10 text-brand-deep">
                         <Users className="h-4 w-4" />
@@ -250,21 +294,82 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                         <p className="font-mono text-[0.68rem] text-ink-3">{b.time}</p>
                       </div>
                     </div>
-                    <span className="font-mono text-[0.68rem] text-ink-3">
-                      {b.seatsTotal} seats
-                    </span>
+                    <span className="font-mono text-[0.68rem] text-ink-3">{b.seatsTotal} seats</span>
                   </div>
                 ))}
               </div>
             </section>
           ) : null}
 
-          {/* Per-course FAQ */}
+          {/* ─── Experience the method (replaces the demo video) ─── */}
+          <section className="mt-14">
+            <div className="relative overflow-hidden rounded-[2rem] border border-[#BFD6FF] bg-white p-7 shadow-[0_34px_80px_-40px_rgb(37_99_235/0.4)] sm:p-9">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-[50%]"
+                style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(37 99 235 / 0.12), transparent 70%)" }}
+              />
+              <div className="relative grid gap-8 lg:grid-cols-2 lg:items-center">
+                <div>
+                  <p className="flex items-center gap-3 font-mono text-[0.6rem] font-bold uppercase tracking-[0.3em] text-[#2563EB]">
+                    <span aria-hidden className="h-px w-8 bg-[#2563EB]/40" />
+                    How sessions feel
+                  </p>
+                  <h2 className="mt-3 font-display text-[clamp(1.4rem,3vw,2rem)] font-extrabold tracking-[-0.01em] text-ink">
+                    See the method <span className="brand-text">in action.</span>
+                  </h2>
+                  <div className="mt-6 flex flex-col gap-3">
+                    {[
+                      { icon: <Mic className="h-4 w-4" />, text: "Conversation-first sessions — you speak from day one" },
+                      { icon: <Users className="h-4 w-4" />, text: "Small batches of 10–20, so every voice is heard" },
+                      { icon: <Award className="h-4 w-4" />, text: "Mock tests, personal reviews and honest feedback" },
+                      { icon: <BookOpen className="h-4 w-4" />, text: "Structured syllabus with trackable weekly progress" },
+                    ].map((row) => (
+                      <div key={row.text} className="flex items-center gap-3 rounded-xl border border-brand/10 bg-[#F7F9FF] px-4 py-3">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand-deep">
+                          {row.icon}
+                        </span>
+                        <span className="text-[0.88rem] font-medium text-ink">{row.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live-demo card */}
+                <div className="relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#1647C7,#6D4AFF)] p-6 text-white shadow-[0_30px_70px_-30px_rgb(22_71_199/0.8)] sm:p-7">
+                  <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-[50%] bg-white/10 blur-2xl" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 font-mono text-[0.6rem] font-bold uppercase tracking-[0.18em] text-white backdrop-blur">
+                    <BookOpen className="h-3.5 w-3.5" /> Prefer to see it live?
+                  </span>
+                  <h3 className="mt-4 font-display text-[1.5rem] font-extrabold leading-tight">
+                    Book a free demo class
+                  </h3>
+                  <p className="mt-2 text-[0.9rem] leading-relaxed text-white/80">
+                    Join a real session, meet the trainer and try the method — no
+                    commitment, no pressure. See for yourself before you decide.
+                  </p>
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                    <BookDemoButton />
+                    {whatsapp ? (
+                      <a
+                        href={whatsapp}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex h-12 items-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 font-display text-[0.78rem] font-bold uppercase tracking-[0.1em] text-white backdrop-blur transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/20"
+                      >
+                        <MessageCircle className="h-4 w-4" /> WhatsApp
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ─── Per-course FAQ ─── */}
           {COURSE_FAQS[course.name]?.length ? (
-            <section className="mt-12 max-w-3xl">
-              <h2 className="font-display text-[1.3rem] font-extrabold text-ink">
-                Frequently asked questions
-              </h2>
+            <section className="mt-14 max-w-4xl">
+              <SectionTitle>Frequently asked questions</SectionTitle>
               <div className="mt-6 flex flex-col gap-4">
                 {COURSE_FAQS[course.name].map((f) => (
                   <details
@@ -286,10 +391,11 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             </section>
           ) : null}
 
-          <div className="mt-12 flex flex-wrap items-center gap-4">
+          {/* ─── Bottom CTA ─── */}
+          <div className="mt-14 flex flex-wrap items-center gap-4">
             <ApplyButton
               courseKey={registrationKeyForCatalogName(course.name)}
-              className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(110_90_224/0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(79_70_229/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110"
             >
               <BookOpen className="h-4 w-4" /> Apply for this course
             </ApplyButton>
@@ -307,7 +413,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
 
           {CONTACT.phone ? (
             <p className="mt-8 text-center font-mono text-[0.7rem] uppercase tracking-widest text-ink-3">
-              Need help choosing? Call <span className="text-ink-2">{CONTACT.phone}</span>
+              Need help choosing? Call <span className="font-bold text-ink-2">{CONTACT.phone}</span>
             </p>
           ) : null}
         </div>
@@ -317,7 +423,16 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
   );
 }
 
-function Meta({
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="flex items-center gap-3 font-display text-[1.35rem] font-extrabold tracking-[-0.01em] text-ink">
+      <span aria-hidden className="h-6 w-1 rounded-full bg-gradient-to-b from-[#2563EB] to-[#6D4AFF]" />
+      {children}
+    </h2>
+  );
+}
+
+function GlanceRow({
   icon,
   label,
   value,
@@ -329,19 +444,13 @@ function Meta({
   accent?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <span
-        className={
-          accent
-            ? "grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand-deep"
-            : "grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-ink/[0.04] text-ink-2"
-        }
-      >
+    <div className="flex items-center gap-3 py-3.5">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white/80">
         {icon}
       </span>
-      <div>
-        <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.24em] text-ink-3">{label}</p>
-        <p className={accent ? "font-display text-[1.05rem] font-extrabold text-brand-deep" : "font-display text-[1rem] font-bold text-ink"}>
+      <div className="min-w-0">
+        <p className="font-display text-[0.56rem] font-bold uppercase tracking-[0.24em] text-white/55">{label}</p>
+        <p className={accent ? "truncate font-display text-[1rem] font-extrabold text-white" : "truncate font-display text-[0.95rem] font-bold text-white/95"}>
           {value}
         </p>
       </div>
@@ -350,7 +459,7 @@ function Meta({
 }
 
 function ModuleCard({ module: m, index }: { module: CourseModule; index: number }) {
-  const colors = ["#6e5ae0", "#2bb3d8", "#d63a8c", "#2e9e6b"];
+  const colors = ["#2563EB", "#0EA5E9", "#7C3AED", "#059669"];
   const color = colors[index % colors.length];
 
   return (
