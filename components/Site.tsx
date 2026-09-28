@@ -55,9 +55,9 @@ export function Site() {
           <Hero />
           <ProgramMarquee />
           <LiveEnrollmentBanner className="mt-6" />
+          <Stats />
           <Journey />
           <Features />
-          <Stats />
           <About />
           <Courses />
           <EnrollmentPath />
