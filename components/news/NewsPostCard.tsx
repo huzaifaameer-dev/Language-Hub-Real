@@ -148,27 +148,27 @@ export function NewsPostCard({ post, index = 0 }: { post: FeedPost; index?: numb
           ) : null}
         </div>
 
-        {/* Reaction / action row — Facebook style */}
-        <div className="flex items-center gap-1.5 border-t border-ink/[0.06] px-3 py-2.5">
-          <button type="button" onClick={() => react("like")} className={reactedBtn("like")}>
+        {/* Reaction / action row — Facebook style (responsive: 2×2 on mobile) */}
+        <div className="grid grid-cols-2 gap-1.5 border-t border-ink/[0.06] px-3 py-2.5 sm:flex sm:items-center sm:gap-1.5">
+          <button type="button" onClick={() => react("like")} className={cn(reactedBtn("like"), "whitespace-nowrap")}>
             <ThumbsUp className="h-4 w-4" strokeWidth={2.2} />
             Like
             {counts.like > 0 && <span className="font-mono text-[0.66rem] opacity-80">{counts.like}</span>}
           </button>
-          <button type="button" onClick={() => react("interested")} className={reactedBtn("interested")}>
+          <button type="button" onClick={() => react("interested")} className={cn(reactedBtn("interested"), "whitespace-nowrap")}>
             <ThumbsUp className="h-4 w-4 rotate-90" strokeWidth={2.2} />
             Interested
             {counts.interested > 0 && <span className="font-mono text-[0.66rem] opacity-80">{counts.interested}</span>}
           </button>
-          <button type="button" onClick={() => react("not_interested")} className={reactedBtn("not_interested")}>
+          <button type="button" onClick={() => react("not_interested")} className={cn(reactedBtn("not_interested"), "whitespace-nowrap")}>
             <ThumbsDown className="h-4 w-4" strokeWidth={2.2} />
-            Not interested
+            Skip
             {counts.not_interested > 0 && <span className="font-mono text-[0.66rem] opacity-80">{counts.not_interested}</span>}
           </button>
           <button
             type="button"
             onClick={() => setCommentsOpen(true)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-2 font-display text-[0.74rem] font-bold text-ink-2 transition-all hover:bg-ink/[0.06] hover:text-brand-deep"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-2 font-display text-[0.74rem] font-bold text-ink-2 transition-all hover:bg-ink/[0.06] hover:text-brand-deep sm:flex-1"
           >
             <MessageCircle className="h-4 w-4" strokeWidth={2.2} />
             Comment

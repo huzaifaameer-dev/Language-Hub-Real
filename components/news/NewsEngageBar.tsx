@@ -84,7 +84,7 @@ export function NewsEngageBar({
 
   const btn = (type: Exclude<Reaction, null>) =>
     cn(
-      "flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 font-display text-[0.8rem] font-bold transition-all",
+      "flex-1 min-w-[calc(50%-0.25rem)] inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 font-display text-[0.8rem] font-bold transition-all sm:min-w-0",
       my === type
         ? type === "like"
           ? "bg-brand-deep text-white shadow-[0_8px_20px_-8px_rgba(79,70,229,0.6)]"
@@ -118,7 +118,7 @@ export function NewsEngageBar({
           <button
             type="button"
             onClick={() => setCommentsOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2.5 font-display text-[0.8rem] font-bold text-ink-2 transition-all hover:bg-ink/[0.06] hover:text-brand-deep"
+            className="inline-flex min-w-[calc(50%-0.25rem)] flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 font-display text-[0.8rem] font-bold text-ink-2 transition-all hover:bg-ink/[0.06] hover:text-brand-deep sm:min-w-0"
           >
             <MessageCircle className="h-4 w-4" strokeWidth={2.2} />
             Comments

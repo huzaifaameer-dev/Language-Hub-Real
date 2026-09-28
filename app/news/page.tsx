@@ -101,7 +101,7 @@ export default async function NewsFeedPage() {
               Daily News
             </p>
             <h1 className="mt-3 font-display text-[clamp(2rem,5vw,3.2rem)] font-extrabold tracking-[-0.03em] text-ink">
-              LATEST <span className="bg-gradient-to-r from-brand-deep to-brand-magenta bg-clip-text text-transparent">UPDATES.</span>
+              LATEST <span className="text-ink">UPDATES.</span>
             </h1>
             <p className="mt-3 max-w-xl text-[1rem] leading-relaxed text-ink-2">
               Stories, announcements, and insights from Language Hub — straight from the team to you.
