@@ -149,7 +149,7 @@ export function AccountChip() {
         />
       </button>
 
-      {/* Dropdown — courses-style premium panel */}
+      {/* Dropdown — clean, settled */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -158,70 +158,61 @@ export function AccountChip() {
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.24, ease }}
             role="menu"
-            className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-[26rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white/95 shadow-[0_30px_70px_-30px_rgb(11_27_58/0.35)] backdrop-blur-xl"
+            className="absolute right-0 top-[calc(100%+0.6rem)] z-50 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white/95 shadow-[0_30px_70px_-30px_rgb(11_27_58/0.35)] backdrop-blur-xl"
           >
-            {/* Gradient head band */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#2563EB] via-[#1647C7] to-[#6D4AFF] px-5 py-4 text-white">
-              <span aria-hidden className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-              <div className="relative flex items-center gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-white">
-                  {image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={image} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#6D4AFF]">
-                      <span className="font-display text-[0.85rem] font-black text-white">{initial}</span>
-                    </span>
-                  )}
+            {/* caret */}
+            <span aria-hidden className="absolute -top-1.5 right-6 h-3 w-3 rotate-45 rounded-[3px] border-l border-t border-[#E2E8F0] bg-white" />
+            {/* top hairline */}
+            <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#1D4ED8] via-[#38BDF8] to-[#1D4ED8]" />
+
+            {/* Header */}
+            <div className="flex items-center gap-3 px-4 pb-3 pt-4">
+              <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full ring-2 ring-[#2563EB]/15">
+                {image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={image} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <span className="flex h-full w-full items-center justify-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#6D4AFF]">
+                    <span className="font-display text-[0.85rem] font-black text-white">{initial}</span>
+                  </span>
+                )}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-display text-[0.95rem] font-extrabold text-ink">{name}</span>
+                <span className="block truncate font-mono text-[0.56rem] font-semibold uppercase tracking-[0.14em] text-ink-3">
+                  {roleLabel} · {email}
                 </span>
-                <span className="min-w-0">
-                  <span className="block truncate font-display text-[0.95rem] font-extrabold">{name}</span>
-                  <span className="block truncate font-mono text-[0.62rem] text-white/70">{email}</span>
-                </span>
-              </div>
+              </span>
             </div>
 
-            {/* Two-column: quick actions + feature card (courses-dropdown style) */}
-            <div className="grid grid-cols-[1.15fr_0.85fr]">
-              {/* Menu actions */}
-              <div className="p-2">
-                <p className="px-3 pb-1 pt-2 font-mono text-[0.56rem] font-bold uppercase tracking-[0.3em] text-[#1647C7]">
-                  Quick actions
-                </p>
-                <MenuItem icon={<LayoutDashboard className="h-5 w-5" />} label="Dashboard" note="Your learning home" href={href} onClick={() => setOpen(false)} />
-                <MenuItem icon={<Trophy className="h-5 w-5" />} label="Placement Test" note="Find your level in 10 min" href="/placement-test" onClick={() => setOpen(false)} />
-                <MenuItem icon={<GraduationCap className="h-5 w-5" />} label="Courses" note="Browse all programmes" href="/courses" onClick={() => setOpen(false)} />
-                <MenuItem icon={<User className="h-5 w-5" />} label="My Profile" note="Edit account & photo" href="/dashboard?settings=1" onClick={() => setOpen(false)} />
-              </div>
+            {/* Menu */}
+            <div className="px-1.5 pb-1.5">
+              <MenuItem icon={<LayoutDashboard className="h-4.5 w-4.5" />} label="Dashboard" note="Your learning home" href={href} onClick={() => setOpen(false)} />
+              <MenuItem icon={<Trophy className="h-4.5 w-4.5" />} label="Placement Test" note="Find your level in 10 min" href="/placement-test" onClick={() => setOpen(false)} />
+              <MenuItem icon={<GraduationCap className="h-4.5 w-4.5" />} label="Courses" note="Browse all programmes" href="/courses" onClick={() => setOpen(false)} />
+              <MenuItem icon={<User className="h-4.5 w-4.5" />} label="My Profile" note="Edit account & photo" href="/dashboard?settings=1" onClick={() => setOpen(false)} />
+            </div>
 
-              {/* Feature card */}
-              <div className="flex border-l border-[#E2E8F0] p-2.5">
-                <div className="flex w-full flex-col justify-between overflow-hidden rounded-xl bg-gradient-to-br from-[#2563EB] via-[#1647C7] to-[#6D4AFF] p-3.5 text-white shadow-[0_18px_40px_-20px_rgb(37_99_235/0.8)]">
-                  <div>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 font-mono text-[0.5rem] font-bold uppercase tracking-[0.16em] text-white backdrop-blur">
-                      <Sparkles className="h-2.5 w-2.5" /> Free · AI
-                    </span>
-                    <p className="mt-2.5 font-display text-[0.82rem] font-black leading-snug">
-                      Not sure where to start?
-                    </p>
-                    <p className="mt-1 text-[0.6rem] font-medium leading-relaxed text-white/70">
-                      Take the free placement test and get a plan.
-                    </p>
-                  </div>
-                  <Link
-                    href="/placement-test"
-                    onClick={() => setOpen(false)}
-                    className="group mt-3 inline-flex w-full items-center justify-between rounded-lg bg-white px-2.5 py-2 font-display text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#1647C7] transition-all duration-300 hover:shadow-lg"
-                  >
-                    Start test
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2.4} />
-                  </Link>
-                </div>
-              </div>
+            {/* Placement mini CTA */}
+            <div className="border-t border-ink/[0.06] px-3 py-2">
+              <Link
+                href="/placement-test"
+                onClick={() => setOpen(false)}
+                className="group flex items-center gap-3 rounded-xl bg-[#F2F6FF] px-3 py-2.5 transition-colors duration-200 hover:bg-[#2563EB]/[0.08]"
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white text-[#1647C7] shadow-sm transition-transform group-hover:scale-105">
+                  <Sparkles className="h-4 w-4" strokeWidth={2} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-display text-[0.78rem] font-bold text-[#1647C7]">Free placement test</span>
+                  <span className="block truncate text-[0.64rem] text-ink-3">Find your level in 10 minutes</span>
+                </span>
+                <ArrowRight className="h-4 w-4 shrink-0 -translate-x-1 text-[#2563EB] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" strokeWidth={2.2} />
+              </Link>
             </div>
 
             {/* Sign out */}
-            <div className="border-t border-[#E2E8F0] px-3 pb-3 pt-2">
+            <div className="border-t border-ink/[0.06] px-3 pb-3 pt-2">
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}
