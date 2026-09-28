@@ -96,7 +96,7 @@ export const enDict: Dict = {
   "reviews.eyebrow": "Student Voices",
   "reviews.title1": "Proven results,",
   "reviews.title2": "validated.",
-  "reviews.subtitle": "Real learners, real progress — here is what our students say about their experience.",
+  "reviews.subtitle": "Real learners, real progress — here's what our students say about their experience.",
   "reviews.allStories": "Read all success stories",
 
   // FAQ
@@ -124,7 +124,7 @@ export const enDict: Dict = {
   "journey.eyebrow": "Your Journey",
   "journey.title1": "From quiet to",
   "journey.title2": "confident.",
-  "journey.subtitle": "A clear four-step path that turns silent learners into confident communicators.",
+  "journey.subtitle": "Live classes paired with real, human-led practice — the experiences that build confident communicators.",
   "journey.stage1.word": "Learn",
   "journey.stage1.body": "Absorb the sounds, rhythm and structure. Every lesson builds a stronger foundation.",
   "journey.stage2.word": "Practice",

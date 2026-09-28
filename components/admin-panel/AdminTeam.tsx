@@ -392,7 +392,7 @@ function Editor({ existing, onDone }: { existing: TeamRow | null; onDone: () => 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Full name" className={inputCls} />
         <input value={role} onChange={(e) => setRole(e.target.value)} required placeholder="Role (e.g. IELTS & PTE Trainer)" className={inputCls} />
-        <input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="CEO headline (e.g. MS. JAVARIA MALIK)" maxLength={90} className={inputCls} />
+        <input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="CEO headline (e.g. Javaria Malik)" maxLength={90} className={inputCls} />
         <input value={credentials} onChange={(e) => setCredentials(e.target.value)} placeholder="Credentials, comma separated (IELTS Band 8.0, 5+ yrs)" className={inputCls} />
       </div>
       <textarea value={bio} onChange={(e) => setBio(e.target.value)} required placeholder="Short bio…" rows={3} maxLength={1400} className={cn(inputCls, "mt-3 resize-none")} />

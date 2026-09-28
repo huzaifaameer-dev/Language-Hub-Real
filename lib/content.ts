@@ -274,15 +274,15 @@ export const COURSE_FAQS: Record<string, Faq[]> = {
 export const FOUNDER = {
   name: ACADEMY.founder,
   role: "CEO · Founder · Chairman",
-  headline: "MS. JAVARIA MALIK",
-  image: "/javeria-malik.jpg",
+  headline: "Javaria Malik",
+  image: "/ceo.jpg?v=2",
   quote:
     "Teaching is not only about giving knowledge. It is about helping someone discover what they are capable of becoming.",
   bio: [
     "Javaria Malik founded Language Hub on one belief: that English is a living skill, not a textbook subject.",
     "As CEO and Chairman of Language Hub, she leads every session with the conviction that learners are people with something real to say — because fluency lives where confidence and communication meet.",
   ],
-  credentials: ["English Language Specialist", "IELTS · PTE · DET Coach", "Conversation-first method"],
+  credentials: ["English Language Specialist", "IELTS · PTE Coach", "Conversation-first method"],
 };
 
 export interface TeamMember {
@@ -301,7 +301,7 @@ export const TEAM: TeamMember[] = [
     role: "CEO · Founder · Chairman",
     credentials: [
       "English Language Specialist",
-      "IELTS · PTE · DET Coach",
+      "IELTS · PTE Coach",
       "8+ years teaching",
     ],
     bio: "As CEO, Founder and Chairman of Language Hub, Javaria built the conversation-first method that runs through every Language Hub session. She leads the academy on one belief: English is a living skill, not a textbook subject.",
