@@ -763,7 +763,8 @@ export function RegistrationWizard({
                 <p className="mt-1 font-mono text-[1.1rem] font-black tracking-wide text-indigo-700">{done.ref}</p>
               </div>
               <p className="mt-4 text-[0.9rem] leading-relaxed text-slate-600">
-                Your details have been saved securely and the summary is with our team.
+                We&apos;ve received your application safely. Our team is now
+                reviewing it and will confirm your seat soon.
                 <b> We will reply within 24 hours</b> on WhatsApp or email to confirm your seat and next steps.
               </p>
               <button
