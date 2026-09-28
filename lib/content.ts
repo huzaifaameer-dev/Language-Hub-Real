@@ -275,7 +275,7 @@ export const FOUNDER = {
   name: ACADEMY.founder,
   role: "CEO · Founder · Chairman",
   headline: "Javaria Malik",
-  image: "/ceo.jpg?v=2",
+image: "/ceo.jpg?v=3",
   quote:
     "Teaching is not only about giving knowledge. It is about helping someone discover what they are capable of becoming.",
   bio: [
@@ -306,7 +306,7 @@ export const TEAM: TeamMember[] = [
     ],
     bio: "As CEO, Founder and Chairman of Language Hub, Javaria built the conversation-first method that runs through every Language Hub session. She leads the academy on one belief: English is a living skill, not a textbook subject.",
     focus: ["IELTS Speaking", "PTE Speaking", "Spoken English"],
-image: "/ceo.jpg?v=2",
+image: "/ceo.jpg?v=3",
   },
   {
     name: "Aiman Raza",

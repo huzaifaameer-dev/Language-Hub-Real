@@ -256,7 +256,7 @@ export function Hero() {
             className="relative z-10 mx-auto w-[88%] max-w-[31rem] lg:w-auto lg:max-w-none"
           >
             <motion.img
-              src="/hero-student.webp"
+              src="/hero-student.png"
               alt="Student learning English at Language Hub"
               className="h-auto w-full object-contain"
               animate={reduce ? undefined : { y: [0, -8, 0] }}
