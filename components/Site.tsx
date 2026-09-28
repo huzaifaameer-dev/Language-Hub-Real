@@ -3,12 +3,13 @@ import { Navbar } from "@/components/navigation/Navbar";
 import { Hero } from "@/components/hero/Hero";
 import { ProgramMarquee } from "@/components/hero/ProgramMarquee";
 import { Stats } from "@/components/about/Stats";
-import { Journey } from "@/components/journey/Journey";
-import { About } from "@/components/about/About";
 import { Features } from "@/components/philosophy/Features";
-import { Courses } from "@/components/courses/Courses";
 import { EnrollmentPath } from "@/components/courses/EnrollmentPath";
+import { Courses } from "@/components/courses/Courses";
+import { Journey } from "@/components/journey/Journey";
 import { Reviews } from "@/components/reviews/Reviews";
+import { FounderSpotlight } from "@/components/about/FounderSpotlight";
+import { About } from "@/components/about/About";
 import { ClosingStrip } from "@/components/contact/ClosingStrip";
 import { Footer } from "@/components/footer/Footer";
 import { LiveEnrollmentBanner } from "@/components/social-proof/LiveEnrollmentBanner";
@@ -56,12 +57,13 @@ export function Site() {
           <ProgramMarquee />
           <LiveEnrollmentBanner className="mt-6" />
           <Stats />
-          <Journey />
           <Features />
-          <About />
-          <Courses />
           <EnrollmentPath />
+          <Courses />
+          <Journey />
           <Reviews />
+          <FounderSpotlight />
+          <About />
           <ClosingStrip />
         </main>
         <SupportHelp />
