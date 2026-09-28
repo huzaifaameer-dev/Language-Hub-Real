@@ -108,7 +108,7 @@ export function FeedbackSubmit({
       "w-full rounded-xl border bg-white/80 px-4 py-3 text-[0.92rem] text-slate-900 shadow-[0_1px_2px_rgb(15_23_42/0.04)] outline-none transition-all placeholder:text-slate-400 focus:ring-4",
       err
         ? "border-rose-300 focus:border-rose-400 focus:ring-rose-500/10"
-        : "border-slate-200 hover:border-slate-300 focus:border-indigo-500 focus:ring-indigo-500/10"
+        : "border-slate-200 hover:border-slate-300 focus:border-[#2563EB] focus:ring-[#2563EB]/10"
     );
 
   return (
@@ -119,11 +119,11 @@ export function FeedbackSubmit({
       {!done ? (
         <form ref={formRef} onSubmit={submit} noValidate className="relative p-6 sm:p-9">
           {/* heading */}
-          <p className="flex items-center gap-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.32em] text-indigo-600">
-            <span aria-hidden className="h-px w-7 bg-indigo-500/40" /> Your voice matters
+          <p className="flex items-center gap-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.32em] text-[#2563EB]">
+            <span aria-hidden className="h-px w-7 bg-[#2563EB]/40" /> Your voice matters
           </p>
           <h2 className="mt-2 font-display text-[1.7rem] font-extrabold tracking-[-0.02em] text-slate-900 sm:text-[2rem]">
-            Tell us how we<span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent"> did.</span>
+            Tell us how we<span className="bg-gradient-to-r from-[#2563EB] to-[#38BDF8] bg-clip-text text-transparent"> did.</span>
           </h2>
           <p className="mt-1.5 max-w-lg text-[0.9rem] leading-relaxed text-slate-500">
             Every note lands straight with the Language Hub team and genuinely shapes our courses, teaching and experience.
@@ -134,7 +134,7 @@ export function FeedbackSubmit({
             <p className="font-display text-[0.72rem] font-bold text-slate-700">
               How was your experience? <span className="text-rose-500">*</span>
             </p>
-            <div className="mt-2.5 flex items-center gap-1.5" onMouseLeave={() => setHover(0)}>
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5" onMouseLeave={() => setHover(0)}>
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
                   key={n}
@@ -179,8 +179,8 @@ export function FeedbackSubmit({
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 font-display text-[0.76rem] font-bold transition-all duration-200",
                       on
-                        ? "border-indigo-500 bg-indigo-600 text-white shadow-[0_10px_24px_-12px_rgb(99_102_241/0.7)]"
-                        : "border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-600"
+                        ? "border-[#2563EB] bg-[#2563EB] text-white shadow-[0_10px_24px_-12px_rgb(99_102_241/0.7)]"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-[#93C5FD] hover:text-[#2563EB]"
                     )}
                   >
                     <span aria-hidden>{c.emoji}</span> {c.label}
@@ -229,8 +229,8 @@ export function FeedbackSubmit({
           </div>
 
           {/* reply consent */}
-          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3.5 transition-colors hover:border-indigo-300">
-            <input type="checkbox" checked={contactOk} onChange={(e) => setContactOk(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-indigo-600" />
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3.5 transition-colors hover:border-[#93C5FD]">
+            <input type="checkbox" checked={contactOk} onChange={(e) => setContactOk(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[#2563EB]" />
             <span className="text-[0.86rem] text-slate-600">
               <b className="text-slate-800">Happy for the team to reply to me</b> — we&apos;ll use this
               {email ? " email" : " address"} only if you&apos;d like a follow-up.
@@ -255,7 +255,7 @@ export function FeedbackSubmit({
             <button
               type="submit"
               disabled={busy}
-              className="group inline-flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-fuchsia-600 px-8 py-3.5 font-display text-[0.92rem] font-bold text-white shadow-[0_18px_40px_-14px_rgb(99_102_241/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.06] disabled:opacity-60 sm:w-auto"
+              className="group inline-flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#38BDF8] px-8 py-3.5 font-display text-[0.92rem] font-bold text-white shadow-[0_18px_40px_-14px_rgb(99_102_241/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.06] disabled:opacity-60 sm:w-auto"
             >
               {busy ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -284,7 +284,7 @@ export function FeedbackSubmit({
             </motion.span>
             <p className="mt-5 font-mono text-[0.62rem] font-black uppercase tracking-[0.32em] text-emerald-600">Feedback received</p>
             <h3 className="mt-2 font-display text-[1.8rem] font-extrabold tracking-[-0.03em] text-slate-900">
-              Thank you, <span className="bg-gradient-to-r from-indigo-600 to-fuchsia-600 bg-clip-text text-transparent">{name.split(" ")[0]}.</span>
+              Thank you, <span className="bg-gradient-to-r from-[#2563EB] to-[#38BDF8] bg-clip-text text-transparent">{name.split(" ")[0]}.</span>
             </h3>
             <p className="mx-auto mt-2 max-w-md text-[0.92rem] leading-relaxed text-slate-500">
               Your feedback is now with the Language Hub team. We read every single note — it genuinely helps make things better.
@@ -302,7 +302,7 @@ export function FeedbackSubmit({
                 setSubject("");
                 setMessage("");
               }}
-              className="mt-7 inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-6 font-display text-[0.8rem] font-bold text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-indigo-300 hover:text-indigo-600"
+              className="mt-7 inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 bg-white px-6 font-display text-[0.8rem] font-bold text-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#93C5FD] hover:text-[#2563EB]"
             >
               Send another note
             </button>
@@ -343,7 +343,7 @@ export function FeedbackSidebar() {
       </div>
 
       <div className="flex flex-col gap-2.5 rounded-3xl border border-white/70 bg-white/80 p-5 shadow-sm backdrop-blur-xl">
-        <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.26em] text-indigo-600">
+        <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.26em] text-[#2563EB]">
           Prefer to talk?
         </p>
         {wa ? (
@@ -358,7 +358,7 @@ export function FeedbackSidebar() {
         ) : null}
         <a
           href={`mailto:${supportEmail}`}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 font-display text-[0.82rem] font-bold text-indigo-700 transition-all hover:-translate-y-0.5 hover:border-indigo-300 hover:bg-indigo-50"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 font-display text-[0.82rem] font-bold text-indigo-700 transition-all hover:-translate-y-0.5 hover:border-[#93C5FD] hover:bg-[#EFF6FF]"
         >
           <Mail className="h-4 w-4" /> Email the team
         </a>
