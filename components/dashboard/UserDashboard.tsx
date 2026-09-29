@@ -5,19 +5,22 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
 import {
-  Bot,
   CalendarDays,
   Camera,
+  Check,
   ChevronRight,
   ClipboardList,
+  Clock,
   FileText,
   GraduationCap,
   LogOut,
   Mail,
+  MapPin,
+  MessageSquare,
   Send,
   Settings,
   ShieldCheck,
-  Sparkles,
+  User,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -182,20 +185,6 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
       <main className="relative z-10 mx-auto max-w-7xl px-4 pt-28 pb-8 sm:px-6 lg:px-8 lg:pt-32">
         {/* Dashboard tools bar */}
         <div className="mb-6 flex flex-wrap items-center justify-end gap-2">
-          <Link
-            href="/tutor"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#E6EDFF] bg-white px-3.5 py-2 font-display text-[0.74rem] font-bold text-[#1647C7] shadow-sm transition-all duration-300 hover:border-[#2563EB]/50 md:inline-flex"
-          >
-            <Bot className="h-3.5 w-3.5" strokeWidth={2} />
-            AI Tutor
-          </Link>
-          <Link
-            href="/ai-feedback"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#E6EDFF] bg-white px-3.5 py-2 font-display text-[0.74rem] font-bold text-[#1647C7] shadow-sm transition-all duration-300 hover:border-[#2563EB]/50 md:inline-flex"
-          >
-            <Sparkles className="h-3.5 w-3.5" strokeWidth={2} />
-            AI Feedback
-          </Link>
           <Link
             href="/feedback"
             className="inline-flex items-center gap-1.5 rounded-full border border-[#E6EDFF] bg-white px-3.5 py-2 font-display text-[0.74rem] font-bold text-[#1647C7] shadow-sm transition-all duration-300 hover:border-[#6D4AFF]/50 md:inline-flex"
