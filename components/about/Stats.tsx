@@ -106,6 +106,13 @@ export function Stats() {
 
   const stats = data ?? FALLBACK;
 
+  // Per-field fallback: if the live number is missing or 0, use the editorial
+  // constant so the section never flashes a misleading "0" on any device.
+  const valueFor = (k: keyof StatsData): number => {
+    const v = stats[k];
+    return typeof v === "number" && v > 0 ? v : FALLBACK[k];
+  };
+
   return (
     <section
       id="stats"
@@ -190,7 +197,7 @@ export function Stats() {
               {/* Big number */}
               <p className="font-display text-[clamp(2.6rem,5vw,4rem)] font-black leading-none tracking-[-0.03em]">
                 <span className="bg-gradient-to-br from-[#1E3A8A] via-[#2563EB] to-[#60A5FA] bg-clip-text text-transparent">
-                  <CountUp target={stats[s.key]} suffix={s.suffix} />
+                  <CountUp target={valueFor(s.key)} suffix={s.suffix} />
                 </span>
               </p>
 

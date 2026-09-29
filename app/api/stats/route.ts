@@ -48,8 +48,10 @@ export async function GET() {
   return NextResponse.json({
     students: studentsGuided,
     yearsTeaching: 8, // founding year is fixed; kept as editorial constant
-    programmes: activeCourses,
-    dailyBatches: Math.max(1, labs),
+    // Fall back to truthful editorial figures if the live DB counts are empty
+    // (fresh install / cold DB), so the section never shows a misleading 0.
+    programmes: activeCourses > 0 ? activeCourses : 4,
+    dailyBatches: labs > 0 ? labs : 3,
     enrolledThisWeek,
     totalSeats,
   }, {
