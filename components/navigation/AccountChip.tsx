@@ -193,24 +193,6 @@ export function AccountChip() {
               <MenuItem icon={<User className="h-4.5 w-4.5" />} label="My Profile" note="Edit account & photo" href="/dashboard?settings=1" onClick={() => setOpen(false)} />
             </div>
 
-            {/* Placement mini CTA */}
-            <div className="border-t border-ink/[0.06] px-3 py-2">
-              <Link
-                href="/placement-test"
-                onClick={() => setOpen(false)}
-                className="group flex items-center gap-3 rounded-xl bg-[#F2F6FF] px-3 py-2.5 transition-colors duration-200 hover:bg-[#2563EB]/[0.08]"
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white text-[#1647C7] shadow-sm transition-transform group-hover:scale-105">
-                  <Sparkles className="h-4 w-4" strokeWidth={2} />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block font-display text-[0.78rem] font-bold text-[#1647C7]">Free placement test</span>
-                  <span className="block truncate text-[0.64rem] text-ink-3">Find your level in 10 minutes</span>
-                </span>
-                <ArrowRight className="h-4 w-4 shrink-0 -translate-x-1 text-[#2563EB] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" strokeWidth={2.2} />
-              </Link>
-            </div>
-
             {/* Sign out */}
             <div className="border-t border-ink/[0.06] px-3 pb-3 pt-2">
               <button
