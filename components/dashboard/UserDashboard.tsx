@@ -162,7 +162,10 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
         setAvatarError(d.message ?? "Could not update your photo.");
         return;
       }
-      setAvatar(typeof d.image === "string" ? d.image : dataUrl);
+      // Bust the browser cache so the freshly-uploaded photo shows instantly
+      // (the avatar URL itself is stable, so without ?v= the old image would
+      // linger in the browser's memory cache until a full page refresh).
+      setAvatar(typeof d.image === "string" ? `${d.image}?v=${Date.now()}` : dataUrl);
     } catch {
       setAvatarError("Could not read that image.");
     } finally {
