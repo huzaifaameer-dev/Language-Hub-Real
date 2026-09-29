@@ -185,109 +185,146 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
           "radial-gradient(1100px 520px at 85% -10%, rgb(37 99 235 / 0.10), transparent 60%), radial-gradient(900px 480px at -10% 30%, rgb(109 74 255 / 0.08), transparent 55%)",
       }}
     >
-      <main className="relative z-10 mx-auto max-w-7xl px-4 pt-28 pb-8 sm:px-6 lg:px-8 lg:pt-32">
-        {/* Dashboard tools bar */}
-        <div className="mb-6 flex flex-wrap items-center justify-end gap-2">
-          <Link
-            href="/feedback"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#E6EDFF] bg-white px-3.5 py-2 font-display text-[0.74rem] font-bold text-[#1647C7] shadow-sm transition-all duration-300 hover:border-[#6D4AFF]/50 md:inline-flex"
-          >
-            <Send className="h-3.5 w-3.5" strokeWidth={2} />
-            Give Feedback
-          </Link>
-          <Link
-            href="/my-learning"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#E6EDFF] bg-white px-3.5 py-2 font-display text-[0.74rem] font-bold text-[#1647C7] shadow-sm transition-all duration-300 hover:border-[#2BB3D8]/60 md:inline-flex"
-          >
-            <ClipboardList className="h-3.5 w-3.5" strokeWidth={2} />
-            My Assignments
-          </Link>
-          <NotificationsBell userId={userId} />
-          <button
-            onClick={() => setSettingsOpen(true)}
-            aria-label="Settings"
-            className="grid h-10 w-10 place-items-center rounded-xl border border-[#E6EDFF] bg-white text-[#3B4A6B] shadow-sm transition-all duration-300 hover:border-[#2563EB]/50 hover:text-[#2563EB]"
-          >
-            <Settings className="h-4 w-4" strokeWidth={1.9} />
-          </button>
-          <button
-            onClick={() => signOut({ callbackUrl: "/" })}
-            aria-label="Sign out"
-            className="grid h-10 w-10 place-items-center rounded-xl border border-[#E6EDFF] bg-white text-[#3B4A6B] shadow-sm transition-all duration-300 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
-          >
-            <LogOut className="h-4 w-4" strokeWidth={1.9} />
-          </button>
-        </div>
-
-        {/* Welcome hero */}
-        <section className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="relative shrink-0">
-              <span className="grid h-16 w-16 shrink-0 rounded-full bg-gradient-to-br from-[#2563EB] to-[#6D4AFF] p-[2px] shadow-[0_10px_26px_-12px_rgb(37_99_235/0.6)] ring-2 ring-white/80 sm:h-20 sm:w-20">
-                <span className="relative grid h-full w-full place-items-center overflow-hidden rounded-full bg-white">
-                  {avatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={avatar} alt={`Profile photo of ${displayName}`} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="grid h-full w-full place-items-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#6D4AFF] font-display text-2xl font-black text-white">
-                      {(displayName || name || "L").slice(0, 1).toUpperCase()}
-                    </span>
-                  )}
-                  <span aria-hidden className="absolute bottom-1 right-1 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
-                </span>
-              </span>
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={avatarBusy}
-                aria-label="Upload profile photo"
-                className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-[#1647C7] text-white shadow transition-all duration-300 hover:scale-110 hover:bg-[#2563EB] disabled:opacity-60"
+      <main className="relative z-10 mx-auto max-w-7xl px-4 pt-24 pb-10 sm:px-6 lg:px-8">
+        {/* ─── Sticky dashboard bar ─── */}
+        <div className="sticky top-[4.25rem] z-40 -mx-4 mb-6 border-b border-[#E3EBFA] bg-white/85 px-4 py-2.5 backdrop-blur-xl sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+            <p className="flex items-center gap-2.5 font-display text-[0.62rem] font-bold uppercase tracking-[0.28em] text-[#1647C7]">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-gradient-to-br from-[#2563EB] to-[#6D4AFF]" />
+              My dashboard
+            </p>
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Link
+                href="/feedback"
+                title="Give feedback"
+                aria-label="Give feedback"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-[#E6EDFF] bg-white text-[#1647C7] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2563EB]/50 hover:text-[#2563EB]"
               >
-                <Camera className="h-3.5 w-3.5" strokeWidth={2} />
+                <Send className="h-4 w-4" strokeWidth={2} />
+              </Link>
+              <Link
+                href="/my-learning"
+                title="My assignments"
+                aria-label="My assignments"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-[#E6EDFF] bg-white text-[#1647C7] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2563EB]/50 hover:text-[#2563EB]"
+              >
+                <ClipboardList className="h-4 w-4" strokeWidth={2} />
+              </Link>
+              <NotificationsBell userId={userId} />
+              <button
+                onClick={() => setSettingsOpen(true)}
+                aria-label="Settings"
+                title="Settings"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-[#E6EDFF] bg-white text-[#3B4A6B] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2563EB]/50 hover:text-[#2563EB]"
+              >
+                <Settings className="h-4 w-4" strokeWidth={1.9} />
               </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
-            </div>
-            <div className="min-w-0">
-              <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.32em] text-[#1647C7]">My account</p>
-              <h1 className="mt-1 truncate font-display text-[1.55rem] font-extrabold tracking-[-0.02em] text-[#0B1B3A] sm:text-[1.85rem]">
-                Welcome back, <span className="bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] bg-clip-text text-transparent">{firstName}</span>
-              </h1>
-              <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.85rem] text-slate-500">
-                <span className="flex items-center gap-1.5">
-                  <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
-                  {email}
-                </span>
-                <span aria-hidden className="hidden h-1 w-1 rounded-full bg-slate-300 sm:block" />
-                <span className="flex items-center gap-1.5">
-                  <CalendarDays className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
-                  {joined
-                    ? `Member since ${new Date(joined).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}`
-                    : "Member"}
-                </span>
-              </p>
-              {avatarBusy ? (
-                <p className="mt-1 inline-flex items-center gap-2 font-mono text-[0.62rem] font-bold uppercase tracking-widest text-[#1647C7]">
-                  <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#2563EB]/30 border-t-[#2563EB]" />
-                  Uploading photo…
-                </p>
-              ) : avatarError ? (
-                <p className="mt-1 font-mono text-[0.62rem] font-bold uppercase tracking-widest text-rose-600">
-                  ! {avatarError}
-                </p>
-              ) : null}
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                aria-label="Sign out"
+                title="Sign out"
+                className="grid h-10 w-10 place-items-center rounded-xl border border-[#E6EDFF] bg-white text-[#3B4A6B] shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={1.9} />
+              </button>
             </div>
           </div>
+        </div>
 
-          {/* Quick stats */}
-          <dl className="grid grid-cols-3 gap-3">
-            <StatTile label="Registrations" value={loading ? "…" : String(regs.length).padStart(2, "0")} accent="indigo" />
-            <StatTile label="In review" value={loading ? "…" : String(newCount).padStart(2, "0")} accent="amber" />
-            <StatTile label="Enrolled" value={loading ? "…" : String(regs.filter((r) => r.status === "ENROLLED").length).padStart(2, "0")} accent="emerald" />
-          </dl>
+        {/* ─── Welcome panel ─── */}
+        <section className="relative overflow-hidden rounded-[1.9rem] border border-[#DCE7FF] bg-[linear-gradient(135deg,#F4F8FF_0%,#E9F0FF_55%,#E8F7F1_100%)] p-6 shadow-[0_32px_74px_-46px_rgb(37_99_235/0.55)] sm:p-8">
+          {/* texture + glows */}
+          <div aria-hidden className="pointer-events-none absolute inset-0">
+            <div
+              className="absolute inset-0 opacity-[0.5]"
+              style={{
+                backgroundImage: "radial-gradient(rgb(37 99 235 / 0.10) 1px, transparent 1px)",
+                backgroundSize: "24px 24px",
+              }}
+            />
+            <div
+              className="absolute -right-16 -top-20 h-64 w-64 rounded-[50%]"
+              style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(37 99 235 / 0.16), transparent 70%)" }}
+            />
+            <div
+              className="absolute -bottom-24 -left-16 h-56 w-56 rounded-[50%]"
+              style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(16 185 129 / 0.14), transparent 70%)" }}
+            />
+          </div>
+
+          <div className="relative flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-center gap-5">
+              <div className="relative shrink-0">
+                <span className="grid h-[4.5rem] w-[4.5rem] shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#6D4AFF] p-[2.5px] shadow-[0_14px_32px_-14px_rgb(37_99_235/0.7)] ring-4 ring-white/90 sm:h-24 sm:w-24">
+                  <span className="relative grid h-full w-full place-items-center overflow-hidden rounded-full bg-white">
+                    {avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={avatar} alt={`Profile photo of ${displayName}`} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center rounded-full bg-gradient-to-br from-[#2563EB] to-[#6D4AFF] font-display text-3xl font-black text-white">
+                        {(displayName || name || "L").slice(0, 1).toUpperCase()}
+                      </span>
+                    )}
+                    <span aria-hidden className="absolute bottom-1.5 right-1.5 h-3.5 w-3.5 rounded-full border-[2.5px] border-white bg-emerald-500" />
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={avatarBusy}
+                  aria-label="Upload profile photo"
+                  className="absolute -bottom-0.5 -right-0.5 grid h-9 w-9 place-items-center rounded-full border-2 border-white bg-[#1647C7] text-white shadow-lg transition-all duration-300 hover:scale-110 hover:bg-[#2563EB] disabled:opacity-60"
+                >
+                  <Camera className="h-4 w-4" strokeWidth={2} />
+                </button>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
+              </div>
+
+              <div className="min-w-0">
+                <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.32em] text-[#1647C7]">My account</p>
+                <h1 className="mt-1.5 font-display text-[1.6rem] font-black leading-tight tracking-[-0.02em] text-[#0B1B3A] sm:text-[2.1rem]">
+                  Welcome back,{" "}
+                  <span className="bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] bg-clip-text text-transparent">
+                    {firstName}
+                  </span>
+                </h1>
+                <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.85rem] text-slate-500">
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+                    {email}
+                  </span>
+                  <span aria-hidden className="hidden h-1 w-1 rounded-full bg-slate-300 sm:block" />
+                  <span className="flex items-center gap-1.5">
+                    <CalendarDays className="h-3.5 w-3.5 shrink-0" strokeWidth={1.8} />
+                    {joined
+                      ? `Member since ${new Date(joined).toLocaleDateString("en-GB", { month: "short", year: "numeric" })}`
+                      : "Member"}
+                  </span>
+                </p>
+                {avatarBusy ? (
+                  <p className="mt-2 inline-flex items-center gap-2 font-mono text-[0.62rem] font-bold uppercase tracking-widest text-[#1647C7]">
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#2563EB]/30 border-t-[#2563EB]" />
+                    Uploading photo…
+                  </p>
+                ) : avatarError ? (
+                  <p className="mt-2 font-mono text-[0.62rem] font-bold uppercase tracking-widest text-rose-600">
+                    ! {avatarError}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            {/* Glass stat tiles */}
+            <dl className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
+              <StatTile label="Registrations" value={loading ? "…" : String(regs.length).padStart(2, "0")} accent="indigo" />
+              <StatTile label="In review" value={loading ? "…" : String(newCount).padStart(2, "0")} accent="amber" />
+              <StatTile label="Enrolled" value={loading ? "…" : String(regs.filter((r) => r.status === "ENROLLED").length).padStart(2, "0")} accent="emerald" />
+            </dl>
+          </div>
         </section>
 
         {/* Course selection + registrations */}
-        <section className="mt-8 grid gap-6 lg:grid-cols-3">
+        <section className="mt-10 grid gap-6 lg:grid-cols-3">
           {/* Courses */}
           <div className="lg:col-span-2">
             <Rise>
@@ -331,6 +368,9 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
                         style={{ background: `linear-gradient(135deg, ${course.accent.from}, ${course.accent.to})` }}
                       >
                         <GraduationCap className="h-5.5 w-5.5" strokeWidth={1.9} />
+                      </span>
+                      <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-slate-400">
+                        {String(i + 1).padStart(2, "0")}
                       </span>
                       <span className="rounded-full border border-slate-200 bg-white px-2.5 py-1 font-mono text-[0.58rem] font-bold uppercase tracking-widest text-slate-500">
                         {course.duration}
@@ -482,14 +522,14 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
 
 function StatTile({ label, value, accent }: { label: string; value: string; accent: "indigo" | "amber" | "emerald" }) {
   const tones: Record<string, string> = {
-    indigo: "text-indigo-600",
+    indigo: "text-[#2563EB]",
     amber: "text-amber-600",
     emerald: "text-emerald-600",
   };
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-      <dt className="font-mono text-[0.56rem] font-bold uppercase tracking-[0.18em] text-slate-400">{label}</dt>
-      <dd className={`mt-1 font-display text-[1.5rem] font-extrabold leading-none ${tones[accent]}`}>{value}</dd>
+    <div className="min-w-0 rounded-2xl border border-white/70 bg-white/70 px-3.5 py-3 shadow-[0_10px_28px_-18px_rgb(15_23_42/0.35)] backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white sm:px-4">
+      <dt className="truncate font-mono text-[0.52rem] font-bold uppercase tracking-[0.16em] text-slate-400">{label}</dt>
+      <dd className={`mt-1 font-display text-[1.45rem] font-black leading-none sm:text-[1.6rem] ${tones[accent]}`}>{value}</dd>
     </div>
   );
 }
