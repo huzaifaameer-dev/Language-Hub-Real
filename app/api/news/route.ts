@@ -4,9 +4,10 @@ import { resolveNewsActor } from "@/lib/news-identity";
 
 export const dynamic = "force-dynamic";
 
-/** Strip markdown images so excerpts never leak raw `![..](url)` syntax. */
-function excerptFrom(body: string, max = 220): string {
-  const clean = body.replace(/!\[[^\]]*\]\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+/** Strip markdown images so excerpts never leak raw `![..](url)` syntax.
+ *  Defensive: a post missing `body` (legacy/draft) must not 500 the feed. */
+function excerptFrom(body: string | null | undefined, max = 220): string {
+  const clean = String(body ?? "").replace(/!\[[^\]]*\]\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
   return clean.length > max ? clean.slice(0, max) + "…" : clean;
 }
 

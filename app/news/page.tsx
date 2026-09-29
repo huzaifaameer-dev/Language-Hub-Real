@@ -33,7 +33,7 @@ async function getPosts() {
       .toArray();
 
     return docs.map((d) => {
-      const clean = d.body.replace(/!\[[^\]]*\]\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
+      const clean = String(d.body ?? "").replace(/!\[[^\]]*\]\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
       return ({
       id: String(d._id),
       slug: d.slug,
