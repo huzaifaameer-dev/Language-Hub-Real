@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { MessageCircle, ThumbsDown, ThumbsUp } from "lucide-react";
+import { MessageCircle, ThumbsUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewsCommentsPanel } from "@/components/news/NewsCommentsPanel";
 
@@ -84,14 +84,10 @@ export function NewsEngageBar({
 
   const btn = (type: Exclude<Reaction, null>) =>
     cn(
-      "flex-1 min-w-[calc(50%-0.25rem)] inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 font-display text-[0.8rem] font-bold transition-all sm:min-w-0",
+      "inline-flex items-center gap-2 rounded-full px-4 py-2.5 font-display text-[0.8rem] font-bold transition-all",
       my === type
-        ? type === "like"
-          ? "bg-brand-deep text-white shadow-[0_8px_20px_-8px_rgba(79,70,229,0.6)]"
-          : type === "interested"
-            ? "bg-gold text-white shadow-[0_8px_20px_-8px_rgba(245,158,11,0.6)]"
-            : "bg-ink text-white shadow-[0_8px_20px_-8px_rgba(15,23,42,0.5)]"
-        : "bg-[#f4f5fb] text-ink-2 hover:bg-ink/[0.06] hover:text-ink"
+        ? "bg-[#2563EB] text-white shadow-[0_10px_24px_-10px_rgba(37,99,235,0.6)]"
+        : "text-ink-2 hover:bg-[#2563EB]/[0.08] hover:text-[#2563EB]"
     );
 
   return (
@@ -103,22 +99,20 @@ export function NewsEngageBar({
         className="mt-8 flex flex-col gap-3"
       >
         <div className="flex flex-wrap items-center gap-2">
-          <button type="button" onClick={() => react("like")} className={btn("like")}>
-            <ThumbsUp className="h-4 w-4" strokeWidth={2.2} /> Like
-            {counts.like > 0 && <span className="font-mono text-[0.7rem] opacity-80">{counts.like}</span>}
-          </button>
           <button type="button" onClick={() => react("interested")} className={btn("interested")}>
-            <ThumbsUp className="h-4 w-4 rotate-90" strokeWidth={2.2} /> Interested
-            {counts.interested > 0 && <span className="font-mono text-[0.7rem] opacity-80">{counts.interested}</span>}
-          </button>
-          <button type="button" onClick={() => react("not_interested")} className={btn("not_interested")}>
-            <ThumbsDown className="h-4 w-4" strokeWidth={2.2} /> Skip
-            {counts.not_interested > 0 && <span className="font-mono text-[0.7rem] opacity-80">{counts.not_interested}</span>}
+            <motion.span
+              animate={{ rotate: my === "interested" ? 360 : 0 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="inline-flex"
+            >
+              <ThumbsUp className="h-4 w-4 rotate-90" strokeWidth={2.2} />
+            </motion.span>
+            Interested
           </button>
           <button
             type="button"
             onClick={() => setCommentsOpen(true)}
-            className="inline-flex min-w-[calc(50%-0.25rem)] flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 font-display text-[0.8rem] font-bold text-ink-2 transition-all hover:bg-ink/[0.06] hover:text-brand-deep sm:min-w-0"
+            className="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 font-display text-[0.8rem] font-bold text-ink-2 transition-all hover:bg-ink/[0.06] hover:text-brand-deep"
           >
             <MessageCircle className="h-4 w-4" strokeWidth={2.2} />
             Comments
