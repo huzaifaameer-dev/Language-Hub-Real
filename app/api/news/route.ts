@@ -70,7 +70,7 @@ export async function GET(request: Request) {
         commentCount: d.commentCount ?? 0,
         pinned: d.pinned,
         myReaction: myBySlug[d.slug] ?? null,
-        publishedAt: d.publishedAt?.toISOString() ?? d.createdAt.toISOString(),
+        publishedAt: d.publishedAt?.toISOString() ?? d.createdAt?.toISOString() ?? new Date().toISOString(),
       })),
       total,
       page,

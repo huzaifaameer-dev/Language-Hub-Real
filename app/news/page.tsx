@@ -49,7 +49,7 @@ async function getPosts() {
       notInterestedCount: d.notInterestedCount ?? 0,
       commentCount: d.commentCount ?? 0,
       pinned: d.pinned,
-      publishedAt: d.publishedAt?.toISOString() ?? d.createdAt.toISOString(),
+      publishedAt: d.publishedAt?.toISOString() ?? d.createdAt?.toISOString() ?? new Date().toISOString(),
       });
     });
   } catch {
