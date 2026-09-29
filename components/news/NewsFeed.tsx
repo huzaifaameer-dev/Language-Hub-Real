@@ -22,6 +22,7 @@ interface FeedPost {
   notInterestedCount: number;
   commentCount: number;
   pinned: boolean;
+  myReaction?: "like" | "interested" | "not_interested" | null;
   publishedAt: string;
 }
 
@@ -59,9 +60,12 @@ export function NewsFeed({ initialPosts, tags }: { initialPosts: FeedPost[]; tag
   };
 
   useEffect(() => {
-    // keep fresh on mount (react to latest server tags)
+    // Always hydrate from the live API on mount: the server-rendered page is
+    // ISR-cached and cannot know the viewer, so this is what restores each
+    // visitor's own like/interested state (and fresh counts) after a refresh —
+    // exactly like the per-post page.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (initialPosts.length === 0) refresh();
+    refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
