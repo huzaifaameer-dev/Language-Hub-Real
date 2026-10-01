@@ -106,8 +106,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   callbacks: {
     ...authConfig.callbacks,
-    // Staff (admin/teacher) never gets a public web session via OAuth — same
-    // policy as the credentials provider: they use /management & /admin-panel.
+    // Google sign-in is for the site owner/learners. Teachers and disabled
+    // accounts never get a public web session — they use /management.
+    // (Admin is allowed so the owner can sign in with Google; the admin
+    // control suite at /admin-panel remains password + access-code only.)
     signIn: async ({ user, account }) => {
       if (account?.provider && account.provider !== "credentials") {
         const email = user.email?.toLowerCase();
@@ -118,7 +120,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
               { email },
               { projection: { role: 1, disabled: 1 } }
             );
-            if (!row || row.role === "ADMIN" || row.role === "TEACHER" || row.disabled) {
+            if (!row || row.role === "TEACHER" || row.disabled) {
               return false;
             }
           } catch {
