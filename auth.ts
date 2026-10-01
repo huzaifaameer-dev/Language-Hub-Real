@@ -69,6 +69,10 @@ if (hasKeys(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET)) {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      // Google emails are verified, so linking a Google sign-in to an existing
+      // same-email password account is safe (and stops `OAuthAccountNotLinked`
+      // for the owner/admin account).
+      allowDangerousEmailAccountLinking: true,
     })
   );
 }
@@ -102,6 +106,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   callbacks: {
     ...authConfig.callbacks,
+    // Staff (admin/teacher) never gets a public web session via OAuth — same
+    // policy as the credentials provider: they use /management & /admin-panel.
+    signIn: async ({ user, account }) => {
+      if (account?.provider && account.provider !== "credentials") {
+        const email = user.email?.toLowerCase();
+        if (email) {
+          try {
+            const users = await getUsersCollection();
+            const row = await users.findOne(
+              { email },
+              { projection: { role: 1, disabled: 1 } }
+            );
+            if (!row || row.role === "ADMIN" || row.role === "TEACHER" || row.disabled) {
+              return false;
+            }
+          } catch {
+            return false;
+          }
+        }
+      }
+      return true;
+    },
     // Roles are re-read on every token refresh so a stale snapshot from the DB
     // (e.g. a demotion/ban or a later promotion) cannot linger in the JWT.
     // Admins + teachers sign in through the management portal; admins also use
