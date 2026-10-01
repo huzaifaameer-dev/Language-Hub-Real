@@ -7,6 +7,13 @@ interface OAuthButtonsProps {
   callbackUrl?: string;
 }
 
+// Parse a flag strictly: "false"/"0"/"" must disable the button (previously any
+// non-empty string — including the string "false" — enabled it).
+const flagOn = (v: string | undefined): boolean => {
+  if (!v) return false;
+  return !["false", "0", "no", "off"].includes(v.trim().toLowerCase());
+};
+
 const PROVIDERS: {
   id: string;
   name: string;
@@ -17,19 +24,19 @@ const PROVIDERS: {
     id: "google",
     name: "Google",
     icon: "G",
-    enabled: !!process.env.NEXT_PUBLIC_GOOGLE_ENABLED || false,
+    enabled: flagOn(process.env.NEXT_PUBLIC_GOOGLE_ENABLED),
   },
   {
     id: "microsoft-entra-id",
     name: "Microsoft",
     icon: "M",
-    enabled: !!process.env.NEXT_PUBLIC_MICROSOFT_ENABLED || false,
+    enabled: flagOn(process.env.NEXT_PUBLIC_MICROSOFT_ENABLED),
   },
   {
     id: "github",
     name: "GitHub",
     icon: "GH",
-    enabled: !!process.env.NEXT_PUBLIC_GITHUB_ENABLED || false,
+    enabled: flagOn(process.env.NEXT_PUBLIC_GITHUB_ENABLED),
   },
 ];
 
