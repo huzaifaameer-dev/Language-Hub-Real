@@ -285,23 +285,13 @@ export function Courses() {
                     </ul>
 
                     <div className="mt-5 flex items-center justify-between gap-4 rounded-xl border border-ink/[0.06] bg-[#f7f8fc] px-4 py-3">
-                      <div>
-                        <p className="font-display text-[0.56rem] font-bold uppercase tracking-[0.18em] text-ink-3">
-                          From
-                        </p>
-                        <p className="font-display text-[1.05rem] font-extrabold leading-none text-ink">
-                          {card.feeLabel}
-                          <span className="text-[0.65rem] font-semibold text-ink-3"> /mo</span>
-                        </p>
-                      </div>
-                      <div className="text-end">
-                        <p className="font-display text-[0.56rem] font-bold uppercase tracking-[0.18em] text-ink-3">
-                          Batches
-                        </p>
-                        <p className="font-mono text-[0.62rem] font-semibold leading-snug text-ink-2">
-                          {card.batchSummary}
-                        </p>
-                      </div>
+                      <p className="font-display text-[0.56rem] font-bold uppercase tracking-[0.18em] text-ink-3">
+                        From
+                      </p>
+                      <p className="font-display text-[1.05rem] font-extrabold leading-none text-ink">
+                        {card.feeLabel}
+                        <span className="text-[0.65rem] font-semibold text-ink-3"> /mo</span>
+                      </p>
                     </div>
 
                     <div className="mt-auto flex flex-col gap-2.5 pt-4">
