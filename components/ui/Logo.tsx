@@ -45,7 +45,7 @@ export function Logo({ mode = "light", size = "md", className, priority = false,
         )}
       >
         <Image
-          src="/logo.jpg"
+          src="/logo-lh.png"
           alt="Language Hub logo"
           width={640}
           height={640}
@@ -58,7 +58,7 @@ export function Logo({ mode = "light", size = "md", className, priority = false,
 
   return (
     <Image
-      src="/logo-transparent.png"
+      src="/logo-lh.png"
       alt="Language Hub logo"
       width={640}
       height={640}

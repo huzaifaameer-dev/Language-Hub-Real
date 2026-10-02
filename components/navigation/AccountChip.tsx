@@ -80,6 +80,7 @@ export function AccountChip() {
     return (
       <Link
         href="/login"
+        prefetch
         aria-label="Sign in"
         className="group relative hidden items-center gap-2.5 overflow-hidden rounded-full bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] pl-3.5 pr-4 py-2.5 shadow-[0_12px_28px_-14px_rgb(37_99_235/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-16px_rgb(37_99_235/0.9)] md:inline-flex"
       >

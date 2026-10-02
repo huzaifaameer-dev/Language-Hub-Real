@@ -25,7 +25,7 @@ const LINK_SECTIONS = [
   {
     title: "Institute",
     items: [
-      { id: "about", label: "Beyond English" },
+      { id: "founder", label: "Meet the Founder" },
       { id: "courses", label: "Programmes & Fees" },
       { id: "contact", label: "Opening Hours" },
       { href: "/placement-test", id: "placement", label: "Placement Test" },

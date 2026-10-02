@@ -1,17 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ExternalLink, Quote } from "lucide-react";
 import { FOUNDER } from "@/lib/content";
 
 const ease = [0.16, 1, 0.3, 1] as const;
-
-const QUICK_FACTS = [
-  { text: "Conversation-first method", tone: "#10B981" },
-  { text: "IELTS · PTE Coach", tone: "#38BDF8" },
-  { text: "Small-batch teaching", tone: "#60A5FA" },
-  { text: "Personal mentorship", tone: "#2DD4BF" },
-];
 
 const BIO = [
   "Javaria Malik is the CEO and founder of Language Hub, where she has spent over 8 years turning hesitant speakers into confident communicators. Her conversation-first method treats English as a living skill — something learners actually use, not merely study.",
@@ -155,42 +147,6 @@ export function FounderSpotlight() {
               </motion.div>
             </div>
           </div>
-
-          {/* Bottom band: quick facts + quote */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.24, duration: 0.6, ease }}
-            className="relative grid gap-7 border-t border-white/10 bg-white/[0.03] p-7 sm:p-9 lg:grid-cols-2 lg:items-center"
-          >
-            {/* Quick facts */}
-            <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 lg:justify-start">
-              {QUICK_FACTS.map((f) => (
-                <div key={f.text} className="flex items-center gap-2">
-                  <span aria-hidden className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: f.tone }} />
-                  <span className="font-display text-[0.78rem] font-bold text-slate-200">{f.text}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Quote */}
-            <div className="relative rounded-xl border-l-4 border-emerald-400 bg-white/[0.05] p-5">
-              <Quote className="h-6 w-6 text-emerald-400" aria-hidden />
-              <p className="mt-2 font-serif text-[1.02rem] italic leading-relaxed text-slate-200">
-                &ldquo;{FOUNDER.quote}&rdquo;
-              </p>
-              <div className="mt-3 flex items-center justify-between">
-                <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.2em] text-slate-400">
-                  — {FOUNDER.name}
-                </p>
-                <span className="flex items-center gap-1 text-[0.54rem] text-slate-500">
-                  <ExternalLink className="h-3 w-3" />
-                  <span className="uppercase tracking-wider">Verified</span>
-                </span>
-              </div>
-            </div>
-          </motion.div>
         </motion.div>
       </div>
     </section>

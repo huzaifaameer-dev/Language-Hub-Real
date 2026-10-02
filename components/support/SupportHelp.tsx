@@ -2,12 +2,11 @@
 
 import { useMemo, useSyncExternalStore, useState } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   BookOpen,
-  CheckCircle2,
   CreditCard,
   GraduationCap,
   HelpCircle,
@@ -43,21 +42,13 @@ interface Faq {
 }
 
 const FAQS: Faq[] = [
-  { cat: "fees", q: "How much do the courses cost?", a: "Fees vary by programme. Spoken English, IELTS, PTE and Duolingo courses each have a clear monthly fee listed on the courses page — no hidden charges. Message us on WhatsApp for the exact current fee table and available instalment plans." },
-  { cat: "fees", q: "How can I pay my course fee?", a: "You can pay online via card (Stripe) or use EasyPaisa / JazzCash. After enrolling you'll receive payment instructions instantly, and our team confirms your seat once the payment is received." },
-  { cat: "fees", q: "Do you offer refunds?", a: "Yes — our refund policy is transparent. Review the full terms on the refund policy page, or ask us on WhatsApp and we'll explain the process for your situation." },
-  { cat: "courses", q: "Which courses do you offer?", a: "We offer Spoken English, IELTS Preparation, PTE Preparation, and Duolingo English Test (DET) — all taught live in small batches Monday to Saturday, with afternoon, evening and night slots." },
-  { cat: "courses", q: "What is the batch schedule and timing?", a: "Classes run Monday to Saturday between 3:00 PM and 12:00 AM. You can pick a batch time that fits your routine — afternoon, evening, or late-evening." },
-  { cat: "courses", q: "Can I take the free Placement Test first?", a: "Absolutely. The free placement test (10 minutes, AI-powered) tells you your current level and recommends the best starting course. No commitment needed." },
-  { cat: "teachers", q: "Who teaches the classes?", a: "Founder Javaria Malik leads the academy, supported by a specialist team of IELTS, PTE, DET and conversation trainers. Every session is conversation-first and student-focused." },
-  { cat: "teachers", q: "How big are the batches?", a: "Batches are intentionally small (10–20 learners) so every student gets personal attention and real speaking time in every session." },
+  { cat: "fees", q: "How much do the courses cost?", a: "Fees vary by programme and each course shows its monthly fee clearly on the courses page — no hidden charges. Message us on WhatsApp for the latest fee table and available instalment plans." },
+  { cat: "fees", q: "How can I pay my course fee?", a: "You can pay online by card (Stripe) or through EasyPaisa / JazzCash. After enrolling you'll receive payment instructions instantly, and our team confirms your seat once the payment is received." },
+  { cat: "courses", q: "Which courses do you offer?", a: "We offer Spoken English, IELTS Preparation, PTE Preparation and the Duolingo English Test — all taught live in small batches, Monday to Saturday, with afternoon, evening and late-night slots." },
+  { cat: "courses", q: "Can I take the free Placement Test first?", a: "Yes. The free placement test (about 10 minutes) tells you your current level and recommends the best starting course — with no commitment." },
+  { cat: "teachers", q: "Who teaches the classes?", a: "Our founder and a specialist team of IELTS, PTE, DET and conversation trainers lead every session. Each class is conversation-first and student-focused." },
   { cat: "website", q: "How do I create an account or sign up?", a: "Click 'Sign up' in the navbar, enter your email and set a password. You'll get a verification email, then you can access your dashboard, courses and certificate progress." },
-  { cat: "website", q: "How do I track my progress or get my certificate?", a: "Log in to your dashboard to view progress, classes, assignments and certificates. Once you complete 80% of the course, a certificate of completion is issued automatically." },
-  { cat: "website", q: "I forgot my password — what now?", a: "Use the 'Forgot password' link on the login page. We'll email you a secure reset link. Still stuck? Contact our team via WhatsApp and we'll help immediately." },
-  { cat: "website", q: "Where can I see the Daily News updates?", a: "Open the Daily News link in the navbar — a live feed of announcements, tips and updates from the academy, with likes and comments." },
-  { cat: "general", q: "What is the academy's address and hours?", a: "Language Hub is based in Islamabad, Pakistan. Sessions run Monday to Saturday, 3:00 PM to 12:00 AM. Book a demo or WhatsApp us to arrange a visit." },
-  { cat: "general", q: "How do I book a free demo class?", a: "Use the 'Book a demo' button anywhere on the site, pick your preferred date and time, and our team will confirm your slot instantly." },
-  { cat: "general", q: "Do you help with IELTS/PTE exam bookings?", a: "We focus on preparation and coaching to help you reach your target band. For exam dates and official bookings we can point you to the right authority." },
+  { cat: "general", q: "How do I book a free demo class?", a: "Use the 'Book a demo' button anywhere on the site, pick your preferred date and time, and our team will confirm your slot." },
 ];
 
 const QUICK = ["Course fees?", "Batch timing?", "Free demo?", "Placement test?", "How to sign up?"];
@@ -76,7 +67,6 @@ export function SupportHelp() {
   const [selected, setSelected] = useState<Faq | null>(null);
   const mounted = useIsClient();
   const reduce = useReducedMotion();
-  const router = useRouter();
 
   useBodyScrollLock(open);
   useEscapeKey(() => setOpen(false), open);
@@ -91,7 +81,7 @@ export function SupportHelp() {
   }, [query, cat]);
 
   const wa = whatsappLink("Assalam o alaikum! I have a question about Language Hub. Could you help me?");
-  const email = CONTACT.email || "hello@languagehub.example";
+  const email = CONTACT.email;
 
   // Portal to <body> so the widget always positions against the true viewport —
   // immune to any transform/containing-block ancestor AND to `vh` overflow on
@@ -105,10 +95,10 @@ export function SupportHelp() {
     <>
 {/* Floating actions — bottom right, side by side: Feedback + Help */}
       <div className="fixed bottom-6 right-6 z-[90] flex flex-col items-end gap-3">
-        {/* Feedback */}
-        <button
-          type="button"
-          onClick={() => router.push("/feedback")}
+        {/* Feedback — a prefetched Link so the page opens instantly */}
+        <Link
+          href="/feedback"
+          prefetch
           aria-label="Send feedback"
           className="group/df relative grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-[0_16px_40px_-12px_rgb(245_158_11/0.85)] transition-all duration-300 hover:scale-110 hover:shadow-[0_22px_52px_-14px_rgb(245_158_11/1)] active:scale-95"
         >
@@ -131,7 +121,7 @@ export function SupportHelp() {
           <span className="pointer-events-none absolute right-full top-1/2 mr-3 hidden -translate-y-1/2 whitespace-nowrap rounded-full border border-slate-200 bg-white px-3.5 py-1.5 font-display text-[0.72rem] font-bold text-slate-700 opacity-0 shadow-lg transition-all duration-300 group-hover/df:opacity-100 sm:block">
             Send feedback
           </span>
-        </button>
+        </Link>
 
         {/* Help & Support */}
         <motion.button
@@ -277,21 +267,29 @@ export function SupportHelp() {
                       </div>
                     </div>
                   ) : results.length > 0 ? (
-                    <ul className="flex flex-col gap-2">
-                      {results.map((f) => (
-                        <li key={f.q}>
-                          <button
-                            type="button"
-                            onClick={() => setSelected(f)}
-                            className="group flex w-full items-center gap-3 rounded-xl border border-[#E2E8F0] bg-white px-3.5 py-3 text-left transition-all hover:border-[#2563EB]/40 hover:shadow-[0_8px_24px_-16px_rgb(37_99_235/0.4)]"
-                          >
-                            <CheckCircle2 className="h-4.5 w-4.5 shrink-0 text-emerald-500" strokeWidth={2} />
-                            <span className="flex-1 font-display text-[0.83rem] font-bold text-[#0B1B3A]">{f.q}</span>
-                            <ArrowRight className="h-4 w-4 text-[#94A3B8] transition-transform group-hover:translate-x-1 group-hover:text-[#2563EB]" strokeWidth={2.2} />
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                    <>
+                      <p className="mb-2 font-mono text-[0.58rem] font-bold uppercase tracking-[0.2em] text-[#94A3B8]">
+                        Tap a question to see its answer
+                      </p>
+                      <ul className="flex flex-col gap-2">
+                        {results.map((f) => (
+                          <li key={f.q}>
+                            <button
+                              type="button"
+                              onClick={() => setSelected(f)}
+                              className="group flex w-full items-center gap-3 rounded-xl border border-[#E2E8F0] bg-white px-3.5 py-3 text-left transition-all hover:border-[#2563EB]/40 hover:shadow-[0_8px_24px_-16px_rgb(37_99_235/0.4)]"
+                            >
+                              <HelpCircle className="h-4.5 w-4.5 shrink-0 text-[#2563EB]" strokeWidth={2} />
+                              <span className="flex-1 font-display text-[0.83rem] font-bold text-[#0B1C3A]">{f.q}</span>
+                              <span className="hidden shrink-0 font-mono text-[0.56rem] font-bold uppercase tracking-[0.14em] text-[#94A3B8] group-hover:text-[#2563EB] sm:inline">
+                                Answer
+                              </span>
+                              <ArrowRight className="h-4 w-4 shrink-0 text-[#94A3B8] transition-transform group-hover:translate-x-1 group-hover:text-[#2563EB]" strokeWidth={2.2} />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
                   ) : (
                     /* No match → contact team */
                     <div className="py-6 text-center">
@@ -313,12 +311,19 @@ export function SupportHelp() {
                             <MessageCircle className="h-4 w-4" /> WhatsApp our team
                           </a>
                         ) : null}
-                        <a
-                          href={`mailto:${email}`}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#E2E8F0] px-4 py-3 font-display text-[0.8rem] font-bold text-[#1647C7] transition-colors hover:bg-[#2563EB]/[0.05]"
-                        >
-                          <Mail className="h-4 w-4" /> Email us
-                        </a>
+                        {email ? (
+                          <a
+                            href={`mailto:${email}?subject=${encodeURIComponent("Question about Language Hub")}`}
+                            className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#E2E8F0] px-4 py-3 font-display text-[0.8rem] font-bold text-[#1647C7] transition-colors hover:bg-[#2563EB]/[0.05]"
+                          >
+                            <Mail className="h-4 w-4" /> Email us — {email}
+                          </a>
+                        ) : null}
+                        {!wa && !email ? (
+                          <p className="text-[0.8rem] text-[#64748B]">
+                            Please reach us through the contact options in the footer.
+                          </p>
+                        ) : null}
                       </div>
                     </div>
                   )}

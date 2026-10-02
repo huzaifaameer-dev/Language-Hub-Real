@@ -62,7 +62,8 @@ export function ClosingStrip() {
             </span>
 
             <h2 className="mx-auto mt-5 max-w-2xl font-display text-[clamp(1.7rem,4vw,2.6rem)] font-extrabold leading-tight tracking-[-0.02em] text-ink">
-              Free demo. No pressure.{" "}
+              Free demo.
+              <br />
               <span
                 style={{
                   backgroundImage: "linear-gradient(100deg,#1D4ED8,#2563EB,#38BDF8)",

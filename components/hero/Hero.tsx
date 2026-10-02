@@ -1,7 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, Award, BookOpen, MessageSquareHeart, PlayCircle, Sparkles, User } from "lucide-react";
+import { ArrowRight, PlayCircle, Sparkles, User } from "lucide-react";
 import { BookDemoButton } from "@/components/contact/BookDemoButton";
 import { useLang } from "@/components/LanguageProvider";
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -108,7 +108,7 @@ export function Hero() {
               <Sparkles className="h-4 w-4 text-[#f59e0b]" strokeWidth={2} />
               Hub of Language Excellence
               <span className="ml-1 rounded-full bg-[#2563EB]/10 px-2.5 py-0.5 text-[0.68rem] font-bold text-[#1647C7]">
-                EST. 8+ yrs
+                Estimated 8 years experience
               </span>
             </span>
           </motion.div>
@@ -201,19 +201,6 @@ export function Hero() {
               Explore Courses
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.2} />
             </button>
-          </motion.div>
-          {/* Trust / differentiators row — service promises, not repeated numbers */}
-          <motion.div
-            initial={{ opacity: 0, y: reduce ? 0 : 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease, delay: 0.54 }}
-            className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4"
-          >
-            <TrustItem icon={<BookOpen className="h-4 w-4" />} title="Free placement test" sub="AI-powered · 10 minutes" />
-            <span className="hidden h-8 w-px bg-[#E2E8F0] sm:block" />
-            <TrustItem icon={<Award className="h-4 w-4" />} title="Certificate on completion" sub="Issued at 80% progress" />
-            <span className="hidden h-8 w-px bg-[#E2E8F0] sm:block" />
-            <TrustItem icon={<MessageSquareHeart className="h-4 w-4" />} title="Fast support" sub="WhatsApp · reply in 24h" />
           </motion.div>
         </div>
         {/* ═══════════════ RIGHT — Student Character ═══════════════ */}
@@ -315,18 +302,5 @@ export function Hero() {
         </svg>
       </div>
     </section>
-  );
-}
-function TrustItem({ icon, title, sub }: { icon: React.ReactNode; title: string; sub: string }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#BFD3FF]/70 text-[#1647C7]">
-        {icon}
-      </span>
-      <span className="flex flex-col leading-tight">
-        <span className="font-display text-[0.88rem] font-bold text-[#0B1B3A]">{title}</span>
-        <span className="text-[0.72rem] text-[#64748B]">{sub}</span>
-      </span>
-    </div>
   );
 }

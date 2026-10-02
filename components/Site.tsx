@@ -9,7 +9,6 @@ import { Courses } from "@/components/courses/Courses";
 import { Journey } from "@/components/journey/Journey";
 import { Reviews } from "@/components/reviews/Reviews";
 import { FounderSpotlight } from "@/components/about/FounderSpotlight";
-import { About } from "@/components/about/About";
 import { ClosingStrip } from "@/components/contact/ClosingStrip";
 import { Footer } from "@/components/footer/Footer";
 import { LiveEnrollmentBanner } from "@/components/social-proof/LiveEnrollmentBanner";
@@ -63,7 +62,6 @@ export function Site() {
           <Journey />
           <Reviews />
           <FounderSpotlight />
-          <About />
           <ClosingStrip />
         </main>
         <SupportHelp />

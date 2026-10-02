@@ -109,21 +109,6 @@ export function Reviews() {
       />
 
       <div className="relative mx-auto max-w-6xl">
-        {/* Trust summary strip */}
-        <div className="mb-10 flex flex-wrap items-center justify-center gap-6 rounded-2xl border border-[#DCE9FF] bg-white px-6 py-5 shadow-[0_8px_30px_-14px_rgb(37_99_235/0.15)]">
-          <div className="flex flex-col items-center gap-1.5">
-            <span className="font-display text-[2rem] font-black leading-none text-[#0B1B3A]">5.0</span>
-            <Stars />
-          </div>
-          <span className="hidden h-10 w-px bg-[#E0E9FF] sm:block" />
-          <div className="flex flex-col items-center gap-0.5">
-            <span className="flex items-center gap-1.5 font-display text-[0.82rem] font-bold text-[#0B1B3A]">
-              <BadgeCheck className="h-4 w-4 text-emerald-500" /> Verified Student Reviews
-            </span>
-            <span className="text-[0.72rem] text-[#64748B]">{reviews.length > 0 ? `${reviews.length}+ testimonials` : "Real feedback from real learners"}</span>
-          </div>
-        </div>
-
         <SectionHeader
           eyebrow={dict["reviews.eyebrow"]}
           title={

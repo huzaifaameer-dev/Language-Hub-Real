@@ -52,13 +52,11 @@ function buildCourses(dict: Record<string, string>): CourseItem[] {
   });
 }
 
-/** Programme dropdown — website sections. */
+/** Lightweight section links (rendered as plain items, no heavy dropdown). */
 const SITE_LINKS = [
-  { id: "about", key: "nav.about", label: "About", icon: Info, note: "Who we are & what we stand for" },
-  { id: "why", key: "nav.why-choose", label: "Why choose us", icon: Star, note: "The Language Hub difference" },
-  { id: "journey", key: "nav.journey", label: "Journey", icon: Layers, note: "Your path to fluency" },
   { id: "reviews", key: "nav.reviews", label: "Reviews", icon: Star, note: "Real results from learners" },
-  { id: "enroll", key: "nav.enroll", label: "How It Works", icon: ClipboardList, note: "Three simple steps to begin" },
+  { id: "founder", key: "nav.about", label: "About", icon: Info, note: "Meet the founder" },
+  { id: "enroll", key: "nav.enroll", label: "How it works", icon: Layers, note: "Three simple steps to begin" },
 ] as const;
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -69,7 +67,6 @@ export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [coursesOpen, setCoursesOpen] = useState(false);
-  const [siteOpen, setSiteOpen] = useState(false);
   const reduceMotion = useReducedMotion();
   const pathname = usePathname();
   const router = useRouter();
@@ -82,8 +79,7 @@ export function Navbar() {
   useEscapeKey(() => {
     setMenuOpen(false);
     setCoursesOpen(false);
-    setSiteOpen(false);
-  }, menuOpen || coursesOpen || siteOpen);
+  }, menuOpen || coursesOpen);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -109,7 +105,6 @@ export function Navbar() {
   useEffect(() => {
     const close = () => {
       setCoursesOpen(false);
-      setSiteOpen(false);
       setMenuOpen(false);
     };
     window.addEventListener("popstate", close);
@@ -119,7 +114,6 @@ export function Navbar() {
   const go = async (id: string) => {
     setMenuOpen(false);
     setCoursesOpen(false);
-    setSiteOpen(false);
     if (!onSite) {
       try {
         sessionStorage.setItem("lh:scroll-to", id);
@@ -174,9 +168,6 @@ export function Navbar() {
               <span className="flex flex-col items-start leading-none">
                 <span className="font-display text-[0.95rem] font-extrabold tracking-[0.02em] text-[#0B1B3A]">
                   LANGUAGE<span className="text-[#2563EB]"> HUB</span>
-                </span>
-                <span className="mt-1 hidden font-mono text-[0.56rem] font-bold uppercase tracking-[0.2em] text-[#2563EB] sm:block">
-                  Hub of Language Excellence
                 </span>
               </span>
             </button>
@@ -275,68 +266,20 @@ export function Navbar() {
                 </AnimatePresence>
               </div>
 
-              {/* PROGRAMME dropdown */}
-              <div
-                className="relative"
-                onMouseEnter={() => !reduceMotion && setSiteOpen(true)}
-                onMouseLeave={() => setSiteOpen(false)}
-              >
+              {/* Section links — lightweight, no dropdown */}
+              {SITE_LINKS.map((l) => (
                 <button
+                  key={l.id}
                   type="button"
-                  onClick={() => setSiteOpen((o) => !o)}
-                  aria-expanded={siteOpen}
-                  aria-haspopup="true"
+                  onClick={() => go(l.id)}
                   className={cn(
-                    "group relative py-2.5",
-                    siteOpen ? "text-[#2563EB]" : "text-ink-2 hover:text-ink"
+                    "rounded-full px-3.5 py-2 font-display text-[0.8rem] font-extrabold uppercase tracking-[0.06em] transition-colors hover:bg-white/70",
+                    active === l.id ? "text-[#2563EB]" : "text-ink-2 hover:text-[#2563EB]"
                   )}
                 >
-                  <span className="relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-[0.8rem] font-extrabold uppercase tracking-[0.06em] transition-colors hover:bg-white/70">
-                    <LayoutGrid className={cn("h-4 w-4", siteOpen ? "text-[#2563EB]" : "text-[#94A3B8]")} strokeWidth={2.2} />
-                    OVERVIEW
-                    <ChevronDown className={cn("h-3.5 w-3.5 text-[#94A3B8] transition-transform duration-300", siteOpen && "rotate-180")} strokeWidth={2.6} />
-                  </span>
-                  {siteOpen && under(true)}
+                  {dict[l.key] ?? l.label}
                 </button>
-
-                <AnimatePresence>
-                  {siteOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                      transition={{ duration: 0.24, ease }}
-                      className="absolute left-1/2 top-[calc(100%+0.6rem)] z-50 w-[24rem] -translate-x-1/2"
-                    >
-                      <span aria-hidden className="absolute -top-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 rounded-[3px] border-l border-t border-[#E6EDFF] bg-white" />
-                      <div className="overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white/95 p-2 shadow-[0_30px_70px_-30px_rgb(11_27_58/0.25)] backdrop-blur-xl">
-                        <p className="px-3 pb-1 pt-2 font-mono text-[0.56rem] font-bold uppercase tracking-[0.3em] text-[#1647C7]">
-                          {dict["nav.programme"] ?? "Overview"}
-                        </p>
-                        {SITE_LINKS.map((l) => (
-                          <button
-                            key={l.id}
-                            type="button"
-                            onClick={() => go(l.id)}
-                            className={cn(
-                              "group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-[#2563EB]/[0.05]",
-                              active === l.id && "bg-[#2563EB]/[0.04]"
-                            )}
-                          >
-                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#6D4AFF]/[0.08] text-[#6D4AFF] transition-transform group-hover:scale-105">
-                              <l.icon className="h-5 w-5" strokeWidth={1.9} />
-                            </span>
-                            <span className="flex min-w-0 flex-1 flex-col">
-                              <span className="font-display text-[0.85rem] font-bold text-ink">{dict[l.key] ?? l.label}</span>
-                              <span className="text-[0.68rem] font-medium text-ink-3">{l.note}</span>
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              ))}
 
               {/* NEWS — green live CTA (label only changed to NEWS) */}
               <Link
@@ -439,7 +382,7 @@ export function Navbar() {
 
                 <div className="mt-4 border-t border-ink/[0.06] pt-4">
                   <p className="mb-2 flex items-center gap-2 font-mono text-[0.6rem] font-bold uppercase tracking-[0.3em] text-[#6D4AFF]">
-                    <LayoutGrid className="h-3.5 w-3.5" /> {dict["nav.programme"] ?? "Overview"}
+                    <LayoutGrid className="h-3.5 w-3.5" /> {dict["nav.programme"] ?? "Explore"}
                   </p>
                   {SITE_LINKS.map((l, i) => (
                     <button
