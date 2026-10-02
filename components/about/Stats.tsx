@@ -68,6 +68,14 @@ function CountUp({ target, suffix }: { target: number; suffix: string }) {
     return () => cancelAnimationFrame(raf);
   }, [inView, target]);
 
+  // Safety net: some mobile browsers never fire the in-view observer for this
+  // block, which used to leave the counter stuck at 0. Snap to the real number
+  // shortly after mount so the section can never show a wrong value.
+  useEffect(() => {
+    const id = window.setTimeout(() => setVal(target), 2500);
+    return () => window.clearTimeout(id);
+  }, [target]);
+
   return (
     <span ref={ref} className="tabular-nums">
       {val}
