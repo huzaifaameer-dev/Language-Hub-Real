@@ -48,18 +48,32 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
         <Link
           href="/login"
           className={cn(
-            "group relative inline-flex h-10 items-center gap-2 rounded-full px-4 font-display text-[0.8rem] font-medium tracking-tight transition-colors duration-150",
+            "group relative inline-flex h-10 items-center gap-2.5 rounded-full pl-1 pr-4 font-display text-[0.8rem] font-medium tracking-tight transition-all duration-200",
             dark
               ? "border border-white/20 bg-white/10 text-white hover:bg-white/15"
-              : "border border-slate-200 bg-white text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] hover:border-slate-300 hover:shadow-[0_4px_14px_-10px_rgba(15,23,42,0.2)]",
+              : "border border-slate-200 bg-white text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] hover:border-slate-300 hover:bg-white hover:shadow-[0_8px_30px_-18px_rgba(15,23,42,0.35)]",
             variant === "dark" ? "focus-visible:outline-gold" : "focus-visible:outline-brand/80"
           )}
         >
-          <span className="relative grid h-6 w-6 place-items-center">
+          <motion.span
+            className={cn(
+              "relative grid h-7 w-7 place-items-center rounded-full",
+              dark ? "bg-white/15 ring-1 ring-white/20" : "bg-gradient-to-br from-slate-50 to-white ring-1 ring-slate-200/80"
+            )}
+            animate={{
+              y: [0, -1, 0],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              repeatDelay: 2,
+              ease: "easeInOut",
+            }}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -68,22 +82,10 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
               strokeLinejoin="round"
               className={cn("h-4 w-4", dark ? "text-white" : "text-slate-700")}
             >
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="3" y2="12" />
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
             </svg>
-            <motion.span
-              className="absolute inset-0 rounded-full border-2 border-[#2563EB]/40"
-              initial={{ scale: 1, opacity: 0.6 }}
-              animate={{ scale: 1.25, opacity: 0 }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                repeatDelay: 2,
-                ease: "easeOut",
-              }}
-            />
-          </span>
+          </motion.span>
           Sign in
         </Link>
       </div>

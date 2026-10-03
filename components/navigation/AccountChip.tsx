@@ -83,34 +83,34 @@ export function AccountChip() {
         href="/login"
         prefetch
         aria-label="Sign in"
-        className="group relative hidden items-center gap-2 rounded-full border border-slate-200 bg-white/95 px-4 py-2.5 font-display text-[0.8rem] font-medium tracking-tight text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-colors duration-150 hover:border-slate-300 hover:bg-white hover:shadow-[0_4px_14px_-10px_rgba(15,23,42,0.2)] md:inline-flex"
+        className="group relative hidden items-center gap-2.5 rounded-full pl-1 pr-4 py-2.5 border border-slate-200 bg-white/95 font-display text-[0.8rem] font-medium tracking-tight text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-all duration-200 hover:border-slate-300 hover:bg-white hover:shadow-[0_8px_30px_-18px_rgba(15,23,42,0.35)] md:inline-flex"
       >
         <motion.span
-          className="relative grid h-6 w-6 place-items-center rounded-full bg-slate-50 ring-1 ring-slate-200/80 perspective-[600px]"
-          initial={{ rotateY: 0 }}
-          animate={{ rotateY: 360 }}
+          className="relative grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-slate-50 to-white ring-1 ring-slate-200/80"
+          animate={{
+            y: [0, -1, 0],
+          }}
           transition={{
             duration: 2,
             repeat: Infinity,
-            ease: "linear",
             repeatDelay: 2,
+            ease: "easeInOut",
           }}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="-ml-0.5 h-3.5 w-3.5 transform-gpu text-slate-700"
+            className="h-3.5 w-3.5 text-slate-700"
           >
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-            <polyline points="10 17 15 12 10 7" />
-            <line x1="15" y1="12" x2="3" y2="12" />
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
           </svg>
         </motion.span>
         Sign in
