@@ -162,18 +162,18 @@ export function Navbar() {
               aria-label="Language Hub — back to top"
               className="group relative z-[60] flex shrink-0 items-center gap-2.5 pr-2"
             >
-              <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_-14px_rgb(11_27_58/0.45)] ring-1 ring-white/70 transition-transform duration-500 group-hover:scale-[1.03]">
+              <span className="grid h-13 w-13 place-items-center overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_-14px_rgb(11_27_58/0.45)] ring-1 ring-white/70 transition-transform duration-500 group-hover:scale-[1.03]">
                 <Image
                   src="/download/Geometric LH Ribbon Emblem.png"
                   alt="Language Hub"
-                  width={44}
-                  height={44}
+                  width={52}
+                  height={52}
                   priority
-                  className="h-9 w-9 object-contain"
+                  className="h-11 w-11 object-contain"
                 />
               </span>
-              <span className="hidden sm:flex flex-col items-start leading-none">
-                <span className="font-display text-[0.98rem] font-extrabold tracking-[0.02em] text-[#0B1B3A]">
+              <span className="hidden sm:flex flex-col items-start leading-none -ml-0.5">
+                <span className="font-display text-[0.92rem] font-extrabold tracking-[0.002em] text-[#0B1B3A] leading-tight">
                   LANGUAGE<span className="text-[#2563EB]"> HUB</span>
                 </span>
               </span>
