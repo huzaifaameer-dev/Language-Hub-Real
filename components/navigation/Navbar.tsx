@@ -189,10 +189,10 @@ export function Navbar() {
                     type="button"
                     onClick={() => go(l.id)}
                     className={cn(
-                      "group relative rounded-full px-4 py-2.5 font-display text-[0.8rem] font-medium uppercase tracking-[0.08em] transition-colors duration-150",
+                      "group relative overflow-hidden rounded-full px-4 py-2.5 font-display text-[0.8rem] font-medium uppercase tracking-[0.08em] transition-all duration-200",
                       activeLink
                         ? "text-[#0F172A]"
-                        : "text-[#475569] hover:text-[#0F172A]"
+                        : "text-[#475569] hover:text-[#0F172A] hover:-translate-y-px"
                     )}
                   >
                     {activeLink && (
@@ -205,6 +205,7 @@ export function Navbar() {
                     <span className="relative inline-flex items-center">
                       {dict[l.key] ?? l.label}
                     </span>
+                    <span className="absolute inset-x-0 bottom-1 h-px bg-gradient-to-r from-transparent via-[#2563EB]/40 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
                   </button>
                 );
               })}
