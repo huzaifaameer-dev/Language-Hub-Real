@@ -106,10 +106,7 @@ export function Hero() {
           >
             <span className="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white/80 px-4 py-2 text-[0.8rem] font-semibold text-[#1647C7] shadow-[0_8px_24px_-12px_rgb(11_27_58/0.15)] backdrop-blur-md">
               <Sparkles className="h-4 w-4 text-[#f59e0b]" strokeWidth={2} />
-              Hub of Language Excellence
-              <span className="ml-1 rounded-full bg-[#2563EB]/10 px-2.5 py-0.5 text-[0.68rem] font-bold text-[#1647C7]">
-                Estimated 8 years experience
-              </span>
+              Estimated 8 years experience
             </span>
           </motion.div>
           {/* Heading */}
@@ -242,12 +239,10 @@ export function Hero() {
             transition={{ duration: 0.9, ease, delay: 0.2 }}
             className="relative z-10 mx-auto w-[88%] max-w-[31rem] lg:w-auto lg:max-w-none"
           >
-            <motion.img
+            <img
               src="/hero-student.png"
               alt="Student learning English at Language Hub"
               className="h-auto w-full object-contain"
-              animate={reduce ? undefined : { y: [0, -8, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             />
           </motion.div>
           {/* Paper-plane + dotted flight path */}
