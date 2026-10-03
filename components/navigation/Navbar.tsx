@@ -162,18 +162,18 @@ export function Navbar() {
               aria-label="Language Hub — back to top"
               className="group relative z-[60] flex shrink-0 items-center gap-2.5 pr-2"
             >
-              <span className="grid h-13 w-13 place-items-center overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_-14px_rgb(11_27_58/0.45)] ring-1 ring-white/70 transition-transform duration-500 group-hover:scale-[1.03]">
+              <span className="grid h-12 w-12 place-items-center overflow-hidden rounded-2xl bg-white ring-1 ring-white/70">
                 <Image
                   src="/download/Geometric LH Ribbon Emblem.png"
                   alt="Language Hub"
-                  width={52}
-                  height={52}
+                  width={48}
+                  height={48}
                   priority
-                  className="h-11 w-11 object-contain"
+                  className="h-10 w-10 object-contain"
                 />
               </span>
-              <span className="hidden sm:flex flex-col items-start leading-none -ml-0.5">
-                <span className="font-display text-[0.92rem] font-extrabold tracking-[0.002em] text-[#0B1B3A] leading-tight">
+              <span className="hidden sm:flex items-center leading-none pl-1">
+                <span className="font-display text-[0.92rem] font-extrabold tracking-[-0.01em] text-[#0B1B3A] leading-tight">
                   LANGUAGE<span className="text-[#2563EB]"> HUB</span>
                 </span>
               </span>
@@ -205,7 +205,7 @@ export function Navbar() {
                     <span className="relative inline-flex items-center">
                       {dict[l.key] ?? l.label}
                     </span>
-                    <span className="absolute inset-x-0 bottom-1 h-px bg-gradient-to-r from-transparent via-[#2563EB]/40 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+                    <span className="absolute inset-x-0 bottom-1 h-[2px] bg-gradient-to-r from-transparent via-[#2563EB]/60 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
                   </button>
                 );
               })}

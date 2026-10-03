@@ -48,28 +48,14 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
         <Link
           href="/login"
           className={cn(
-            "group relative inline-flex h-10 items-center gap-2.5 rounded-full pl-1 pr-4 font-display text-[0.8rem] font-medium tracking-tight transition-all duration-200",
+            "group relative inline-flex h-10 items-center gap-2 rounded-full pl-1.5 pr-4 font-display text-[0.8rem] font-medium tracking-tight transition-all duration-200",
             dark
               ? "border border-white/20 bg-white/10 text-white hover:bg-white/15"
-              : "border border-slate-200 bg-white text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] hover:border-slate-300 hover:bg-white hover:shadow-[0_8px_30px_-18px_rgba(15,23,42,0.35)]",
+              : "border border-slate-300 bg-white text-slate-900 shadow-sm hover:border-slate-400 hover:shadow-md",
             variant === "dark" ? "focus-visible:outline-gold" : "focus-visible:outline-brand/80"
           )}
         >
-          <motion.span
-            className={cn(
-              "relative grid h-7 w-7 place-items-center rounded-full",
-              dark ? "bg-white/15 ring-1 ring-white/20" : "bg-gradient-to-br from-slate-50 to-white ring-1 ring-slate-200/80"
-            )}
-            animate={{
-              y: [0, -1, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              repeatDelay: 2,
-              ease: "easeInOut",
-            }}
-          >
+          <span className="relative grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-slate-50 to-white ring-1 ring-slate-200/80">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -80,12 +66,12 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className={cn("h-4 w-4", dark ? "text-white" : "text-slate-700")}
+              className="h-4 w-4 text-slate-700"
             >
               <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
-          </motion.span>
+          </span>
           Sign in
         </Link>
       </div>

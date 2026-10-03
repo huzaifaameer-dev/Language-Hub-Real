@@ -83,20 +83,9 @@ export function AccountChip() {
         href="/login"
         prefetch
         aria-label="Sign in"
-        className="group relative hidden items-center gap-2.5 rounded-full pl-1 pr-4 py-2.5 border border-slate-200 bg-white/95 font-display text-[0.8rem] font-medium tracking-tight text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-all duration-200 hover:border-slate-300 hover:bg-white hover:shadow-[0_8px_30px_-18px_rgba(15,23,42,0.35)] md:inline-flex"
+        className="group relative hidden items-center gap-2 rounded-full pl-1.5 pr-4 py-2.5 border border-slate-300 bg-white font-display text-[0.8rem] font-medium tracking-tight text-slate-900 shadow-sm transition-all duration-200 hover:border-slate-400 hover:shadow-md md:inline-flex"
       >
-        <motion.span
-          className="relative grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-slate-50 to-white ring-1 ring-slate-200/80"
-          animate={{
-            y: [0, -1, 0],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-            repeatDelay: 2,
-            ease: "easeInOut",
-          }}
-        >
+        <span className="relative grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-slate-50 to-white ring-1 ring-slate-200/80">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="14"
@@ -112,7 +101,7 @@ export function AccountChip() {
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-        </motion.span>
+        </span>
         Sign in
       </Link>
     );
