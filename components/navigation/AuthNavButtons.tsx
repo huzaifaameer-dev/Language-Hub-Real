@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
 import { ChevronDown, LogOut, User } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dark" }) {
@@ -45,27 +46,45 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
     return (
       <div className="flex items-center gap-2">
         <Link
-          href="/signup"
-          className={cn(
-            "group inline-flex h-10 items-center gap-1.5 rounded-full px-4 font-display text-[0.72rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md transition-all duration-300",
-            "bg-gradient-to-r from-brand-deep to-brand-magenta text-white shadow-[0_10px_24px_-10px_rgb(124_58_237/0.7)] hover:brightness-110",
-            variant === "dark" ? "focus-visible:outline-gold" : "focus-visible:outline-brand/80"
-          )}
-        >
-          Sign up
-          <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
-        </Link>
-        <Link
           href="/login"
           className={cn(
-            "inline-flex h-10 items-center rounded-full border px-4 font-display text-[0.72rem] font-bold uppercase tracking-[0.16em] backdrop-blur-md transition-all duration-300",
+            "group relative inline-flex h-10 items-center gap-2 rounded-full px-4 font-display text-[0.8rem] font-medium tracking-tight transition-colors duration-150",
             dark
-              ? "border-gold/40 bg-gold/10 text-gold-light hover:bg-gold/20"
-              : "border-ink/15 bg-ivory/70 text-ink hover:border-brand/50 hover:text-brand-deep",
+              ? "border border-white/20 bg-white/10 text-white hover:bg-white/15"
+              : "border border-slate-200 bg-white text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.03)] hover:border-slate-300 hover:shadow-[0_4px_14px_-10px_rgba(15,23,42,0.2)]",
             variant === "dark" ? "focus-visible:outline-gold" : "focus-visible:outline-brand/80"
           )}
         >
-          Log in
+          <span className="relative grid h-6 w-6 place-items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={cn("h-4 w-4", dark ? "text-white" : "text-slate-700")}
+            >
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+              <polyline points="10 17 15 12 10 7" />
+              <line x1="15" y1="12" x2="3" y2="12" />
+            </svg>
+            <motion.span
+              className="absolute inset-0 rounded-full border-2 border-[#2563EB]/40"
+              initial={{ scale: 1, opacity: 0.6 }}
+              animate={{ scale: 1.25, opacity: 0 }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatDelay: 2,
+                ease: "easeOut",
+              }}
+            />
+          </span>
+          Sign in
         </Link>
       </div>
     );

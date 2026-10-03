@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Logo } from "@/components/ui/Logo";
+import Image from "next/image";
 import { AuthNavButtons } from "@/components/navigation/AuthNavButtons";
 import { AccountChip } from "@/components/navigation/AccountChip";
 import { cn } from "@/lib/utils";
@@ -54,8 +54,8 @@ function buildCourses(dict: Record<string, string>): CourseItem[] {
 
 /** Lightweight section links (rendered as plain items, no heavy dropdown). */
 const SITE_LINKS = [
-  { id: "reviews", key: "nav.reviews", label: "Reviews", icon: Star, note: "Real results from learners" },
   { id: "founder", key: "nav.about", label: "About", icon: Info, note: "Meet the founder" },
+  { id: "reviews", key: "nav.reviews", label: "Reviews", icon: Star, note: "Real results from learners" },
   { id: "enroll", key: "nav.enroll", label: "How it works", icon: Layers, note: "Three simple steps to begin" },
 ] as const;
 
@@ -149,10 +149,10 @@ export function Navbar() {
             aria-label="Primary"
             dir="ltr"
             className={cn(
-              "relative flex items-center justify-between gap-3 rounded-[1.75rem] border backdrop-blur-xl ring-1 ring-inset ring-white/50 transition-all duration-500 sm:px-6",
+              "relative flex items-center justify-between gap-3 rounded-full border backdrop-blur-xl ring-1 ring-inset ring-white/50 transition-all duration-500 px-3 sm:px-6",
               scrolled
-                ? "h-16 border-[#C7D6EE] bg-[#DFE8F6]/92 shadow-[0_18px_48px_-26px_rgb(11_27_58/0.32)]"
-                : "h-[4.3rem] border-[#D2DEED] bg-[#E8EEF8]/92 shadow-[0_14px_40px_-24px_rgb(11_27_58/0.26)]"
+                ? "h-16 border-slate-200/80 bg-white/90 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.45)]"
+                : "h-[4.2rem] border-slate-200/70 bg-white/85 shadow-[0_16px_50px_-30px_rgba(15,23,42,0.4)]"
             )}
           >
             {/* Logo */}
@@ -160,21 +160,55 @@ export function Navbar() {
               type="button"
               onClick={() => go("home")}
               aria-label="Language Hub — back to top"
-              className="group relative z-[60] flex shrink-0 items-center gap-2.5"
+              className="group relative z-[60] flex shrink-0 items-center gap-2.5 pr-2"
             >
-              <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-2xl bg-gradient-to-br from-[#2563EB] to-[#6D4AFF] shadow-[0_10px_24px_-10px_rgb(37_99_235/0.55)]">
-                <Logo size="xs" eager className="h-6 w-6 rounded-lg object-contain" />
+              <span className="grid h-11 w-11 place-items-center overflow-hidden rounded-2xl bg-white shadow-[0_8px_30px_-14px_rgb(11_27_58/0.45)] ring-1 ring-white/70 transition-transform duration-500 group-hover:scale-[1.03]">
+                <Image
+                  src="/download/Geometric LH Ribbon Emblem.png"
+                  alt="Language Hub"
+                  width={44}
+                  height={44}
+                  priority
+                  className="h-9 w-9 object-contain"
+                />
               </span>
-              <span className="flex flex-col items-start leading-none">
-                <span className="font-display text-[0.95rem] font-extrabold tracking-[0.02em] text-[#0B1B3A]">
+              <span className="hidden sm:flex flex-col items-start leading-none">
+                <span className="font-display text-[0.98rem] font-extrabold tracking-[0.02em] text-[#0B1B3A]">
                   LANGUAGE<span className="text-[#2563EB]"> HUB</span>
                 </span>
               </span>
             </button>
 
-            {/* Center nav — COURSES / PROGRAMME / DAILY NEWS */}
-            <div className="hidden items-center gap-0.5 lg:flex">
-              {/* COURSES dropdown */}
+            {/* Center nav — minimalistic: About, Review, How it works, Courses with hover animation */}
+            <div className="hidden items-center gap-1 lg:flex">
+              {SITE_LINKS.map((l) => {
+                const activeLink = active === l.id;
+                return (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => go(l.id)}
+                    className={cn(
+                      "group relative rounded-full px-4 py-2.5 font-display text-[0.8rem] font-medium uppercase tracking-[0.08em] transition-colors duration-150",
+                      activeLink
+                        ? "text-[#0F172A]"
+                        : "text-[#475569] hover:text-[#0F172A]"
+                    )}
+                  >
+                    {activeLink && (
+                      <motion.span
+                        layoutId="nav-pill"
+                        transition={{ type: "spring", stiffness: 320, damping: 30 }}
+                        className="absolute inset-0 -z-10 rounded-full bg-white/95 shadow-[0_4px_16px_-12px_rgba(15,23,42,0.5)] ring-1 ring-white/90"
+                      />
+                    )}
+                    <span className="relative inline-flex items-center">
+                      {dict[l.key] ?? l.label}
+                    </span>
+                  </button>
+                );
+              })}
+              {/* Courses dropdown - improved */}
               <div
                 className="relative"
                 onMouseEnter={() => !reduceMotion && setCoursesOpen(true)}
@@ -186,127 +220,83 @@ export function Navbar() {
                   aria-expanded={coursesOpen}
                   aria-haspopup="true"
                   className={cn(
-                    "group relative py-2.5",
-                    isCourses || coursesOpen ? "text-[#2563EB]" : "text-ink-2 hover:text-ink"
+                    "group relative inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 font-display text-[0.8rem] font-medium uppercase tracking-[0.08em] transition-colors duration-150",
+                    isCourses || coursesOpen
+                      ? "text-[#0F172A]"
+                      : "text-[#475569] hover:text-[#0F172A]"
                   )}
                 >
-                  <span className="relative inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 font-display text-[0.8rem] font-extrabold uppercase tracking-[0.06em] transition-colors hover:bg-white/70">
-                    <GraduationCap className={cn("h-4 w-4", isCourses || coursesOpen ? "text-[#2563EB]" : "text-[#94A3B8]")} strokeWidth={2.2} />
-                    COURSES
-                    <ChevronDown className={cn("h-3.5 w-3.5 text-[#94A3B8] transition-transform duration-300", coursesOpen && "rotate-180")} strokeWidth={2.6} />
+                  {(isCourses || coursesOpen) && (
+                    <motion.span
+                      layoutId="nav-pill"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      className="absolute inset-0 -z-10 rounded-full bg-white/95 shadow-[0_10px_40px_-24px_rgba(15,23,42,0.9)] ring-1 ring-white/80"
+                    />
+                  )}
+                  <span className="relative inline-flex items-center gap-1.5">
+                    Courses
+                    <ChevronDown
+                      className={cn(
+                        "h-3.5 w-3.5 transition-transform duration-200",
+                        coursesOpen && "rotate-180"
+                      )}
+                      strokeWidth={2.2}
+                    />
                   </span>
-                  {(coursesOpen || isCourses) && under(true)}
                 </button>
 
                 <AnimatePresence>
                   {coursesOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.98 }}
-                      transition={{ duration: 0.24, ease }}
-                      className="absolute left-1/2 top-[calc(100%+0.6rem)] z-50 w-[36rem] -translate-x-1/2"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute left-1/2 top-[calc(100%+0.7rem)] z-50 w-[38rem] -translate-x-1/2"
                     >
-                      <span aria-hidden className="absolute -top-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 rounded-[3px] border-l border-t border-[#E6EDFF] bg-white" />
-                      <div className="grid grid-cols-[1.25fr_0.75fr] overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white/95 shadow-[0_30px_70px_-30px_rgb(11_27_58/0.25)] backdrop-blur-xl">
-                        {/* Courses list */}
-                        <div className="p-2">
-                          <p className="px-3 pb-1 pt-2 font-mono text-[0.56rem] font-bold uppercase tracking-[0.3em] text-[#1647C7]">
-                            {dict["nav.courses"] ?? "Courses"}
-                          </p>
+                      <span
+                        aria-hidden
+                        className="absolute -top-1.5 left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 rounded-[3px] border-l border-t border-white bg-white shadow-[0_-1px_2px_rgba(15,23,42,0.04)]"
+                      />
+                      <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_30px_80px_-40px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+                        <div className="grid grid-cols-2 gap-1 p-2">
                           {courses.map((c) => (
                             <Link
                               key={c.slug}
                               href={`/courses/${c.slug}`}
                               onClick={() => setCoursesOpen(false)}
-                              className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#2563EB]/[0.05]"
+                              className="group relative flex items-start gap-3 rounded-xl px-3.5 py-3 transition-colors duration-150 hover:bg-slate-50"
                             >
-                              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2563EB]/[0.08] text-[#1647C7] transition-transform group-hover:scale-105">
+                              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-700 ring-1 ring-slate-200/70 transition-colors duration-150 group-hover:bg-[#2563EB]/10 group-hover:text-[#1647C7] group-hover:ring-[#2563EB]/15">
                                 <c.icon className="h-5 w-5" strokeWidth={1.9} />
                               </span>
-                              <span className="flex min-w-0 flex-1 flex-col">
-                                <span className="font-display text-[0.85rem] font-bold text-ink">{c.name}</span>
-                                <span className="text-[0.68rem] font-medium text-ink-3">{c.tagline}</span>
-                              </span>
-                              <ArrowUpRight className="h-4 w-4 -translate-x-1 translate-y-1 text-[#2563EB] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:translate-y-0 group-hover:opacity-100" strokeWidth={2} />
+                              <div className="flex min-w-0 flex-1 flex-col">
+                                <span className="font-display text-[0.95rem] font-semibold text-slate-900">
+                                  {c.name}
+                                </span>
+                                <span className="mt-0.5 line-clamp-2 text-[0.72rem] leading-relaxed text-slate-500">
+                                  {c.tagline}
+                                </span>
+                              </div>
+                              <ArrowUpRight className="h-4 w-4 text-slate-400 opacity-0 transition-opacity duration-150 group-hover:opacity-100" />
                             </Link>
                           ))}
-                          <Link href="/courses" onClick={() => setCoursesOpen(false)} className="mt-1 inline-flex items-center gap-1.5 border-t border-[#E2E8F0] px-3 pb-1 pt-2.5 font-display text-[0.72rem] font-bold text-[#1647C7] hover:text-[#2563EB]">
-                            {dict["courses.viewAll"] ?? "View all courses"} <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.6} />
-                          </Link>
                         </div>
-
-                        {/* Placement Test feature card */}
-                        <div className="flex border-l border-[#E2E8F0] p-3">
-                          <div className="flex w-full flex-col justify-between overflow-hidden rounded-xl bg-gradient-to-br from-[#2563EB] via-[#1647C7] to-[#6D4AFF] p-4 text-white shadow-[0_18px_40px_-20px_rgb(37_99_235/0.8)]">
-                            <div>
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 font-mono text-[0.55rem] font-bold uppercase tracking-[0.18em] text-white backdrop-blur">
-                                <Sparkles className="h-3 w-3" /> Free · AI
-                              </span>
-                              <p className="mt-3 font-display text-[0.9rem] font-black leading-snug">
-                                {dict["nav.placement"] ?? "Placement Test"}
-                              </p>
-                              <p className="mt-1 text-[0.64rem] font-medium leading-relaxed text-white/70">
-                                Assess your level in 10 minutes — instant AI results.
-                              </p>
-                            </div>
-                            <Link
-                              href="/placement-test"
-                              onClick={() => setCoursesOpen(false)}
-                              className="group mt-4 inline-flex w-full items-center justify-between rounded-lg bg-white px-3 py-2.5 font-display text-[0.7rem] font-black uppercase tracking-[0.12em] text-[#1647C7] transition-all duration-300 hover:shadow-lg"
-                            >
-                              Start now
-                              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" strokeWidth={2.4} />
-                            </Link>
-                          </div>
+                        <div className="border-t border-slate-100 bg-white px-4 py-3">
+                          <Link
+                            href="/courses"
+                            onClick={() => setCoursesOpen(false)}
+                            className="group inline-flex items-center gap-2 font-display text-[0.78rem] font-medium text-[#1647C7] transition-colors hover:text-[#2563EB]"
+                          >
+                            View all courses
+                            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                          </Link>
                         </div>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-
-              {/* Section links — lightweight, no dropdown */}
-              {SITE_LINKS.map((l) => (
-                <button
-                  key={l.id}
-                  type="button"
-                  onClick={() => go(l.id)}
-                  className={cn(
-                    "rounded-full px-3.5 py-2 font-display text-[0.8rem] font-extrabold uppercase tracking-[0.06em] transition-colors hover:bg-white/70",
-                    active === l.id ? "text-[#2563EB]" : "text-ink-2 hover:text-[#2563EB]"
-                  )}
-                >
-                  {dict[l.key] ?? l.label}
-                </button>
-              ))}
-
-              {/* NEWS — green live CTA (label only changed to NEWS) */}
-              <Link
-                href="/news"
-                onClick={() => setMenuOpen(false)}
-                className={cn(
-                  "relative inline-flex items-center gap-1.5 rounded-full px-4 py-2 font-display text-[0.78rem] font-extrabold uppercase tracking-[0.06em] transition-all duration-300",
-                  isNews
-                    ? "bg-emerald-500 text-white shadow-[0_10px_24px_-10px_rgb(16_185_129/0.7)]"
-                    : "border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:shadow-[0_10px_24px_-12px_rgb(16_185_129/0.55)]"
-                )}
-              >
-                {/* pulsing live dot */}
-                <span className="relative flex h-2.5 w-2.5">
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "absolute inline-flex h-full w-full rounded-full",
-                      isNews ? "bg-white/70" : "bg-emerald-400/70"
-                    )}
-                    style={{ animation: "ping 1.6s cubic-bezier(0,0,0.2,1) infinite" }}
-                  />
-                  <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", isNews ? "bg-white" : "bg-emerald-500")} />
-                </span>
-                <Newspaper className={cn("h-4 w-4", isNews ? "text-white" : "text-emerald-600")} strokeWidth={2.2} />
-                NEWS
-              </Link>
             </div>
 
             {/* Right */}
@@ -317,9 +307,9 @@ export function Navbar() {
                 onClick={() => setMenuOpen(true)}
                 aria-label="Open menu"
                 aria-expanded={menuOpen}
-                className="flex h-11 w-11 items-center justify-center rounded-xl border border-[#E6EDFF] bg-white/80 text-ink transition-colors hover:border-[#2563EB]/50 lg:hidden"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white/90 text-slate-700 transition-colors hover:border-slate-300 hover:bg-white lg:hidden"
               >
-                <Menu className="h-5 w-5" strokeWidth={1.9} />
+                <Menu className="h-5 w-5" strokeWidth={1.8} />
               </button>
             </div>
           </nav>
@@ -342,10 +332,16 @@ export function Navbar() {
             <FocusTrap active={menuOpen} className="flex h-full flex-col overflow-y-auto">
               <div className="flex items-center justify-between px-6 py-4">
                 <span className="flex items-center gap-2.5">
-                  <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl bg-gradient-to-br from-[#2563EB] to-[#6D4AFF]">
-                    <Logo size="xs" eager className="h-5 w-5 rounded-lg object-contain" />
+                  <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-200/70">
+                    <Image
+                      src="/download/Geometric LH Ribbon Emblem.png"
+                      alt="Language Hub"
+                      width={40}
+                      height={40}
+                      className="h-8 w-8 object-contain"
+                    />
                   </span>
-                  <span className="font-display text-[0.85rem] font-extrabold text-ink">
+                  <span className="font-display text-[0.9rem] font-extrabold text-ink">
                     LANGUAGE<span className="text-[#2563EB]"> HUB</span>
                   </span>
                 </span>
