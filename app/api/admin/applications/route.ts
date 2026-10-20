@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { ObjectId } from "mongodb";
 
 import { requireAdmin, isValidObjectId } from "@/lib/admin-guard";
@@ -161,18 +161,20 @@ export async function PATCH(request: Request) {
     }
 
     if (target?.email) {
-      void sendDecisionEmail({
-        to: target.email,
-        name: target.name,
-        kind: "application",
-        approved: status === "APPROVED",
-        subject:
-          status === "APPROVED"
-            ? "Your application was approved 🎉"
-            : "Update on your application",
-        message,
-        href: "/dashboard",
-      }).catch(() => {});
+      after(async () => {
+        await sendDecisionEmail({
+          to: target.email,
+          name: target.name,
+          kind: "application",
+          approved: status === "APPROVED",
+          subject:
+            status === "APPROVED"
+              ? "Your application was approved 🎉"
+              : "Update on your application",
+          message,
+          href: "/dashboard",
+        });
+      });
     }
 
     // On approval: record the course fee as a pending deposit (auto, once per
@@ -229,10 +231,12 @@ export async function PATCH(request: Request) {
           (user as { phone?: string; whatsapp?: string } | null)?.whatsapp;
         const full2 = await applications.findOne({ _id: objectId });
         if (phone && full2) {
-          void sendWaText({
-            to: phone,
-            text: `🎉 Congratulations ${full2.name}! Your application for ${full2.course} has been approved. Our team will contact you to confirm your enrollment. Welcome to Language Hub!`,
-          }).catch(() => {});
+          after(async () => {
+            await sendWaText({
+              to: phone,
+              text: `🎉 Congratulations ${full2.name}! Your application for ${full2.course} has been approved. Our team will contact you to confirm your enrollment. Welcome to Language Hub!`,
+            });
+          });
         }
       } catch {
         // whatsapp best-effort
@@ -276,24 +280,31 @@ export async function PATCH(request: Request) {
     })
   );
 
-  // Fire-and-forget notifications + emails.
+  // Realtime events immediately; decision emails inside after() so the
+  // serverless function stays alive until SMTP finishes.
   affectedTargets.forEach((target) => {
     publishEvent({
       table: "applications",
       userId: target?.userId as string | undefined,
       at: Date.now(),
     });
-    if (target?.email) {
-      void sendDecisionEmail({
-        to: target.email,
-        name: target.name,
-        kind: "application",
-        approved: status === "APPROVED",
-        subject: status === "APPROVED" ? "Your application was approved" : "Update on your application",
-        message,
-        href: "/dashboard",
-      }).catch(() => {});
-    }
+  });
+  after(async () => {
+    await Promise.all(
+      affectedTargets
+        .filter((target) => target?.email)
+        .map((target) =>
+          sendDecisionEmail({
+            to: target.email,
+            name: target.name,
+            kind: "application",
+            approved: status === "APPROVED",
+            subject: status === "APPROVED" ? "Your application was approved" : "Update on your application",
+            message,
+            href: "/dashboard",
+          })
+        )
+    );
   });
 
   void logAdminAction({

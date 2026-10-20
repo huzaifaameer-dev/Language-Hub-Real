@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { getDb } from "@/lib/db";
-import { notifyAdmins, listAdminEmails } from "@/lib/notifications";
+import { notifyAdmins } from "@/lib/notifications";
 import { sendEmail, emailConfigured } from "@/lib/email";
 import { appBaseUrl } from "@/lib/base-url";
 import { botGuardError } from "@/lib/bot-check";
@@ -67,11 +67,12 @@ export async function POST(request: Request) {
     href: "/admin-panel",
   });
 
-  // Send results email to the student (best-effort)
-  if (emailConfigured()) {
-    void listAdminEmails().then(() => {
-      void sendEmail({
-        to: email!.trim(),
+  // Send results email to the student (best-effort). after() keeps the
+  // serverless function alive until SMTP finishes.
+  if (emailConfigured() && email) {
+    after(async () => {
+      await sendEmail({
+        to: email.trim(),
         subject: `Your English Level Test Results — Language Hub`,
         text: `Hi ${(name || "there").trim()}, you scored ${score}/${total} (${level}). We recommend: ${recommendedCourse}. Apply now: ${appBaseUrl()}/signup`,
         html: `<!doctype html>

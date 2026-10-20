@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { ObjectId } from "mongodb";
 
 import { requireAdmin, isValidObjectId } from "@/lib/admin-guard";
@@ -109,15 +109,17 @@ export async function PATCH(request: Request) {
   publishEvent({ table: "demo_bookings", at: Date.now() });
 
   if (target?.email) {
-    void sendDemoBookingDecisionEmail({
-      to: target.email,
-      name: target.name,
-      confirmed: status === "CONFIRMED",
-      course: target.course,
-      preferredDate: target.preferredDate,
-      preferredTime: target.preferredTime,
-      message,
-    }).catch(() => {});
+    after(async () => {
+      await sendDemoBookingDecisionEmail({
+        to: target.email,
+        name: target.name,
+        confirmed: status === "CONFIRMED",
+        course: target.course,
+        preferredDate: target.preferredDate,
+        preferredTime: target.preferredTime,
+        message,
+      });
+    });
   }
 
   return NextResponse.json({ ok: true, status });

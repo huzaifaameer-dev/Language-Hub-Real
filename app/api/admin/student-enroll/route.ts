@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { ObjectId } from "mongodb";
 import { revalidateTag } from "next/cache";
 
@@ -142,25 +142,29 @@ export async function POST(request: Request) {
   }).catch(() => {});
 
   if (user.email) {
-    void sendDecisionEmail({
-      to: user.email,
-      name: user.name,
-      kind: "enrollment",
-      approved: true,
-      subject: "You are enrolled 🎉",
-      message: message || `Congratulations! You are now enrolled in ${course}. Welcome aboard!`,
-      href: "/dashboard",
-    }).catch(() => {});
+    after(async () => {
+      await sendDecisionEmail({
+        to: user.email,
+        name: user.name,
+        kind: "enrollment",
+        approved: true,
+        subject: "You are enrolled 🎉",
+        message: message || `Congratulations! You are now enrolled in ${course}. Welcome aboard!`,
+        href: "/dashboard",
+      });
+    });
   }
 
   const phone = (user as { phone?: string; whatsapp?: string }).phone || (user as { phone?: string; whatsapp?: string }).whatsapp;
   if (phone) {
-    void sendWaText({
-      to: phone,
-      text: `🎉 Congratulations ${user.name}! You are now enrolled in ${course} at Language Hub${
-        amount > 0 ? ` (fee: ${formatPKR(amount)})` : ""
-      }. Our team will guide you through the next steps. Welcome aboard!`,
-    }).catch(() => {});
+    after(async () => {
+      await sendWaText({
+        to: phone,
+        text: `🎉 Congratulations ${user.name}! You are now enrolled in ${course} at Language Hub${
+          amount > 0 ? ` (fee: ${formatPKR(amount)})` : ""
+        }. Our team will guide you through the next steps. Welcome aboard!`,
+      });
+    });
   }
 
   revalidateTag("catalog", { expire: 0 });

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 
 import { getDemoBookingsCollection, ensureIndexesAndAdmin } from "@/lib/db";
 import { publishEvent } from "@/lib/realtime";
@@ -72,18 +72,21 @@ export async function POST(request: Request) {
     href: "/admin-panel",
   });
 
-  // Instant confirmation email to the student
-  void sendDemoBookingConfirmationEmail({
-    to: data.email.trim(),
-    name: data.name.trim(),
-    course: data.course,
-    preferredDate: data.preferredDate,
-    preferredTime: data.preferredTime,
-  });
+  // after() keeps the function alive until both emails finish sending — a bare
+  // void promise is frozen mid-flight on Vercel once the response is returned.
+  after(async () => {
+    // Instant confirmation email to the student
+    await sendDemoBookingConfirmationEmail({
+      to: data.email.trim(),
+      name: data.name.trim(),
+      course: data.course,
+      preferredDate: data.preferredDate,
+      preferredTime: data.preferredTime,
+    });
 
-  // Admin alert email
-  void listAdminEmails().then((emails) => {
-    void Promise.all(
+    // Admin alert email
+    const emails = await listAdminEmails();
+    await Promise.all(
       emails.map((to) =>
         sendNewDemoBookingEmail({
           to,

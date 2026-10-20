@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { ObjectId } from "mongodb";
 import { revalidateTag } from "next/cache";
 import { requireAdmin, isValidObjectId } from "@/lib/admin-guard";
@@ -147,17 +147,23 @@ export async function PATCH(request: Request) {
     );
     pendingDocs.forEach((t) => {
       publishEvent({ table: "enrollments", userId: String(t.userId), at: Date.now() });
-      if (t.email) {
-        void sendDecisionEmail({
-          to: t.email,
-          name: t.name,
-          kind: "enrollment",
-          approved: true,
-          subject: emailSubjectFor("CONFIRM"),
-          message,
-          href: "/dashboard",
-        }).catch(() => {});
-      }
+    });
+    after(async () => {
+      await Promise.all(
+        pendingDocs
+          .filter((t) => t.email)
+          .map((t) =>
+            sendDecisionEmail({
+              to: t.email,
+              name: t.name,
+              kind: "enrollment",
+              approved: true,
+              subject: emailSubjectFor("CONFIRM"),
+              message,
+              href: "/dashboard",
+            })
+          )
+      );
     });
 
     revalidateTag("catalog", { expire: 0 });
@@ -224,15 +230,17 @@ export async function PATCH(request: Request) {
     }
 
     if (target?.email) {
-      void sendDecisionEmail({
-        to: target.email,
-        name: target.name,
-        kind: "enrollment",
-        approved: action === "CONFIRM",
-        subject: emailSubjectFor(action as EnrollmentAction),
-        message,
-        href: "/dashboard",
-      }).catch(() => {});
+      after(async () => {
+        await sendDecisionEmail({
+          to: target.email,
+          name: target.name,
+          kind: "enrollment",
+          approved: action === "CONFIRM",
+          subject: emailSubjectFor(action as EnrollmentAction),
+          message,
+          href: "/dashboard",
+        });
+      });
     }
 
     return NextResponse.json({ ok: true, status });
@@ -273,17 +281,23 @@ export async function PATCH(request: Request) {
 
   affected.forEach((t) => {
     publishEvent({ table: "enrollments", userId: String(t.userId), at: Date.now() });
-    if (t.email) {
-      void sendDecisionEmail({
-        to: t.email,
-        name: t.name,
-        kind: "enrollment",
-        approved: action === "CONFIRM",
-        subject: emailSubjectFor(action as EnrollmentAction),
-        message,
-        href: "/dashboard",
-      }).catch(() => {});
-    }
+  });
+  after(async () => {
+    await Promise.all(
+      affected
+        .filter((t) => t.email)
+        .map((t) =>
+          sendDecisionEmail({
+            to: t.email,
+            name: t.name,
+            kind: "enrollment",
+            approved: action === "CONFIRM",
+            subject: emailSubjectFor(action as EnrollmentAction),
+            message,
+            href: "/dashboard",
+          })
+        )
+    );
   });
 
   void logAdminAction({

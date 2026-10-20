@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { ObjectId } from "mongodb";
 
 import { auth } from "@/auth";
@@ -233,28 +233,32 @@ export async function POST(request: Request) {
       ]
     : null;
 
-  // Notify the admin inbox — this carries the source-of-truth PDF.
-  void sendRegistrationEmail({
-    to: REGISTRATION_NOTIFY_EMAIL,
-    studentName,
-    course: course.name,
-    ref,
-    pdf: pdfBuffer,
-    extraAttachments,
-    adminCopy: true,
-  }).catch(() => {});
-
-  // Student confirmation + their responses when "send me a copy" was ticked.
-  if (u.sendCopy && studentEmail) {
-    void sendRegistrationEmail({
-      to: studentEmail,
+  // Notify the admin inbox — this carries the source-of-truth PDF. Wrapped in
+  // after() so the serverless function stays alive until SMTP finishes; a bare
+  // `void` promise is frozen mid-flight on Vercel once the response is sent.
+  after(async () => {
+    await sendRegistrationEmail({
+      to: REGISTRATION_NOTIFY_EMAIL,
       studentName,
       course: course.name,
       ref,
       pdf: pdfBuffer,
-      adminCopy: false,
-    }).catch(() => {});
-  }
+      extraAttachments,
+      adminCopy: true,
+    });
+
+    // Student confirmation + their responses when "send me a copy" was ticked.
+    if (u.sendCopy && studentEmail) {
+      await sendRegistrationEmail({
+        to: studentEmail,
+        studentName,
+        course: course.name,
+        ref,
+        pdf: pdfBuffer,
+        adminCopy: false,
+      });
+    }
+  });
 
   await notify(userId, {
     kind: "registration",

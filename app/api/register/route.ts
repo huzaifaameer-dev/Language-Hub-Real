@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import bcrypt from "bcryptjs";
 
 import { getDb, getAuthTokensCollection, ensureIndexesAndAdmin, getReferralsCollection, getReferralRedeemsCollection } from "@/lib/db";
@@ -118,8 +118,11 @@ export async function POST(request: Request) {
     usedAt: null,
   });
 
-  // Fire-and-forget; sendEmail never throws and silently no-ops without SMTP.
-  void sendWelcomeEmail({ to: normalized, name, verifyToken }).catch(() => {});
+  // after() keeps the serverless function alive until SMTP finishes; a bare
+  // void promise is frozen mid-flight on Vercel once the response is sent.
+  after(async () => {
+    await sendWelcomeEmail({ to: normalized, name, verifyToken });
+  });
 
   // In dev without SMTP, return a usable verify link so flows stay testable.
   const devVerifyLink =
