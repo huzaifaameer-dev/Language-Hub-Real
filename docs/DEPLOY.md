@@ -56,7 +56,7 @@ git push -u origin main
 | `AUTH_URL` | `https://<naam>.vercel.app` | (same, safety) |
 | `NEXT_PUBLIC_SITE_URL` | `https://<naam>.vercel.app` | |
 | `TRUST_PROXY` | `1` | Vercel ke liye (real IP) |
-| `ADMIN_EMAIL` | `huzaifa.ameer.2009@gmail.com` | admin seed |
+| `ADMIN_EMAIL` | `languagehub.team@gmail.com` | admin seed |
 | `ADMIN_PASSWORD` | strong | admin login |
 | `ADMIN_ACCESS_CODE` | strong | admin access code |
 | `AUTOMATION_SECRET` | random | cron guard |
@@ -94,7 +94,7 @@ Ab agent har 6h background me applications/enrollments/proofs/blog process karta
 
 ## Part 5 — Test karo (post-deploy)
 
-1. `https://<naam>.vercel.app` open → homepage + Aina guide + Blog check.
+1. `https://<naam>.vercel.app` open karke homepage + placement test + Blog check.
 2. Signup naya account → dashboard.
 3. `/admin-panel` → email+password+access code → unlock.
 4. Admin → **AI Operations Agent** tab → "Always active" + **Fortress shield** blocked-attacks card.

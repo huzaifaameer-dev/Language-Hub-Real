@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next";
 import { unstable_cache } from "next/cache";
 import { appBaseUrl } from "@/lib/base-url";
 import { FALLBACK_COURSES, courseSlug } from "@/lib/course-data";
-import { SUCCESS_STORY_SLUGS } from "@/lib/content";
 
 /** Sitemap is rebuilt at most every 5 minutes — news posts rarely change. */
 export const dynamic = "force-dynamic";
@@ -58,12 +57,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const storyPages: MetadataRoute.Sitemap = SUCCESS_STORY_SLUGS.map((slug) => ({
-    url: `${base}/success-stories/${slug}`,
-    lastModified: now,
-    changeFrequency: "yearly" as const,
-    priority: 0.7,
-  }));
-
-  return [...staticPages, ...newsPages, ...storyPages];
+  return [...staticPages, ...newsPages];
 }

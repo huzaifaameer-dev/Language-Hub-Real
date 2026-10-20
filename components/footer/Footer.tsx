@@ -74,7 +74,7 @@ function FooterLink({ id, label, href }: { id: string; label: string; href?: str
           router.push("/");
           return;
         }
-        const { scrollToId } = await import("@/lib/lenis");
+        const { scrollToId } = await import("@/lib/scroll");
         scrollToId(id);
       }}
       className={cls}
@@ -295,7 +295,7 @@ export function Footer() {
             <button
               type="button"
               onClick={async () => {
-                const { scrollToId } = await import("@/lib/lenis");
+                const { scrollToId } = await import("@/lib/scroll");
                 scrollToId("home");
               }}
               aria-label="Back to top"

@@ -51,7 +51,7 @@ export function IntroGate({ children }: { children: ReactNode }) {
     } catch {}
     if (!target) return;
     const t = window.setTimeout(() => {
-      import("@/lib/lenis").then(({ scrollToId }) => scrollToId(target!));
+      import("@/lib/scroll").then(({ scrollToId }) => scrollToId(target!));
     }, 400);
     return () => window.clearTimeout(t);
   }, [ready]);

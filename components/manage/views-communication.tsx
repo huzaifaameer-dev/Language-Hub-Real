@@ -45,7 +45,7 @@ export function CommunicationView({ user }: { user: MgUserLite }) {
   const [scheduleAt, setScheduleAt] = useState("");
   const [sending, setSending] = useState(false);
   const [templatePick, setTemplatePick] = useState("");
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   const load = () => {
     setBusy(true);
@@ -192,7 +192,7 @@ export function CommunicationView({ user }: { user: MgUserLite }) {
           </div>
         )}
       </section>
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

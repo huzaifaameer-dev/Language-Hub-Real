@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { CalendarClock, FileText, Paperclip, Pencil, Plus, Send, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { BookOpen, CalendarClock, FileText, Paperclip, Pencil, Plus, Send, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GroupLite, MgUserLite } from "./types";
 import { Badge, CsvButton, EmptyState, FilePicker, MgButton, Modal, SearchBox, SkeletonRows, StatusBadge, Toasts, useToasts, fmtWhen, type PickedFile } from "./ui";
@@ -16,6 +16,9 @@ interface Assignment {
   instructions: string | null;
   links: string[];
   hasAttachments: boolean;
+  materialIds: string[];
+  /** Resolved from materialIds against the materials library, for display. */
+  materialNames: string[];
   deadline: string | null;
   reminderEnabled: boolean;
   priority: string;
@@ -43,29 +46,45 @@ export function AssignmentsView({ user }: { user: MgUserLite }) {
   const [scheduleFor, setScheduleFor] = useState<Assignment | null>(null);
   const [scheduleAt, setScheduleAt] = useState("");
   const [materials, setMaterials] = useState<Array<{ id: string; title: string; type: string }>>([]);
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   const form0 = { title: "", instructions: "", link: "", deadline: "", priority: "MEDIUM", kind: "assignment", status: "DRAFT", notifyOnPublish: true, reminderEnabled: false, groupIds: [] as string[], materialIds: [] as string[], attachments: [] as PickedFile[] };
   const [form, setForm] = useState(form0);
 
-  const load = () => {
+  // Debounce the search term so typing doesn't fire a request per keystroke.
+  const [debouncedQ, setDebouncedQ] = useState(q);
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedQ(q), 350);
+    return () => window.clearTimeout(t);
+  }, [q]);
+
+  const load = useCallback(() => {
     setBusy(true);
     const statusQ = status === "ALL" ? "" : `&status=${status}`;
-    fetch(`/api/management/assignments?q=${encodeURIComponent(q)}${statusQ}`)
+    fetch(`/api/management/assignments?q=${encodeURIComponent(debouncedQ)}${statusQ}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setRows((d?.assignments ?? []) as Assignment[]))
       .catch(() => setRows([]))
       .finally(() => setBusy(false));
     fetch("/api/management/groups").then((r) => (r.ok ? r.json() : null)).then((d) => setGroups((d?.groups ?? []).filter((g: GroupLite) => g.studentCount > 0) as GroupLite[]));
     fetch("/api/management/materials").then((r) => (r.ok ? r.json() : null)).then((d) => setMaterials((d?.materials ?? []).map((m: { id: string; title: string; type: string }) => ({ id: m.id, title: m.title, type: m.type })) as Array<{ id: string; title: string; type: string }>));
-  };
+  }, [status, debouncedQ]);
   useEffect(() => {
     queueMicrotask(() => load());
-  }, [status]);
-  useEffect(() => {
-    const t = window.setTimeout(load, 350);
-    return () => window.clearTimeout(t);
-  }, [q]);
+  }, [load]);
+
+  // Attachments may reference materials that were archived after the assignment
+  // was created, so fall back to the raw id rather than hiding the chip.
+  const materialTitle = useMemo(() => new Map(materials.map((m) => [m.id, m.title])), [materials]);
+  const withMaterialNames = useMemo(
+    () =>
+      rows.map((a) => ({
+        ...a,
+        materialIds: a.materialIds ?? [],
+        materialNames: (a.materialIds ?? []).map((id) => materialTitle.get(id) ?? id),
+      })),
+    [rows, materialTitle]
+  );
 
   const toggleGroup = (id: string) => setForm((f) => ({ ...f, groupIds: f.groupIds.includes(id) ? f.groupIds.filter((x) => x !== id) : [...f.groupIds, id] }));
 
@@ -75,6 +94,8 @@ export function AssignmentsView({ user }: { user: MgUserLite }) {
       title: form.title,
       instructions: form.instructions || null,
       links: form.link.trim() ? [form.link.trim()] : [],
+      materialIds: form.materialIds,
+      attachments: form.attachments,
       deadline: form.deadline ? new Date(form.deadline).toISOString() : null,
       priority: form.priority,
       status: form.status,
@@ -160,12 +181,12 @@ export function AssignmentsView({ user }: { user: MgUserLite }) {
 
       {busy ? (
         <SkeletonRows rows={5} cols={3} />
-      ) : rows.length === 0 ? (
+      ) : withMaterialNames.length === 0 ? (
         <EmptyState title="No assignments found" hint="Create an assignment and publish it to a group — students will get notified." />
       ) : (
         <div className="flex flex-col gap-3">
-          <CsvButton filename="assignments.csv" headers={["Title", "Groups", "Status", "Priority", "Deadline", "Published"]} rows={rows.map((a) => [a.title, a.groupNames.join(" · "), a.status, a.priority, a.deadline ?? "", a.publishedAt ?? ""])} label="Export" />
-          {rows.map((a) => (
+          <CsvButton filename="assignments.csv" headers={["Title", "Groups", "Materials", "Status", "Priority", "Deadline", "Published"]} rows={withMaterialNames.map((a) => [a.title, a.groupNames.join(" · "), a.materialNames.join(" · "), a.status, a.priority, a.deadline ?? "", a.publishedAt ?? ""])} label="Export" />
+          {withMaterialNames.map((a) => (
             <div key={a.id} className="rounded-2xl border border-slate-200/80 bg-white/80 p-4 backdrop-blur transition-all hover:shadow-sm">
               <div className="flex flex-wrap items-start gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-[#1647C7]"><FileText className="h-4.5 w-4.5" /></span>
@@ -182,9 +203,10 @@ export function AssignmentsView({ user }: { user: MgUserLite }) {
                     {a.scheduledFor ? <span>publishes {fmtWhen(a.scheduledFor)}</span> : null}
                   </p>
                   {a.instructions ? <p className="mt-2 line-clamp-2 whitespace-pre-line text-[0.84rem] leading-relaxed text-slate-500">{a.instructions}</p> : null}
-                  {a.links.length || a.hasAttachments ? (
+                  {a.links.length || a.hasAttachments || a.materialNames.length ? (
                     <p className="mt-1.5 flex flex-wrap gap-2">
                       {a.links.map((l) => <a key={l} href={l} target="_blank" rel="noopener noreferrer" className="rounded-full bg-slate-100 px-2.5 py-0.5 font-mono text-[0.6rem] font-bold text-slate-600 hover:bg-indigo-100">link</a>)}
+                      {a.materialNames.map((m) => <span key={m} className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-0.5 font-mono text-[0.6rem] font-bold text-[#1647C7]"><BookOpen className="h-3 w-3" /> {m}</span>)}
                       {a.hasAttachments ? <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 font-mono text-[0.6rem] font-bold text-slate-600"><Paperclip className="h-3 w-3" /> files</span> : null}
                     </p>
                   ) : null}
@@ -245,6 +267,55 @@ export function AssignmentsView({ user }: { user: MgUserLite }) {
             </select>
           </label>
           <div className="grid gap-2 sm:col-span-2">
+            <p className="text-[0.78rem] font-bold text-slate-600">
+              Attach materials <span className="font-mono text-[0.64rem] font-normal text-slate-400">(optional)</span>
+            </p>
+            {materials.length === 0 ? (
+              <p className="font-mono text-[0.64rem] text-slate-400">
+                No materials in the library yet — add them under Materials, or upload files below.
+              </p>
+            ) : (
+              <div className="grid max-h-36 gap-1.5 overflow-y-auto sm:grid-cols-2">
+                {materials.map((m) => (
+                  <label
+                    key={m.id}
+                    className={cn(
+                      "flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-2 text-[0.8rem]",
+                      form.materialIds.includes(m.id)
+                        ? "border-indigo-300 bg-indigo-50"
+                        : "border-slate-200 bg-white hover:border-indigo-200"
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.materialIds.includes(m.id)}
+                      onChange={() =>
+                        setForm((f) => ({
+                          ...f,
+                          materialIds: f.materialIds.includes(m.id)
+                            ? f.materialIds.filter((x) => x !== m.id)
+                            : [...f.materialIds, m.id],
+                        }))
+                      }
+                      className="h-4 w-4 accent-[#2563EB]"
+                    />
+                    <span className="min-w-0 flex-1 truncate font-display font-bold text-slate-700">{m.title}</span>
+                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 font-mono text-[0.54rem] font-bold uppercase text-slate-500">
+                      {m.type}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="sm:col-span-2">
+            <FilePicker
+              files={form.attachments}
+              onChange={(files) => setForm((f) => ({ ...f, attachments: files }))}
+              label="Attach files (max 3, 3 MB each)"
+            />
+          </div>
+          <div className="grid gap-2 sm:col-span-2">
             <p className="text-[0.78rem] font-bold text-slate-600">Groups</p>
             <div className="grid max-h-36 gap-1.5 overflow-y-auto sm:grid-cols-2">
               {groups.map((g) => (
@@ -282,7 +353,7 @@ export function AssignmentsView({ user }: { user: MgUserLite }) {
           <MgButton onClick={() => void submitSchedule()} disabled={saving || !scheduleAt}>Schedule</MgButton>
         </div>
       </Modal>
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

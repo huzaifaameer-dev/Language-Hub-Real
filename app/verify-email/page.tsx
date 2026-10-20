@@ -95,7 +95,7 @@ function VerifyEmailForm() {
             </div>
             <Link
               href="/dashboard"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-deep to-brand-deep font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.5)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.05]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-deep to-brand-deep font-display text-[0.95rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.5)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(99_102_241/0.8)]"
             >
               Go to dashboard
             </Link>

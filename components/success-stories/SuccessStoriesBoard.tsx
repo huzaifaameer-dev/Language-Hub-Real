@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useReducedMotionSafe } from "@/lib/hooks";
 import { ArrowRight, BadgeCheck, Quote, Sparkles, Star, Users, X } from "lucide-react";
 import Link from "next/link";
 import { Navbar } from "@/components/navigation/Navbar";
@@ -26,7 +27,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
  */
 export function SuccessStoriesBoard({ stories }: { stories: Story[] }) {
   const [active, setActive] = useState<Story | null>(null);
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -125,7 +126,7 @@ export function SuccessStoriesBoard({ stories }: { stories: Story[] }) {
           <div className="mt-14 text-center">
             <Link
               href="/placement-test"
-              className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-8 font-display text-[0.85rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(110_90_224/0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-8 font-display text-[0.85rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(110_90_224/0.7)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_52px_-16px_rgb(110_90_224/0.9)]"
             >
               <Users className="h-4 w-4" /> Be the next success story <ArrowRight className="h-4 w-4" />
             </Link>

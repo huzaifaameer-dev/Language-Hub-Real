@@ -6,7 +6,7 @@ export type RegistrationStatus = (typeof REGISTRATION_STATUSES)[number];
 
 /** Admin inbox that receives a generated PDF for every course registration. */
 export const REGISTRATION_NOTIFY_EMAIL =
-  process.env.REGISTRATION_NOTIFY_EMAIL ?? "huzaifa.ameer.2009@gmail.com";
+  process.env.REGISTRATION_NOTIFY_EMAIL ?? "languagehub.team@gmail.com";
 
 /** Shared payment-method choices shown in the fee step of every course. */
 export const PAYMENT_METHODS = ["Bank Account", "Easypaisa", "Other"] as const;

@@ -5,8 +5,11 @@ export const dynamic = "force-dynamic";
 
 /**
  * Public academy stats for the homepage "in numbers" section and the live
- * "students enrolled this week" / seat urgency banners. Computed live from the
- * database so all claims stay truthful and never go stale.
+ * "students enrolled this week" / seat urgency banners.
+ *
+ * Every figure is computed from the database. Nothing is floored or invented —
+ * on a fresh install the counts are legitimately 0, and the UI renders an honest
+ * empty state rather than a marketing number we cannot substantiate.
  */
 export async function GET() {
   const db = await getDb();
@@ -21,6 +24,7 @@ export async function GET() {
     enrolledThisWeek,
     activeCourses,
     totalSeats,
+    labs,
   ] = await Promise.all([
     db.collection("users").countDocuments({ role: { $ne: "ADMIN" } }),
     db.collection("applications").countDocuments({ status: "APPROVED" }),
@@ -40,18 +44,16 @@ export async function GET() {
         0
       );
     })(),
+    db.collection("courses").distinct("batches.name").then((b) => b.length),
   ]);
 
-  const studentsGuided = Math.max(600, users, approvedApps, enrolled);
-  const labs = await db.collection("courses").distinct("batches.name").then((b) => b.length);
+  // Students actually served = the largest real cohort, never a marketing floor.
+  const studentsGuided = Math.max(users, approvedApps, enrolled);
 
   return NextResponse.json({
     students: studentsGuided,
-    yearsTeaching: 8, // founding year is fixed; kept as editorial constant
-    // Fall back to truthful editorial figures if the live DB counts are empty
-    // (fresh install / cold DB), so the section never shows a misleading 0.
-    programmes: activeCourses > 0 ? activeCourses : 4,
-    dailyBatches: labs > 0 ? labs : 3,
+    programmes: activeCourses,
+    dailyBatches: labs,
     enrolledThisWeek,
     totalSeats,
   }, {

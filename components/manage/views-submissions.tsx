@@ -36,7 +36,7 @@ export function SubmissionsView({ user }: { user: MgUserLite }) {
   const [grade, setGrade] = useState("");
   const [feedback, setFeedback] = useState("");
   const [saving, setSaving] = useState(false);
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   useEffect(() => {
     fetch("/api/management/assignments").then((r) => (r.ok ? r.json() : null)).then((d) => setAssignments((d?.assignments ?? []).filter((a: { id: string; title: string; status: string }) => ["PUBLISHED", "OPEN", "CLOSED"].includes(a.status)) as Array<{ id: string; title: string; status: string }>));
@@ -158,7 +158,7 @@ export function SubmissionsView({ user }: { user: MgUserLite }) {
           </div>
         </div>
       </Modal>
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

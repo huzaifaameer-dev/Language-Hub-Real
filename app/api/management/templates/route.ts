@@ -8,7 +8,7 @@ import { MgTemplateSchema } from "@/lib/validate";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const user = await requireMgRole(["ADMIN", "TEACHER"]);
+  await requireMgRole(["ADMIN", "TEACHER"]);
   const col = await getMessageTemplatesCollection();
   const docs = await col.find({ active: true }).sort({ createdAt: -1 }).limit(200).toArray();
   return NextResponse.json({

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { NextResponse } from "next/server";
 import { ensureIndexesAndAdmin, getTestimonialsCollection } from "@/lib/db";
 

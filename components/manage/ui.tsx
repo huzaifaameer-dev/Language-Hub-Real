@@ -84,10 +84,10 @@ export function MgButton({
       disabled={disabled}
       className={cn(
         "inline-flex h-10 items-center justify-center gap-1.5 rounded-xl px-4 text-sm font-bold transition-all disabled:cursor-not-allowed disabled:opacity-45",
-        tone === "brand" && "bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] text-white shadow-[0_12px_26px_-12px_rgb(99_102_241/0.85)] hover:brightness-110",
+        tone === "brand" && "bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] text-white shadow-[0_12px_26px_-12px_rgb(99_102_241/0.85)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_18px_38px_-14px_rgb(99_102_241/1)]",
         tone === "ghost" && "border border-slate-300 bg-white text-slate-600 hover:border-indigo-400 hover:text-[#1647C7]",
-        tone === "rose" && "bg-rose-600 text-white hover:brightness-110",
-        tone === "gold" && "bg-[#D4AF37] text-[#3a2d0b] hover:brightness-105",
+        tone === "rose" && "bg-rose-600 text-white shadow-[0_10px_22px_-12px_rgb(244_63_94/0.5)] transition-[transform,box-shadow] hover:shadow-[0_16px_30px_-12px_rgb(244_63_94/0.75)]",
+        tone === "gold" && "bg-[#D4AF37] text-[#3a2d0b] shadow-[0_10px_22px_-12px_rgb(212_175_55/0.5)] transition-[transform,box-shadow] hover:shadow-[0_16px_30px_-12px_rgb(212_175_55/0.8)]",
         className
       )}
     >

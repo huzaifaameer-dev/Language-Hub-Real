@@ -154,9 +154,6 @@ export default async function NewsPostPage({ params }: { params: Promise<{ slug:
           <NewsEngageBar
             slug={post.slug}
             title={post.title}
-            likeCount={post.likeCount}
-            interestedCount={post.interestedCount}
-            notInterestedCount={post.notInterestedCount}
             commentCount={post.commentCount}
           />
         </article>

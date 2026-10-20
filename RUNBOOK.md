@@ -13,10 +13,7 @@ before touching production.
 | MongoDB | 6.x (local, Atlas, or Docker) |
 | npm | 9+ |
 
-- **Turbopack is off** (webpack builds only) because `lightningcss` native
-  binary fails under Turbopack on some machines.
-- `three` is pinned to `0.182.0` (see README "Version notes") — keep the pin
-  until `@react-three/fiber` ships Timer on stable.
+- **Turbopack** is used for `next dev` / `next build` (Next 16 default).
 
 ---
 
@@ -31,13 +28,18 @@ Copy `.env.example` → `.env.local`. Feature matrix:
 | Email | transactional mail + automations | `SMTP_HOST/PORT/USER/PASS`, `MAIL_FROM` |
 | Payments | online checkout / ledger | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PUBLISHABLE_KEY`, `KONNECT_*` |
 | WhatsApp | lead funnel + nudges | `WA_TOKEN`, `WA_WEBHOOK_TOKEN`, `WA_PHONE_NUMBER`, `WA_API_URL` |
-| AI | tutor/guide/agent/blog | `AI_API_KEY`, `AI_MODEL`, `AI_EMBEDDING_MODEL`, `AI_BASE_URL`, `AI_VECTOR_MODE` |
+| AI | practice/analyser/agent/blog | `AI_API_KEY`, `AI_MODEL`, `AI_BASE_URL` |
 | AI autonomy | agent behavior | `AI_AGENT_AUTO` (0 = flag-only), `AI_DAILY_CAP`, `AI_AGENT_BLOG` |
 | Automation cron | background jobs | `AUTOMATION_SECRET` (sent via `Authorization: Bearer`) |
 | Hardening | trusted reverse proxy | `TRUST_PROXY=1` (only behind a real proxy) |
 
 > **Secrets never go in the URL.** Cron sends `AUTOMATION_SECRET` in the
 > `Authorization` header (`.github/workflows/automations.yml`).
+>
+> **`AUTH_SECRET` vs `NEXTAUTH_SECRET`:** Auth.js v5 reads `AUTH_SECRET`.
+> `auth.config.ts` also accepts the NextAuth v4 name as a fallback, so either
+> works — but if you only set `NEXTAUTH_SECRET`, every `/api/auth/session`
+> returns 500 with `MissingSecret`.
 
 ---
 
@@ -75,11 +77,17 @@ indexes/courses/testimonials/admin on the next request.
 ```bash
 npm run build
 npm run start                 # next start
-npm run start:standalone      # node .next/standalone/server.js (recommended) 
+npm run start:standalone      # standalone server (recommended)
 ```
 
 `output: "standalone"` is set in `next.config.js`, so `.next/standalone`
 contains a self-contained server for the Docker image.
+
+> `next build` does **not** copy `public/` or `.next/static/` into
+> `.next/standalone`. `npm run start:standalone` runs
+> `scripts/start-standalone.mjs`, which copies both before booting — without
+> that step every image and the built CSS/JS 404, showing unstyled pages and
+> visible `alt` text. The Dockerfile does the same copy for the image.
 
 ---
 
@@ -123,7 +131,7 @@ mongorestore --uri="$MONGODB_URI" --db=languagehub ./backups/<date>/languagehub
 ```
 
 Collections of special note: `users`, `payments` (ledger), `enrollments`,
-`courses`, `blog_posts`, `ai_chunks`, `automation_sends`. TTL indexes prune
+`courses`, `blog_posts`, `automation_sends`. TTL indexes prune
 `ratelimits`, `auth_tokens`, and `ai_usage` automatically.
 
 ---
@@ -146,11 +154,11 @@ Collections of special note: `users`, `payments` (ledger), `enrollments`,
 
 | Symptom | Fix |
 |---|---|
-| `[auth][error] MissingSecret` | Set `AUTH_SECRET` |
+| `[auth][error] MissingSecret` | Set `AUTH_SECRET` (or `NEXTAUTH_SECRET` — both are accepted) |
 | `/api/auth/session` returns HTML 404 | Restart server after deploy; proxy excludes Auth.js routes by design |
 | Build fails on `.next/dev/types/*.d.ts` | Stop dev server, remove `.next` + `tsconfig.tsbuildinfo`, rebuild |
 | Bot/abuse on WhatsApp | Ensure `WA_WEBHOOK_TOKEN` set (HMAC gate + per-number limits) |
-| `three` deprecation warning | Expected; pinned to `0.182.0` |
+| Homepage stats section missing | Expected — it only renders when `/api/stats` returns real, non-zero counts |
 
 ---
 

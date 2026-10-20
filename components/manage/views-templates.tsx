@@ -24,7 +24,7 @@ export function TemplatesView() {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ name: "", body: "" });
   const [saving, setSaving] = useState(false);
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   const load = () => {
     setBusy(true);
@@ -126,7 +126,7 @@ export function TemplatesView() {
           </div>
         </div>
       </Modal>
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useRef, useState } from "react";
+import { motion } from "framer-motion";
 import {
   CheckCircle2,
   HeartHandshake,
@@ -14,7 +14,7 @@ import {
   ThumbsUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CONTACT, whatsappLink } from "@/lib/content";
+import { legalContactEmail, whatsappLink } from "@/lib/content";
 
 const CATEGORIES: { key: string; label: string; emoji: string }[] = [
   { key: "courses", label: "Courses", emoji: "📚" },
@@ -24,8 +24,6 @@ const CATEGORIES: { key: string; label: string; emoji: string }[] = [
   { key: "suggestion", label: "Suggestion", emoji: "💡" },
   { key: "general", label: "General", emoji: "💬" },
 ];
-
-const ease = [0.16, 1, 0.3, 1] as const;
 
 export function FeedbackSubmit({
   name: initialName,
@@ -50,8 +48,6 @@ export function FeedbackSubmit({
   const [done, setDone] = useState(false);
 
   const formRef = useRef<HTMLFormElement>(null);
-
-  const stars = useMemo(() => [1, 2, 3, 4, 5].map((n) => (n <= (hover || rating) ? "on" : "off")), [hover, rating]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,9 +95,6 @@ export function FeedbackSubmit({
       setBusy(false);
     }
   };
-
-  const wa = whatsappLink("Assalam o alaikum! I'd like to give some feedback about my experience.");
-  const supportEmail = CONTACT.email || "hello@languagehub.example";
 
   const inputCls = (err?: string) =>
     cn(
@@ -255,7 +248,7 @@ export function FeedbackSubmit({
             <button
               type="submit"
               disabled={busy}
-              className="group inline-flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#38BDF8] px-8 py-3.5 font-display text-[0.92rem] font-bold text-white shadow-[0_18px_40px_-14px_rgb(99_102_241/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.06] disabled:opacity-60 sm:w-auto"
+              className="group inline-flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#38BDF8] px-8 py-3.5 font-display text-[0.92rem] font-bold text-white shadow-[0_18px_40px_-14px_rgb(99_102_241/0.8)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_50px_-14px_rgb(99_102_241/0.95)] disabled:opacity-60 sm:w-auto"
             >
               {busy ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -315,7 +308,9 @@ export function FeedbackSubmit({
 
 export function FeedbackSidebar() {
   const wa = whatsappLink();
-  const supportEmail = CONTACT.email || "hello@languagehub.example";
+  // Only render a channel we actually have configured — an invented address
+  // would be a dead link for the visitor.
+  const supportEmail = legalContactEmail();
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="rounded-3xl border border-white/70 bg-gradient-to-br from-[#0B1B3A] via-[#1647C7] to-[#6D4AFF] p-6 text-white shadow-[0_30px_70px_-40px_rgb(37_99_235/0.8)]">
@@ -356,12 +351,14 @@ export function FeedbackSidebar() {
             <MessageCircle className="h-4 w-4" /> WhatsApp us
           </a>
         ) : null}
-        <a
-          href={`mailto:${supportEmail}`}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 font-display text-[0.82rem] font-bold text-indigo-700 transition-all hover:-translate-y-0.5 hover:border-[#93C5FD] hover:bg-[#EFF6FF]"
-        >
-          <Mail className="h-4 w-4" /> Email the team
-        </a>
+        {supportEmail ? (
+          <a
+            href={`mailto:${supportEmail}`}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 font-display text-[0.82rem] font-bold text-indigo-700 transition-all hover:-translate-y-0.5 hover:border-[#93C5FD] hover:bg-[#EFF6FF]"
+          >
+            <Mail className="h-4 w-4" /> Email the team
+          </a>
+        ) : null}
         <p className="flex items-center gap-1.5 pt-1 font-mono text-[0.6rem] uppercase tracking-widest text-slate-400">
           <ThumbsUp className="h-3.5 w-3.5" /> Every note is read in person
         </p>

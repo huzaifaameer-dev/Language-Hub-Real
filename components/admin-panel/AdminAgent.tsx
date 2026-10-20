@@ -311,7 +311,7 @@ export function AdminAgent() {
                     type="button"
                     onClick={() => void publishDraft()}
                     disabled={publishBusy}
-                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 font-display text-[0.72rem] font-bold text-white transition-all hover:-translate-y-0.5 hover:brightness-105 disabled:opacity-50"
+                    className="inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 font-display text-[0.72rem] font-bold text-white transition-[transform] hover:-translate-y-0.5 hover:shadow-[0_14px_28px_-12px_rgb(16_185_129/0.8)] disabled:opacity-50"
                   >
                     {publishBusy ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                     {publishBusy ? "Publishing…" : "Publish post"}

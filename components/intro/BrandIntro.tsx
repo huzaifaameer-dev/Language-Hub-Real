@@ -4,8 +4,9 @@ import { useEffect, useRef } from "react";
 import { Logo } from "@/components/ui/Logo";
 
 /**
- * Clean, fast brand reveal — ~2.5s, no heavy animation. Just a soft fade of
- * the logo + wordmark, then lifts away. Skips on reduced motion instantly.
+ * Clean, fast brand reveal — under ~1.4s, no heavy animation. Just a soft fade
+ * of the logo + wordmark, then lifts away. Skips on reduced motion instantly
+ * and only ever plays once (localStorage gated).
  */
 export function BrandIntro({ onComplete }: { onComplete: () => void }) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -27,15 +28,15 @@ export function BrandIntro({ onComplete }: { onComplete: () => void }) {
       onComplete();
     };
 
-    root.style.transition = "opacity 0.7s cubic-bezier(0.16,1,0.3,1)";
+    root.style.transition = "opacity 0.45s cubic-bezier(0.16,1,0.3,1)";
     requestAnimationFrame(() => {
       root.style.opacity = "1";
     });
 
     const timer = window.setTimeout(() => {
       root.style.opacity = "0";
-      window.setTimeout(finish, 700);
-    }, 1800);
+      window.setTimeout(finish, 450);
+    }, 900);
 
     const skip = () => finish();
     window.addEventListener("pointerdown", skip, { once: true });

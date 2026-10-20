@@ -7,20 +7,15 @@ import { signOut } from "next-auth/react";
 import {
   CalendarDays,
   Camera,
-  Check,
   ChevronRight,
   ClipboardList,
-  Clock,
   FileText,
   GraduationCap,
   LogOut,
   Mail,
-  MapPin,
-  MessageSquare,
   Send,
   Settings,
   ShieldCheck,
-  User,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -34,6 +29,10 @@ import {
 import { SettingsModal } from "@/components/dashboard/SettingsModal";
 import { NotificationsBell } from "@/components/dashboard/NotificationsBell";
 import { RegistrationWizard } from "@/components/dashboard/RegistrationWizard";
+import { CertificatesCard } from "@/components/dashboard/CertificatesCard";
+import { ProgressCard } from "@/components/dashboard/ProgressCard";
+import { ReferralCard } from "@/components/dashboard/ReferralCard";
+import { UpcomingClassesCard } from "@/components/dashboard/UpcomingClassesCard";
 import { resizeImage } from "@/components/dashboard/ui";
 
 type RegStatus = "NEW" | "CONTACTED" | "ENROLLED";
@@ -56,6 +55,45 @@ const STATUS_META: Record<RegStatus, { cls: string; label: string }> = {
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
+interface MyCertificate {
+  id: string;
+  certificateId: string;
+  studentName: string;
+  course: string;
+  batch: string;
+  issuedAt: string;
+  completionPercent: number;
+  signedBy: string;
+}
+
+interface MyChapter {
+  title: string;
+  completed: boolean;
+  completedAt?: string | null;
+}
+
+interface MyProgress {
+  id: string;
+  enrollmentId: string;
+  course: string;
+  chapters: MyChapter[];
+  attendance: Array<{ date: string; attended: boolean; topic?: string }>;
+  lastChapter?: string | null;
+  updatedAt: string;
+}
+
+interface MyLiveClass {
+  id: string;
+  title: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  meetingLink: string;
+  platform: string;
+  instructor: string;
+  course: string;
+  batch: string;
+}
+
 export function UserDashboard({ name, email, image, userId }: { name: string; email: string; image?: string | null; userId?: string }) {
   const [displayName, setDisplayName] = useState(name);
   const [joined, setJoined] = useState<string | null>(null);
@@ -63,6 +101,15 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
   const [regs, setRegs] = useState<MyRegistration[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState<RegistrationCourseConfig | null>(null);
+
+  // Learning data — certificates, chapter progress and live classes. Absent
+  // until the student is enrolled, so every fetch failure is expected and the
+  // cards render their own empty states.
+  const [certificates, setCertificates] = useState<MyCertificate[]>([]);
+  const [progress, setProgress] = useState<MyProgress | null>(null);
+  const [classes, setClasses] = useState<MyLiveClass[]>([]);
+  const [certBusy, setCertBusy] = useState(false);
+  const [certError, setCertError] = useState<string | null>(null);
 
   const [avatar, setAvatar] = useState<string | null>(image ?? null);
   const [avatarBusy, setAvatarBusy] = useState(false);
@@ -84,7 +131,6 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
       } catch {}
     }, 0);
     return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const load = useCallback(() => {
@@ -104,6 +150,22 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
           if (d.user.image !== undefined) setAvatar(d.user.image);
         }
       })
+      .catch(() => {});
+    fetch("/api/dashboard/certificates", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setCertificates((d?.certificates ?? []) as MyCertificate[]))
+      .catch(() => {});
+    fetch("/api/dashboard/progress", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const list = (d?.progress ?? []) as MyProgress[];
+        // Most recently touched course first — that is the one in play.
+        setProgress(list[0] ?? null);
+      })
+      .catch(() => {});
+    fetch("/api/dashboard/classes", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setClasses((d?.upcoming ?? []) as MyLiveClass[]))
       .catch(() => {});
   }, []);
 
@@ -134,6 +196,68 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
 
   const onWizardSuccess = () => {
     load();
+  };
+
+  const progressPercent = (() => {
+    if (!progress?.chapters.length) return 0;
+    return Math.round((progress.chapters.filter((c) => c.completed).length / progress.chapters.length) * 100);
+  })();
+
+  const enrolled = regs.some((r) => r.status === "ENROLLED");
+
+  const onToggleChapter = async (enrollmentId: string, chapterTitle: string) => {
+    // Optimistic flip, then let the server confirm with the authoritative row.
+    setProgress((prev) =>
+      prev
+        ? {
+            ...prev,
+            lastChapter: chapterTitle,
+            chapters: prev.chapters.map((c) =>
+              c.title === chapterTitle ? { ...c, completed: !c.completed } : c
+            ),
+          }
+        : prev
+    );
+    try {
+      const res = await fetch("/api/dashboard/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enrollmentId, action: "toggle_chapter", chapterTitle }),
+      });
+      const d = await res.json().catch(() => null);
+      if (!res.ok) {
+        setCertError(d?.message ?? "Could not update that chapter.");
+        load();
+        return;
+      }
+      if (d?.progress) setProgress(d.progress as MyProgress);
+    } catch {
+      setCertError("Network error — chapter not saved.");
+      load();
+    }
+  };
+
+  const onIssueCert = async () => {
+    if (!progress || certBusy) return;
+    setCertBusy(true);
+    setCertError(null);
+    try {
+      const res = await fetch("/api/dashboard/certificates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enrollmentId: progress.enrollmentId }),
+      });
+      const d = await res.json().catch(() => null);
+      if (!res.ok) {
+        setCertError(d?.message ?? "Could not issue your certificate yet.");
+        return;
+      }
+      load();
+    } catch {
+      setCertError("Network error — try again in a moment.");
+    } finally {
+      setCertBusy(false);
+    }
   };
 
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -491,6 +615,35 @@ export function UserDashboard({ name, email, image, userId }: { name: string; em
             </Rise>
           </section>
         </section>
+
+        {/* ─── Learning: live classes, progress, certificates, referral ─── */}
+        <section className="mt-10 grid gap-6 lg:grid-cols-2">
+          <Rise className="lg:col-span-2">
+            <UpcomingClassesCard classes={classes} />
+          </Rise>
+
+          <Rise delay={0.08}>
+            <ProgressCard progress={progress} onToggleChapter={onToggleChapter} />
+          </Rise>
+
+          <Rise delay={0.16}>
+            <div className="flex flex-col gap-6">
+              <CertificatesCard
+                certificates={certificates}
+                enrollmentStatus={enrolled ? "ENROLLED" : undefined}
+                progressPercent={progressPercent}
+                onIssueCert={certBusy || progressPercent < 80 || certificates.length > 0 || !progress ? undefined : onIssueCert}
+              />
+              <ReferralCard />
+            </div>
+          </Rise>
+        </section>
+
+        {certError ? (
+          <p className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 font-mono text-[0.72rem] font-bold text-rose-600">
+            {certError}
+          </p>
+        ) : null}
       </main>
 
       <AnimatePresence>

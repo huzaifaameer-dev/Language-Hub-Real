@@ -1,27 +1,36 @@
 "use client";
 
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+/**
+ * Anchor scrolling for the single-page marketing site.
+ *
+ * Uses the browser's native smooth scrolling. This replaced a Lenis + GSAP
+ * ScrollTrigger setup whose initialiser was never called, so `scrollToId`
+ * silently fell through to an instant jump — the motion library was bundled
+ * for nothing.
+ */
 
-gsap.registerPlugin(ScrollTrigger);
+/** Height of the floating navbar, so the target is not hidden underneath it. */
+const NAV_OFFSET = 72;
 
-if (typeof window !== "undefined") {
-  const w = window as unknown as Record<string, unknown>;
-  if (!w.gsap) w.gsap = gsap;
-  if (!w.ScrollTrigger) w.ScrollTrigger = ScrollTrigger;
+function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-export { gsap, ScrollTrigger };
+/**
+ * Scroll to the element with the given id, offset for the floating navbar.
+ * Honours `prefers-reduced-motion` by jumping instead of animating.
+ */
+export function scrollToId(id: string): void {
+  if (typeof document === "undefined") return;
+  const target = document.getElementById(id);
+  if (!target) return;
 
-export const DESKTOP_MQ = "(min-width: 1024px)";
+  const top =
+    target.getBoundingClientRect().top + window.scrollY - NAV_OFFSET;
 
-export const clamp01 = (value: number): number =>
-  Math.max(0, Math.min(1, value));
-
-export function initScrollSystem() {
-  ScrollTrigger.config({ ignoreMobileResize: true });
-  ScrollTrigger.refresh();
-  if (typeof document !== "undefined") {
-    document.fonts?.ready.then(() => ScrollTrigger.refresh()).catch(() => undefined);
-  }
+  window.scrollTo({
+    top: Math.max(0, top),
+    behavior: prefersReducedMotion() ? "auto" : "smooth",
+  });
 }

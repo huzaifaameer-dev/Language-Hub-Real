@@ -16,7 +16,6 @@ import {
 import { weekKey, staleLearners, nudgeCopy, digestCopy } from "../lib/growth/streaks";
 import { initialReply, nextWaReply } from "../lib/growth/wa-flow";
 import { offlineRecap } from "../lib/growth/recap";
-import { offlineFlywheel } from "../lib/growth/flywheel";
 import { offlineNlAnswer } from "../lib/growth/nl-query";
 import { offlinePracticeReply, practiceFluencyLabel, practiceOpener } from "../lib/growth/practice";
 import { offlineDemoBrief } from "../lib/growth/demo-brief";
@@ -172,16 +171,6 @@ describe("recap offline", () => {
     expect(r.summary).toMatch(/Spoken English/);
     expect(r.homework).toMatch(/practice/i);
     expect(r.gaps[0].student).toBe("s@e.com");
-  });
-});
-
-describe("flywheel offline", () => {
-  it("yields a deterministic draft from the newest seed", () => {
-    const seeds = [{ id: "abc123", kind: "essay", text: "My city", feedback: "Good start, link ideas.", grade: null, createdAt: new Date() }];
-    const drafts = offlineFlywheel(seeds);
-    expect(drafts).toHaveLength(1);
-    expect(drafts[0].title).toMatch(/essay|Basics/i);
-    expect(drafts[0].offline).toBe(true);
   });
 });
 

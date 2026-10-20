@@ -28,7 +28,6 @@ export async function GET(request: Request) {
   const col = await getAttendanceCollection();
 
   if (mine && user.role === "STUDENT") {
-    const groups = await getGroupsCollection();
     const myGroups = await scopedGroupIds(user);
     const history = await col
       .find({ groupId: { $in: myGroups ?? [] } })

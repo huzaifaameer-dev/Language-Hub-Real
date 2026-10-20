@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedMotionSafe } from "@/lib/hooks";
 import { EASE_EXPO } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
@@ -44,7 +45,7 @@ export function Reveal({
   className,
   as = "div",
 }: RevealProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotionSafe();
   const Comp = motion[as];
 
   if (reduceMotion) {

@@ -18,7 +18,7 @@ import {
   registrationFeeNote,
   makeRegistrationRef,
 } from "@/lib/registration-config";
-import { saveDataUriUpload, savePdf, readPrivateFile, type StoredFile } from "@/lib/registration-storage";
+import { saveDataUriUpload, savePdf, readPrivateFile, dataUriParts, type StoredFile } from "@/lib/registration-storage";
 import { buildRegistrationPdf } from "@/lib/registration-pdf";
 
 export const dynamic = "force-dynamic";
@@ -108,6 +108,8 @@ export async function POST(request: Request) {
   let pdfStored: StoredFile | null = null;
   let pdfBuffer: Buffer | null = null;
   let receiptBuffer: { buffer: Buffer; mime: string } | null = null;
+  // The portrait is decoded here so the PDF builder gets clean bytes.
+  const photoParts = u.photo ? dataUriParts(u.photo) : null;
 
   try {
     photoStored = await saveDataUriUpload(ref, "photo", u.photo);
@@ -125,6 +127,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Could not store your payment receipt. Please try again." }, { status: 500 });
     }
   }
+
+  // A png/jpeg receipt is embedded directly in the PDF (scaled), so it does
+  // not also travel as a separate — and often very large — email attachment.
+  const proofEmbeddable =
+    !!receiptBuffer && (receiptBuffer.mime === "image/png" || receiptBuffer.mime === "image/jpeg");
 
   try {
     pdfBuffer = await buildRegistrationPdf({
@@ -152,7 +159,8 @@ export async function POST(request: Request) {
       },
       feeLabel: registrationFeeLabel(course),
       feeNote: registrationFeeNote(course),
-      photoDataUri: u.photo,
+      photo: photoParts ? { buffer: photoParts.buffer, mime: photoParts.mime } : null,
+      paymentProof: proofEmbeddable ? receiptBuffer : null,
       createdAt: new Date(),
     });
     pdfStored = await savePdf(ref, pdfBuffer);
@@ -213,8 +221,9 @@ export async function POST(request: Request) {
 
   const registrationId = String(inserted.insertedId);
 
-  // Receipt attachment for the admin digest (image or PDF).
-  const extraAttachments = receiptStored && receiptBuffer
+  // Receipt attachment for the admin digest — only when it could not be
+  // embedded in the PDF (e.g. WebP or PDF receipts).
+  const extraAttachments = receiptStored && receiptBuffer && !proofEmbeddable
     ? [
         {
           filename: u.payment.receiptName ?? `receipt-${ref}.${receiptBuffer.mime.split("/")[1] ?? "file"}`,

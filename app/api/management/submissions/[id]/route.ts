@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { z } from "zod";
 
 import { requireMgRole, scopedGroupIds, logMg } from "@/lib/management/core";
 import { getSubmissionsCollection, getMgAssignmentsCollection } from "@/lib/db";

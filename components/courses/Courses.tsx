@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { motion, useReducedMotion, type Variants } from "framer-motion";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { motion, type Variants } from "framer-motion";
+import { useReducedMotionSafe } from "@/lib/hooks";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -60,10 +61,11 @@ export function Courses() {
   const [seats, setSeats] = useState<SeatMap | null>(null);
   const [canPrev, setCanPrev] = useState(false);
   const [canNext, setCanNext] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
   const scroller = useRef<HTMLDivElement>(null);
   const { dict, lang } = useLang();
   const isUr = lang === "ur";
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotionSafe();
 
   useEffect(() => {
     let on = true;
@@ -89,6 +91,14 @@ export function Courses() {
     const update = () => {
       setCanPrev(el.scrollLeft > 8);
       setCanNext(el.scrollLeft < el.scrollWidth - el.clientWidth - 8);
+      // Which card sits at the centre of the viewport — drives the mobile dots.
+      const cards = Array.from(el.children) as HTMLElement[];
+      const centre = el.scrollLeft + el.clientWidth / 2;
+      let idx = 0;
+      cards.forEach((c, i) => {
+        if (c.offsetLeft <= centre) idx = i;
+      });
+      setActiveIndex(idx);
     };
     update();
     el.addEventListener("scroll", update, { passive: true });
@@ -105,13 +115,19 @@ export function Courses() {
     el.scrollBy({ left: dir * Math.max(260, Math.round(el.clientWidth * 0.78)), behavior: "smooth" });
   };
 
+  const scrollToIndex = (i: number) => {
+    const el = scroller.current;
+    const child = el?.children[i] as HTMLElement | undefined;
+    if (el && child) el.scrollTo({ left: child.offsetLeft, behavior: "smooth" });
+  };
+
   const total = COURSE_CARDS.length;
 
   return (
     <section
       id="courses"
       data-section
-      className="relative overflow-hidden bg-site px-6 pt-12 pb-16 sm:px-12"
+      className="relative overflow-hidden bg-site px-6 pt-10 pb-16 sm:px-12"
       aria-label="Courses"
     >
       <div className="mx-auto max-w-6xl">
@@ -125,7 +141,7 @@ export function Courses() {
                 Choose your path{" "}
                 <span
                   style={{
-                    backgroundImage: "linear-gradient(100deg,#1D4ED8,#2563EB,#38BDF8)",
+                    backgroundImage: "linear-gradient(100deg,#1E3A8A,#1D4ED8 55%,#2563EB)",
                     WebkitBackgroundClip: "text",
                     backgroundClip: "text",
                     color: "transparent",
@@ -184,7 +200,7 @@ export function Courses() {
                   key={card.info.name}
                   variants={cardVariants}
                   onMouseMove={handleSpotlight}
-                  className="group relative flex w-[min(100%,19.5rem)] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-ink/[0.07] bg-white transition-[transform,box-shadow,border-color] duration-500 ease-out hover:-translate-y-2 hover:border-ink/[0.12] hover:shadow-[0_34px_80px_-34px_rgb(15_23_42/0.38)]"
+                  className="group relative flex w-[85%] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-ink/[0.07] bg-white transition-[transform,box-shadow,border-color] duration-500 ease-out hover:-translate-y-2 hover:border-ink/[0.12] hover:shadow-[0_34px_80px_-34px_rgb(15_23_42/0.38)] sm:w-[min(100%,19.5rem)]"
                 >
                   <span
                     aria-hidden
@@ -229,7 +245,7 @@ export function Courses() {
                       </span>
                     </div>
 
-                    <p className="mt-2.5 font-serif text-[0.92rem] italic leading-relaxed text-ink-3">
+                    <p className="mt-2.5 font-headline text-[0.9rem] leading-relaxed text-ink-3">
                       {card.info.tagline}
                     </p>
 
@@ -297,11 +313,14 @@ export function Courses() {
                     <div className="mt-auto flex flex-col gap-2.5 pt-4">
                       <ApplyButton
                         courseKey={registrationKeyForCatalogName(card.info.name)}
-                        className="group/apply inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl font-display text-[0.7rem] font-bold uppercase tracking-[0.18em] text-ivory transition-all duration-300 active:scale-[0.98] hover:-translate-y-0.5 hover:brightness-110"
-                        style={{
-                          background: `linear-gradient(135deg, ${card.accent} 0%, ${card.accent}cc 100%)`,
-                          boxShadow: `0 14px 30px -14px ${card.accent}`,
-                        }}
+                        className="group/apply inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl font-display text-[0.7rem] font-bold uppercase tracking-[0.18em] text-ivory transition-[transform,box-shadow] duration-300 ease-out active:scale-[0.98] hover:-translate-y-0.5 hover:shadow-[0_22px_40px_-16px_var(--apply-accent)]"
+                        style={
+                          {
+                            background: `linear-gradient(135deg, ${card.accent} 0%, ${card.accent}cc 100%)`,
+                            boxShadow: `0 14px 30px -14px ${card.accent}`,
+                            "--apply-accent": card.accent,
+                          } as CSSProperties
+                        }
                       >
                         {dict["courses.apply"]}
                         <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/apply:translate-x-1" />
@@ -319,9 +338,44 @@ export function Courses() {
               );
             })}
           </motion.div>
+
+          {/* edge fades — gently hint that more courses sit off-screen */}
+          <span
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-ivory to-transparent transition-opacity duration-300 sm:w-14",
+              canPrev ? "opacity-100" : "opacity-0"
+            )}
+          />
+          <span
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-ivory to-transparent transition-opacity duration-300 sm:w-14",
+              canNext ? "opacity-100" : "opacity-0"
+            )}
+          />
         </div>
 
-        {/* Full catalogue link — improved premium button */}
+        {/* progress dots — a clear, tappable hint on touch screens that the row
+            scrolls horizontally (desktop uses the arrows instead) */}
+        <div className="mt-6 flex items-center justify-center gap-2 lg:hidden">
+          {COURSE_CARDS.map((card, i) => (
+            <button
+              key={card.info.name}
+              type="button"
+              onClick={() => scrollToIndex(i)}
+              aria-label={`Show ${card.info.name}`}
+              aria-current={i === activeIndex ? "true" : undefined}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                i === activeIndex ? "w-7 bg-ink" : "w-1.5 bg-ink/20 hover:bg-ink/40"
+              )}
+            />
+          ))}
+        </div>
+
+        {/* Full catalogue link — brand-blue gradient pill that matches the
+            site's primary CTAs, with a soft sheen sweeping across on hover. */}
         <motion.div
           initial={reduceMotion ? false : { opacity: 0, y: 14 }}
           whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
@@ -331,10 +385,17 @@ export function Courses() {
         >
           <Link
             href="/courses"
-            className="group/see inline-flex h-12 items-center gap-2.5 rounded-full border-2 border-[#2563EB]/25 bg-white px-8 font-display text-[0.78rem] font-bold uppercase tracking-[0.16em] text-[#1647C7] shadow-[0_14px_32px_-18px_rgb(37_99_235/0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2563EB] hover:bg-gradient-to-r hover:from-[#2563EB] hover:to-[#6D4AFF] hover:text-white hover:shadow-[0_20px_44px_-18px_rgb(37_99_235/0.9)]"
+            className="group/view relative inline-flex h-12 items-center gap-2.5 overflow-hidden rounded-full bg-[linear-gradient(115deg,#1D4ED8_0%,#2563EB_45%,#6D4AFF_100%)] px-7 font-display text-[0.9rem] font-bold tracking-tight text-white shadow-[0_16px_34px_-16px_rgba(37,99,235,0.75)] ring-1 ring-white/25 transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_24px_48px_-16px_rgba(37,99,235,0.9)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] active:translate-y-0"
           >
-            {dict["courses.seeAll"]}
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/see:translate-x-1" />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 -left-full w-2/3 -skew-x-12 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.38),transparent)] transition-transform duration-[900ms] ease-out group-hover/view:translate-x-[420%]"
+            />
+            <span className="relative">{dict["courses.viewAll"]}</span>
+            <ArrowRight
+              className="relative h-4 w-4 transition-transform duration-300 group-hover/view:translate-x-0.5"
+              strokeWidth={2.2}
+            />
           </Link>
         </motion.div>
       </div>

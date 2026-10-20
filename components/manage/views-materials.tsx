@@ -31,7 +31,7 @@ export function MaterialsView({ user }: { user: MgUserLite }) {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ title: "", category: "", description: "", type: "PDF" as string, url: "", groupId: "" });
   const [saving, setSaving] = useState(false);
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   const load = () => {
     setBusy(true);
@@ -174,7 +174,7 @@ export function MaterialsView({ user }: { user: MgUserLite }) {
           </div>
         </div>
       </Modal>
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

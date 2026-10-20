@@ -32,7 +32,7 @@ export default function AdminPanelError({
         <button
           type="button"
           onClick={reset}
-          className="mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-7 font-display text-[0.85rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.7)] transition-all hover:-translate-y-0.5 hover:brightness-110"
+          className="mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-7 font-display text-[0.85rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.7)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_20px_42px_-14px_rgb(99_102_241/0.85)]"
         >
           Try again
         </button>

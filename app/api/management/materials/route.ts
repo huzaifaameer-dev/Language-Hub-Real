@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 import { z } from "zod";
 
 import { requireMgRole, scopedGroupIds, logMg, saveManagementFile } from "@/lib/management/core";
-import { getMaterialsCollection, getGroupsCollection } from "@/lib/db";
+import { getMaterialsCollection } from "@/lib/db";
 import { MgMaterialSchema } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";

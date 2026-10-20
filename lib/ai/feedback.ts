@@ -1,4 +1,3 @@
-import { getAiFeedbackCollection } from "@/lib/db";
 import { normalizeTokens } from "@/lib/ai/chunk";
 
 export type FeedbackKind = "essay" | "speaking";
@@ -83,53 +82,3 @@ ${table}
   };
 }
 
-export async function saveFeedbackRecord(input: {
-  userId: string;
-  kind: FeedbackKind;
-  taskPrompt?: string | null;
-  text: string;
-  feedback: string;
-  grade?: string | null;
-  model?: string | null;
-  offline: boolean;
-}): Promise<string> {
-  const col = await getAiFeedbackCollection();
-  const res = await col.insertOne({
-    userId: input.userId,
-    kind: input.kind,
-    taskPrompt: input.taskPrompt ?? null,
-    text: input.text,
-    feedback: input.feedback,
-    grade: input.grade ?? null,
-    model: input.model ?? null,
-    offline: input.offline,
-    createdAt: new Date(),
-  });
-  return String(res.insertedId);
-}
-
-export interface FeedbackRecord {
-  id: string;
-  kind: FeedbackKind;
-  taskPrompt: string | null;
-  preview: string;
-  feedback: string;
-  grade: string | null;
-  offline: boolean;
-  createdAt: string;
-}
-
-export async function listFeedback(userId: string, limit = 20): Promise<FeedbackRecord[]> {
-  const col = await getAiFeedbackCollection();
-  const rows = await col.find({ userId }).sort({ createdAt: -1 }).limit(limit).toArray();
-  return rows.map((r) => ({
-    id: String(r._id),
-    kind: r.kind,
-    taskPrompt: r.taskPrompt ?? null,
-    preview: r.text.slice(0, 120) + (r.text.length > 120 ? "…" : ""),
-    feedback: r.feedback,
-    grade: r.grade ?? null,
-    offline: r.offline,
-    createdAt: r.createdAt.toISOString(),
-  }));
-}

@@ -123,7 +123,7 @@ export function CertificatesCard({
         <button
           type="button"
           onClick={onIssueCert}
-          className="relative mt-5 inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 font-display text-[0.85rem] font-bold text-white shadow-[0_10px_24px_-10px_rgb(245_158_11/0.6)] transition-all hover:-translate-y-0.5 hover:brightness-110"
+          className="relative mt-5 inline-flex h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 font-display text-[0.85rem] font-bold text-white shadow-[0_10px_24px_-10px_rgb(245_158_11/0.6)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_16px_34px_-12px_rgb(245_158_11/0.8)]"
         >
           <Award className="h-4 w-4" /> Claim my certificate
         </button>

@@ -35,7 +35,7 @@ export function AttendanceView({ user }: { user: MgUserLite }) {
   const [roster, setRoster] = useState<MemberRow[]>([]);
   const [busy, setBusy] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   const loadGroups = () => {
     fetch("/api/management/groups").then((r) => (r.ok ? r.json() : null)).then((d) => setGroups((d?.groups ?? []).filter((g: GroupLite) => g.studentCount > 0) as GroupLite[]));
@@ -177,7 +177,7 @@ export function AttendanceView({ user }: { user: MgUserLite }) {
       ) : (
         <EmptyState title="No roster for this group" hint="Add students to this group first." />
       )}
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

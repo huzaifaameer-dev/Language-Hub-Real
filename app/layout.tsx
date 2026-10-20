@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Caveat, Inter, Manrope, Playfair_Display } from "next/font/google";
+import { Caveat, Inter, Manrope, Montserrat, Playfair_Display, Poppins } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
@@ -36,6 +36,23 @@ const playfair = Playfair_Display({
 const caveat = Caveat({
   variable: "--font-caveat",
   subsets: ["latin"],
+  display: "swap",
+});
+
+/** Hero display face — variable so the headline can sit at an exact 750
+ *  rather than snapping to the nearest static 700/800. */
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
+  subsets: ["latin"],
+  weight: "variable",
+  display: "swap",
+});
+
+/** Main hero headline only — lighter and rounder than Montserrat, at 700. */
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
   display: "swap",
 });
 
@@ -182,7 +199,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${manrope.variable} ${playfair.variable} ${caveat.variable}`}
+      className={`${inter.variable} ${manrope.variable} ${playfair.variable} ${caveat.variable} ${montserrat.variable} ${poppins.variable}`}
     >
       <body className="min-h-screen bg-ivory font-sans text-ink antialiased">
         <script

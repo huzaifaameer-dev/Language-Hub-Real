@@ -1,6 +1,7 @@
 import { generateText } from "ai";
 import { ObjectId } from "mongodb";
-import { getDb, getAiAgentJobsCollection, getAiAgentLogCollection } from "@/lib/db";
+import type { Collection, OptionalId } from "mongodb";
+import { getDb, getAiAgentJobsCollection, getAiAgentLogCollection, type AiAgentJobDoc } from "@/lib/db";
 import { aiConfigured, aiModelLabel, getChatModel } from "@/lib/ai/config";
 import {
   decideApplication,
@@ -10,6 +11,28 @@ import {
   EMAIL_OK,
 } from "@/lib/ai/agent/rules";
 import { notify, notifyAdmins } from "@/lib/notifications";
+
+/**
+ * Claim an agent job by inserting its unique `refKey`.
+ *
+ * The insert is the concurrency lock, so the *only* error that means "someone
+ * else already has this job" is a duplicate-key violation. Any other failure is
+ * a real database problem and must be reported as a failure — treating it as a
+ * skip would make a broken database look like a healthy no-op round.
+ */
+async function claimJob(
+  jobs: Collection<AiAgentJobDoc>,
+  doc: OptionalId<AiAgentJobDoc>
+): Promise<{ claimed: true } | { claimed: false; duplicate: boolean }> {
+  try {
+    await jobs.insertOne(doc);
+    return { claimed: true };
+  } catch (err) {
+    const code = (err as { code?: number })?.code;
+    if (code === 11000) return { claimed: false, duplicate: true };
+    return { claimed: false, duplicate: false };
+  }
+}
 
 /** In-app notification helper used by the agent for user-facing updates. */
 async function notifyUser(
@@ -473,10 +496,15 @@ export async function processApplicationNow(applicationId: string): Promise<Inst
   const logCol = await getAiAgentLogCollection();
   const now = new Date();
   const refKey = `app:${applicationId}`;
-  try {
-    await jobs.insertOne({ kind: "APPLICATION", refKey, refId: applicationId, status: "running", decision: null, createdAt: now, updatedAt: now });
-  } catch {
-    return { ok: true, action: "SKIPPED", message: "Already processed.", skipped: true };
+  const claim = await claimJob(jobs, { kind: "APPLICATION", refKey, refId: applicationId, status: "running", decision: null, createdAt: now, updatedAt: now });
+  if (!claim.claimed) {
+    if (claim.duplicate) {
+      return { ok: true, action: "SKIPPED", message: "Already processed.", skipped: true };
+    }
+    await jobs
+      .updateOne({ refKey }, { $set: { status: "failed", error: "job insert failed", updatedAt: new Date() } })
+      .catch(() => {});
+    return { ok: false, action: "FAILED", message: "Could not claim the application job." };
   }
 
   const app = await db.collection("applications").findOne({ _id: new ObjectId(applicationId) });
@@ -569,10 +597,15 @@ export async function processEnrollmentNow(enrollmentId: string): Promise<Instan
   if (!e) return { ok: false, action: "FAILED", message: "Enrollment not found." };
   const isProof = e.status === "PROOF_SUBMITTED";
   const refKey = isProof ? `enr:${enrollmentId}:proof` : `enr:${enrollmentId}`;
-  try {
-    await jobs.insertOne({ kind: "ENROLLMENT", refKey, refId: enrollmentId, status: "running", decision: null, createdAt: now, updatedAt: now });
-  } catch {
-    return { ok: true, action: "SKIPPED", message: "Already processed.", skipped: true };
+  const claim = await claimJob(jobs, { kind: "ENROLLMENT", refKey, refId: enrollmentId, status: "running", decision: null, createdAt: now, updatedAt: now });
+  if (!claim.claimed) {
+    if (claim.duplicate) {
+      return { ok: true, action: "SKIPPED", message: "Already processed.", skipped: true };
+    }
+    await jobs
+      .updateOne({ refKey }, { $set: { status: "failed", error: "job insert failed", updatedAt: new Date() } })
+      .catch(() => {});
+    return { ok: false, action: "FAILED", message: "Could not claim the enrollment job." };
   }
 
   // Owner toggle: review mode never auto-confirms/pays — flags for a human.

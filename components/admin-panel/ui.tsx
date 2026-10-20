@@ -397,10 +397,10 @@ export interface BulkActionDef {
 }
 
 const BULK_TONE: Record<BulkActionDef["tone"], string> = {
-  brand: "bg-brand-deep text-white hover:brightness-110 shadow-[0_12px_24px_-10px_rgb(110_90_224/0.7)]",
-  emerald: "bg-emerald-600 text-white hover:brightness-110 shadow-[0_12px_24px_-10px_rgb(16_185_129/0.6)]",
-  rose: "bg-rose-600 text-white hover:brightness-110 shadow-[0_12px_24px_-10px_rgb(244_63_94/0.6)]",
-  amber: "bg-amber-500 text-white hover:brightness-110 shadow-[0_12px_24px_-10px_rgb(245_158_11/0.6)]",
+  brand: "bg-brand-deep text-white shadow-[0_12px_24px_-10px_rgb(110_90_224/0.7)] transition-[transform,box-shadow] hover:shadow-[0_16px_30px_-10px_rgb(110_90_224/0.95)]",
+  emerald: "bg-emerald-600 text-white shadow-[0_12px_24px_-10px_rgb(16_185_129/0.6)] transition-[transform,box-shadow] hover:shadow-[0_16px_30px_-10px_rgb(16_185_129/0.85)]",
+  rose: "bg-rose-600 text-white shadow-[0_12px_24px_-10px_rgb(244_63_94/0.6)] transition-[transform,box-shadow] hover:shadow-[0_16px_30px_-10px_rgb(244_63_94/0.85)]",
+  amber: "bg-amber-500 text-white shadow-[0_12px_24px_-10px_rgb(245_158_11/0.6)] transition-[transform,box-shadow] hover:shadow-[0_16px_30px_-10px_rgb(245_158_11/0.85)]",
 };
 
 export function BulkActionsBar({

@@ -6,7 +6,7 @@ const ENV = {
   port: Number(process.env.SMTP_PORT ?? 587),
   user: process.env.SMTP_USER ?? "",
   pass: process.env.SMTP_PASS ?? "",
-  from: process.env.MAIL_FROM ?? "Language Hub <noreply@language-hub.local>",
+  from: process.env.MAIL_FROM ?? "Language Hub <languagehub.team@gmail.com>",
 };
 
 /** True when SMTP creds are present, so links silently work once deployed. */
@@ -408,7 +408,7 @@ export async function sendRegistrationEmail(
           <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Course</td><td style="padding:6px 0;font-weight:600">${course}</td></tr>
           <tr><td style="padding:6px 0;color:#64748b;font-size:13px">Student</td><td style="padding:6px 0;font-weight:600">${studentName}</td></tr>
         </table>
-        <p>The full registration summary (with photo and payment details) is attached as a PDF.
+        <p>The full registration summary (with the student photo, payment details and payment proof) is attached as a PDF.
         ${input.extraAttachments?.length ? "The original payment receipt is attached as well." : ""}</p>
         <p><a href="${appBaseUrl()}/admin-panel" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open the admin panel</a></p>
       `)

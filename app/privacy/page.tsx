@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CONTACT } from "@/lib/content";
+import Link from "next/link";
+import { CONTACT, legalContactEmail } from "@/lib/content";
 import { appBaseUrl } from "@/lib/base-url";
 import { LegalShell } from "@/components/legal/LegalShell";
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${baseUrl}/privacy` },
 };
 
-const email = CONTACT.email || "support@languagehub.example";
+const email = legalContactEmail();
 const city = CONTACT.city || "Islamabad";
 
 export default function PrivacyPage() {
@@ -90,8 +91,12 @@ export default function PrivacyPage() {
             <p>
               You can export everything we hold about you from your dashboard, change
               your profile and password at any time, and you may delete your account
-              (which removes your personal records). Email us at {email} for any
-              access, correction or deletion request.
+              (which removes your personal records).{" "}
+              {email ? (
+                <>Email us at <a className="text-brand-deep underline" href={`mailto:${email}`}>{email}</a> for any access, correction or deletion request.</>
+              ) : (
+                <>Use our <Link href="/feedback" className="text-brand-deep underline">contact form</Link> for any access, correction or deletion request.</>
+              )}
             </p>
           ),
         },
@@ -110,7 +115,12 @@ export default function PrivacyPage() {
           body: (
             <p>
               Data controller: Language Hub, {city}. Questions:{" "}
-              <a className="text-brand-deep underline" href={`mailto:${email}`}>{email}</a>.
+              {email ? (
+                <a className="text-brand-deep underline" href={`mailto:${email}`}>{email}</a>
+              ) : (
+                <Link href="/feedback" className="text-brand-deep underline">our contact form</Link>
+              )}
+              .
             </p>
           ),
         },

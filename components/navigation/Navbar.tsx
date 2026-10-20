@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -15,7 +15,6 @@ import {
   LayoutGrid,
   Menu,
   Newspaper,
-  Sparkles,
   Star,
   X,
 } from "lucide-react";
@@ -54,26 +53,40 @@ function buildCourses(dict: Record<string, string>): CourseItem[] {
 
 /** Lightweight section links (rendered as plain items, no heavy dropdown). */
 const SITE_LINKS = [
-  { id: "founder", key: "nav.about", label: "About", icon: Info, note: "Meet the founder" },
+  { id: "why", key: "nav.about", label: "About", icon: Info, note: "What makes learning here different" },
   { id: "reviews", key: "nav.reviews", label: "Reviews", icon: Star, note: "Real results from learners" },
   { id: "enroll", key: "nav.enroll", label: "How it works", icon: Layers, note: "Three simple steps to begin" },
 ] as const;
 
+/** Only these section ids drive the nav underline — other page sections are ignored. */
+const NAV_IDS = new Set<string>(["home", ...SITE_LINKS.map((l) => l.id)]);
+
+/** Reading line — how far down the viewport a section must reach to count as active. */
+const READ_LINE = 0.42;
+
 const ease = [0.16, 1, 0.3, 1] as const;
 
+/**
+ * Navbar links stay calm and typographic. Hover reveals a faint underline;
+ * the active section is marked by a slim blue underline that springs between
+ * links (framer-motion layoutId) — no pill, no lift.
+ */
 export function Navbar() {
   const { dict } = useLang();
   const [active, setActive] = useState("home");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [coursesOpen, setCoursesOpen] = useState(false);
-  const reduceMotion = useReducedMotion();
   const pathname = usePathname();
   const router = useRouter();
   const onSite = pathname === "/";
   const isNews = pathname?.startsWith("/news") ?? false;
   const isCourses = pathname?.startsWith("/courses") ?? false;
   const courses = buildCourses(dict);
+  // While a click-scroll is in flight, keep the clicked link highlighted even
+  // though intermediate sections pass the reading line on the way there.
+  const scrollLockRef = useRef<string | null>(null);
+  const scrollLockTimerRef = useRef<number | undefined>(undefined);
 
   useBodyScrollLock(menuOpen);
   useEscapeKey(() => {
@@ -89,17 +102,37 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    const sections = document.querySelectorAll<HTMLElement>("[data-section]");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) setActive(entry.target.id);
-        }
-      },
-      { rootMargin: "-40% 0px -55% 0px", threshold: 0 }
-    );
-    sections.forEach((s) => observer.observe(s));
-    return () => observer.disconnect();
+    // Deterministic scroll-spy: the active section is simply the last
+    // nav-tracked section whose top has crossed the reading line. No observer
+    // races — document order decides, so "How it works" (which sits above
+    // Reviews on the page) can never steal the underline on the way down.
+    const sections = ["home", ...SITE_LINKS.map((l) => l.id)]
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null)
+      .sort((a, b) => a.offsetTop - b.offsetTop);
+
+    const update = () => {
+      const line = window.innerHeight * READ_LINE;
+      let current = "home";
+      for (const s of sections) {
+        if (s.getBoundingClientRect().top <= line) current = s.id;
+      }
+      const lock = scrollLockRef.current;
+      if (lock) {
+        // Arrived at the clicked section — release the lock and apply.
+        if (current === lock) scrollLockRef.current = null;
+        else return; // still scrolling; keep the clicked link highlighted
+      }
+      setActive(current);
+    };
+
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
   }, []);
 
   useEffect(() => {
@@ -114,6 +147,19 @@ export function Navbar() {
   const go = async (id: string) => {
     setMenuOpen(false);
     setCoursesOpen(false);
+    // Highlight the clicked link instantly and hold it there until the smooth
+    // scroll actually arrives (intermediate sections must not steal it).
+    if (NAV_IDS.has(id)) {
+      window.clearTimeout(scrollLockTimerRef.current);
+      scrollLockRef.current = id === "home" ? null : id;
+      setActive(id);
+      // Safety release — if the scroll is interrupted the lock must not stick.
+      if (id !== "home") {
+        scrollLockTimerRef.current = window.setTimeout(() => {
+          scrollLockRef.current = null;
+        }, 1500);
+      }
+    }
     if (!onSite) {
       try {
         sessionStorage.setItem("lh:scroll-to", id);
@@ -121,18 +167,9 @@ export function Navbar() {
       router.push("/");
       return;
     }
-    const { scrollToId } = await import("@/lib/lenis");
+    const { scrollToId } = await import("@/lib/scroll");
     scrollToId(id);
   };
-
-  const under = (visible: boolean) =>
-    visible && !reduceMotion && (
-      <motion.span
-        layoutId="nav-underline"
-        transition={{ type: "spring", stiffness: 420, damping: 34 }}
-        className="absolute inset-x-3 -bottom-[0.55rem] h-[2.5px] rounded-full bg-gradient-to-r from-[#2563EB] to-[#6D4AFF]"
-      />
-    );
 
   return (
     <>
@@ -179,7 +216,8 @@ export function Navbar() {
               </span>
             </button>
 
-            {/* Center nav — minimalistic: About, Review, How it works, Courses with hover animation */}
+            {/* Center nav — calm and typographic; the active section gets a
+                quiet static underline, nothing slides or grows on hover */}
             <div className="hidden items-center gap-1 lg:flex">
               {SITE_LINKS.map((l) => {
                 const activeLink = active === l.id;
@@ -188,31 +226,33 @@ export function Navbar() {
                     key={l.id}
                     type="button"
                     onClick={() => go(l.id)}
+                    aria-current={activeLink ? "true" : undefined}
                     className={cn(
-                      "group relative overflow-hidden rounded-full px-4 py-2.5 font-display text-[0.8rem] font-medium uppercase tracking-[0.08em] transition-all duration-200",
-                      activeLink
-                        ? "text-[#0F172A]"
-                        : "text-[#475569] hover:text-[#0F172A] hover:-translate-y-px"
+                      "group relative inline-flex items-center rounded-full px-4 py-2.5 font-display text-[0.8rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200",
+                      activeLink ? "text-[#0B1B3A]" : "text-[#5A6B8C] hover:text-[#0B1B3A]"
                     )}
                   >
-                    {activeLink && (
+                    {dict[l.key] ?? l.label}
+                    {activeLink ? (
                       <motion.span
-                        layoutId="nav-pill"
-                        transition={{ type: "spring", stiffness: 320, damping: 30 }}
-                        className="absolute inset-0 -z-10 rounded-full bg-white/95 shadow-[0_4px_16px_-12px_rgba(15,23,42,0.5)] ring-1 ring-white/90"
+                        layoutId="nav-underline"
+                        transition={{ type: "spring", stiffness: 480, damping: 38 }}
+                        className="absolute inset-x-3.5 bottom-[3px] h-[2px] rounded-full bg-[#2563EB]"
+                      />
+                    ) : (
+                      <span
+                        aria-hidden
+                        className="absolute inset-x-3.5 bottom-[3px] h-[2px] origin-left scale-x-0 rounded-full bg-[#2563EB]/40 transition-transform duration-200 ease-out group-hover:scale-x-100"
                       />
                     )}
-                    <span className="relative inline-flex items-center">
-                      {dict[l.key] ?? l.label}
-                    </span>
-                    <span className="absolute inset-x-0 bottom-1 h-[2px] bg-gradient-to-r from-transparent via-[#2563EB]/60 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
                   </button>
                 );
               })}
-              {/* Courses dropdown - improved */}
+
+              {/* Courses dropdown */}
               <div
                 className="relative"
-                onMouseEnter={() => !reduceMotion && setCoursesOpen(true)}
+                onMouseEnter={() => setCoursesOpen(true)}
                 onMouseLeave={() => setCoursesOpen(false)}
               >
                 <button
@@ -221,29 +261,28 @@ export function Navbar() {
                   aria-expanded={coursesOpen}
                   aria-haspopup="true"
                   className={cn(
-                    "group relative inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 font-display text-[0.8rem] font-medium uppercase tracking-[0.08em] transition-colors duration-150",
+                    "group relative inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 font-display text-[0.8rem] font-medium uppercase tracking-[0.08em] transition-colors duration-200",
                     isCourses || coursesOpen
-                      ? "text-[#0F172A]"
-                      : "text-[#475569] hover:text-[#0F172A]"
+                      ? "text-[#0B1B3A]"
+                      : "text-[#5A6B8C] hover:text-[#0B1B3A]"
                   )}
                 >
-                  {(isCourses || coursesOpen) && (
-                    <motion.span
-                      layoutId="nav-pill"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      className="absolute inset-0 -z-10 rounded-full bg-white/95 shadow-[0_10px_40px_-24px_rgba(15,23,42,0.9)] ring-1 ring-white/80"
+                  Courses
+                  <ChevronDown
+                    className={cn("h-3.5 w-3.5", coursesOpen && "rotate-180")}
+                    strokeWidth={2.2}
+                  />
+                  {isCourses ? (
+                    <span
+                      aria-hidden
+                      className="absolute inset-x-3.5 bottom-[3px] h-[2px] rounded-full bg-[#2563EB]"
+                    />
+                  ) : (
+                    <span
+                      aria-hidden
+                      className="absolute inset-x-3.5 bottom-[3px] h-[2px] origin-left scale-x-0 rounded-full bg-[#2563EB]/40 transition-transform duration-200 ease-out group-hover:scale-x-100"
                     />
                   )}
-                  <span className="relative inline-flex items-center gap-1.5">
-                    Courses
-                    <ChevronDown
-                      className={cn(
-                        "h-3.5 w-3.5 transition-transform duration-200",
-                        coursesOpen && "rotate-180"
-                      )}
-                      strokeWidth={2.2}
-                    />
-                  </span>
                 </button>
 
                 <AnimatePresence>
@@ -290,7 +329,7 @@ export function Navbar() {
                             className="group inline-flex items-center gap-2 font-display text-[0.78rem] font-medium text-[#1647C7] transition-colors hover:text-[#2563EB]"
                           >
                             View all courses
-                            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                            <ArrowRight className="h-4 w-4" />
                           </Link>
                         </div>
                       </div>
@@ -410,7 +449,7 @@ export function Navbar() {
                     <span className="flex items-center gap-3">
                       <span className="w-6 font-mono text-[0.6rem] font-bold text-ink-3">0{SITE_LINKS.length + 1}</span>
                       <Newspaper className="h-5 w-5 text-ink/30" strokeWidth={1.9} />
-                      News
+                      {dict["nav.blog"] ?? "Blog"}
                     </span>
                     <ArrowRight className="h-5 w-5 text-ink/25" strokeWidth={2} />
                   </Link>

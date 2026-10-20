@@ -29,7 +29,7 @@ export function NotificationsView({ user }: { user: MgUserLite }) {
   const [rows, setRows] = useState<Notif[]>([]);
   const [unread, setUnread] = useState(0);
   const [busy, setBusy] = useState(true);
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   const load = () => {
     setBusy(true);
@@ -120,7 +120,7 @@ export function NotificationsView({ user }: { user: MgUserLite }) {
           ))}
         </div>
       )}
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

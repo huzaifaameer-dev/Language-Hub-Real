@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
-import { motion, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
+import { useReducedMotionSafe } from "@/lib/hooks";
 import { useIsTouch } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ interface MagneticProps {
 export function Magnetic({ children, strength = 0.18, className, glare = false }: MagneticProps) {
   const ref = useRef<HTMLDivElement>(null);
   const isTouch = useIsTouch();
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotionSafe();
   const [hovering, setHovering] = useState(false);
 
   const x = useMotionValue(0);

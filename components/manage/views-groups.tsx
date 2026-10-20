@@ -50,7 +50,7 @@ export function GroupsView() {
   const [addingStudents, setAddingStudents] = useState(false);
   const [pickStudents, setPickStudents] = useState<string[]>([]);
   const [teacherPick, setTeacherPick] = useState("");
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   const load = () => {
     setBusy(true);
@@ -290,7 +290,7 @@ export function GroupsView() {
           </div>
         ) : null}
       </Modal>
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

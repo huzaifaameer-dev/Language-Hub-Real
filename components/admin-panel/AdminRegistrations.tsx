@@ -421,7 +421,7 @@ const [loaded, setLoaded] = useState((initial?.length ?? 0) > 0);
                               type="button"
                               onClick={() => updateStatus(r, "ENROLLED")}
                               disabled={busy === r.id || r.status === "ENROLLED"}
-                              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-deep px-5 py-2.5 font-display text-[0.78rem] font-extrabold text-white shadow-[0_14px_30px_-12px_rgb(110_90_224/0.8)] transition-all hover:brightness-110 disabled:opacity-50"
+                              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-deep px-5 py-2.5 font-display text-[0.78rem] font-extrabold text-white shadow-[0_14px_30px_-12px_rgb(110_90_224/0.8)] transition-[transform,box-shadow] hover:shadow-[0_20px_40px_-14px_rgb(110_90_224/0.95)] disabled:opacity-50"
                             >
                               {busy === r.id && r.status !== "ENROLLED" ? <Spin dark /> : <GraduationCap className="h-4 w-4" />}
                               {r.status === "CONTACTED" ? "Confirm enrollment" : "Enroll now"}

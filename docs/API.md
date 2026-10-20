@@ -7,7 +7,7 @@ Auto-generated inventory of every App Router API route (`npm run gen:api-docs` r
 - **Learners**: NextAuth JWT session (`auth()`).
 - **Public AI** (`/api/guide`, `/api/ai/practice*`): rate-limited + daily quota via the `lh_client` identity.
 
-## Routes (86 total)
+## Routes (106 total)
 
 ```
 /api/admin/ai/demo-brief
@@ -24,8 +24,7 @@ Auto-generated inventory of every App Router API route (`npm run gen:api-docs` r
 /api/admin/courses/[id]
 /api/admin/demo-bookings
 /api/admin/enrollments
-/api/admin/growth/knowledge-drafts
-/api/admin/growth/knowledge-drafts/[id]
+/api/admin/feedback
 /api/admin/login
 /api/admin/logout
 /api/admin/news
@@ -35,18 +34,18 @@ Auto-generated inventory of every App Router API route (`npm run gen:api-docs` r
 /api/admin/payments
 /api/admin/registrations
 /api/admin/student-enroll
+/api/admin/teachers
+/api/admin/teachers/[id]
+/api/admin/team
 /api/admin/testimonials
+/api/admin/users
 /api/ai/agent/blog
 /api/ai/agent/blog/publish
 /api/ai/agent/jobs
 /api/ai/agent/run
-/api/ai/feedback
-/api/ai/feedback/history
 /api/ai/placement-analyze
 /api/ai/practice
 /api/ai/practice/feedback
-/api/ai/tutor
-/api/ai/tutor/index
 /api/applications
 /api/auth/[...nextauth]
 /api/auth/forgot
@@ -55,7 +54,6 @@ Auto-generated inventory of every App Router API route (`npm run gen:api-docs` r
 /api/automations
 /api/courses
 /api/dashboard
-/api/dashboard/assignments
 /api/dashboard/certificates
 /api/dashboard/classes
 /api/dashboard/progress
@@ -63,8 +61,30 @@ Auto-generated inventory of every App Router API route (`npm run gen:api-docs` r
 /api/enrollments
 /api/enrollments/payment-proof
 /api/events
-/api/guide
+/api/feedback
 /api/health
+/api/management/assignments
+/api/management/assignments/[id]
+/api/management/attendance
+/api/management/groups
+/api/management/groups/[id]
+/api/management/login
+/api/management/logout
+/api/management/materials
+/api/management/materials/[id]
+/api/management/me
+/api/management/media/[id]
+/api/management/messages
+/api/management/messages/[id]
+/api/management/reports
+/api/management/students
+/api/management/students/[id]
+/api/management/submissions
+/api/management/submissions/[id]
+/api/management/teachers
+/api/management/teachers/[id]
+/api/management/templates
+/api/management/templates/[id]
 /api/me
 /api/news
 /api/news/[slug]
@@ -100,18 +120,19 @@ Auto-generated inventory of every App Router API route (`npm run gen:api-docs` r
 
 ## Groups
 
-- **/admin** — 26 route(s)
-- **/ai** — 11 route(s)
+- **/admin** — 29 route(s)
+- **/ai** — 7 route(s)
 - **/applications** — 1 route(s)
 - **/auth** — 4 route(s)
 - **/automations** — 1 route(s)
 - **/courses** — 1 route(s)
-- **/dashboard** — 5 route(s)
+- **/dashboard** — 4 route(s)
 - **/demo-bookings** — 1 route(s)
 - **/enrollments** — 2 route(s)
 - **/events** — 1 route(s)
-- **/guide** — 1 route(s)
+- **/feedback** — 1 route(s)
 - **/health** — 1 route(s)
+- **/management** — 22 route(s)
 - **/me** — 1 route(s)
 - **/news** — 5 route(s)
 - **/notifications** — 1 route(s)

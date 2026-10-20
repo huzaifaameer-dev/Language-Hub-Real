@@ -9,7 +9,6 @@ import {
   CalendarDays,
   CheckCircle,
   Clock,
-  GraduationCap,
   MessageCircle,
   Mic,
   Phone,

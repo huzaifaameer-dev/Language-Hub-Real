@@ -47,6 +47,11 @@ next-env.d.ts
 *.serverlog.txt
 serverlog.txt
 dev.log
+# ad-hoc editor backups / scratch files
+*.bak
+*.bak[0-9]*
+*.orig
+*.rej
 public/uploads/*.jpg
 public/uploads/*.png
 public/uploads/*.webp

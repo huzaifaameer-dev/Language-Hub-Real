@@ -1,146 +1,172 @@
 "use client";
 
-import { SectionHeader } from "@/components/ui/SectionHeader";
-import { Reveal } from "@/components/ui/Reveal";
-import {
-  CalendarClock,
-  Lightbulb,
-  MessageCircle,
-  Rocket,
-  Users,
-  Languages,
-} from "lucide-react";
-import { useLang } from "@/components/LanguageProvider";
+import type { MouseEvent } from "react";
+import { motion } from "framer-motion";
+import { Compass, MessageCircle, Target, TrendingUp, Users } from "lucide-react";
+import { useReducedMotionSafe } from "@/lib/hooks";
+import { cn } from "@/lib/utils";
 
-const FEATURES = [
+const ease = [0.16, 1, 0.3, 1] as const;
+
+interface HubPoint {
+  icon: typeof MessageCircle;
+  num: string;
+  title: string;
+  line: string;
+}
+
+/** One restrained accent per card, so the row reads as a curated set, not a rainbow. */
+const ACCENTS = ["#2563EB", "#6D4AFF", "#0E9384", "#D98A0B", "#1D6FB8"] as const;
+
+const POINTS: HubPoint[] = [
   {
     icon: MessageCircle,
-    tint: "bg-indigo-50 text-indigo-600",
-    bar: "#6366F1",
+    num: "01",
+    title: "Live Conversation",
+    line: "Build natural speaking confidence through real conversations, active participation, and practical speaking opportunities that help you express yourself comfortably in everyday situations.",
   },
   {
     icon: Users,
-    tint: "bg-sky-50 text-sky-600",
-    bar: "#0EA5E9",
+    num: "02",
+    title: "Small Batches",
+    line: "Learn in focused groups where every student receives more speaking time, meaningful interaction, individual attention, and constructive feedback throughout each session.",
   },
   {
-    icon: Lightbulb,
-    tint: "bg-pink-50 text-pink-600",
-    bar: "#D946EF",
+    icon: Compass,
+    num: "03",
+    title: "Personal Guidance",
+    line: "Receive thoughtful guidance tailored to your learning needs, helping you improve expression, overcome hesitation, strengthen weak areas, and communicate with greater confidence.",
   },
   {
-    icon: Languages,
-    tint: "bg-amber-50 text-amber-600",
-    bar: "#F59E0B",
+    icon: Target,
+    num: "04",
+    title: "Exam Confidence",
+    line: "Prepare strategically for IELTS, PTE, and Duolingo through focused practice, expert feedback, structured preparation, and techniques designed around real examination requirements.",
   },
   {
-    icon: Rocket,
-    tint: "bg-emerald-50 text-emerald-600",
-    bar: "#10B981",
+    icon: TrendingUp,
+    num: "05",
+    title: "Real Progress",
+    line: "Experience measurable improvement as your vocabulary, fluency, pronunciation, confidence, and everyday communication skills develop through consistent practice and personalized learning support.",
   },
-  {
-    icon: CalendarClock,
-    tint: "bg-violet-50 text-violet-600",
-    bar: "#8B5CF6",
-  },
-] as const;
+];
 
+/** Track the cursor so each card's hover spotlight follows the pointer. */
+function handleSpotlight(e: MouseEvent<HTMLElement>) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  e.currentTarget.style.setProperty("--mx", `${e.clientX - rect.left}px`);
+  e.currentTarget.style.setProperty("--my", `${e.clientY - rect.top}px`);
+}
+
+/**
+ * "What Makes Learning Here Different".
+ *
+ * Five reasons in a calm 3 + 2 grid — every point visible at once, nothing
+ * cycling past the reader. Each card carries its own accent: a gradient icon
+ * disc, a large ghost numeral for editorial depth, and a spotlight that follows
+ * the cursor. Hover lifts a card a single quiet step.
+ */
 export function Features() {
-  const { dict, lang } = useLang();
-  const isUr = lang === "ur";
+  const reduce = useReducedMotionSafe();
 
   return (
     <section
       id="why"
       data-section
-      className="relative overflow-hidden bg-site px-6 pt-10 pb-16 sm:px-12"
-      aria-label="Why Language Hub"
+      aria-label="What makes learning here different"
+      className="relative overflow-hidden px-6 pt-12 pb-14 sm:px-12 sm:pt-14 sm:pb-16 lg:px-16 lg:pt-14 lg:pb-16"
+      style={{ background: "linear-gradient(180deg, #EDF3FC 0%, #FBFAF7 100%)" }}
     >
-      {/* ambient accents */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div
-          className="absolute left-1/2 top-0 h-64 w-[42rem] -translate-x-1/2"
-          style={{ background: "radial-gradient(50% 100% at 50% 0%, rgb(99 102 241 / 0.08), transparent 70%)" }}
-        />
-      </div>
+      {/* faint accent fields so the white cards read as objects on a surface */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(60% 45% at 8% 0%, rgba(37,99,235,0.06), transparent 60%), radial-gradient(55% 45% at 100% 100%, rgba(109,74,255,0.06), transparent 60%)",
+        }}
+      />
 
       <div className="relative mx-auto max-w-6xl">
-        <SectionHeader
-          eyebrow={dict["features.eyebrow"]}
-          title={
-            isUr ? (
-              <>{dict["features.title1"]} <span className="brand-text">{dict["features.title2"]}</span></>
-            ) : (
-              <>
-                Why learners choose <span className="brand-text">Language Hub.</span>
-              </>
-            )
-          }
-          subtitle={dict["features.subtitle"]}
-        />
+        {/* Heading — editorial, left-aligned */}
+        <motion.div
+          initial={reduce ? false : { opacity: 0, y: 20 }}
+          whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7, ease }}
+          className="max-w-2xl"
+        >
+          <div className="flex items-center gap-4">
+            <span aria-hidden className="h-px w-8 bg-[#0B1B3A]/30" />
+            <span className="font-display text-[0.66rem] font-bold uppercase tracking-[0.24em] text-[#5B6B87]">
+              Why Language Hub
+            </span>
+          </div>
+          <h2
+            className="mt-5 text-[clamp(1.95rem,4vw,3.05rem)] leading-[1.05] tracking-[-0.025em] text-[#0B1B3A]"
+            style={{ fontFamily: "var(--font-headline)", fontWeight: 700 }}
+          >
+            What Makes Learning Here
+            <span className="text-[#1D6FB8]"> Different</span>
+          </h2>
+          <p className="mt-4 max-w-[34rem] text-[0.98rem] leading-[1.72] text-[#5B6B87]">
+            Five things every learner feels from the first session — real practice,
+            real attention, and progress you can actually measure.
+          </p>
+        </motion.div>
 
-        {/* Benefit grid — scannable, professional rows */}
-        <div className="mt-14 grid gap-5 sm:grid-cols-2">
-          {FEATURES.map((f, i) => {
-            const title = dict[`features.f${i + 1}.title`];
-            const desc = dict[`features.f${i + 1}.desc`];
-            const num = String(i + 1).padStart(2, "0");
+        {/* 3 + 2 grid */}
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-6 lg:gap-6">
+          {POINTS.map((p, i) => {
+            const accent = ACCENTS[i % ACCENTS.length];
             return (
-              <Reveal
-                key={title}
-                delay={(i % 2) * 0.08}
-                duration={0.55}
-                className="group relative overflow-hidden rounded-2xl border border-ink/[0.07] bg-white p-6 shadow-[0_16px_40px_-36px_rgb(15_23_42/0.4)] transition-all duration-300 hover:-translate-y-1 hover:border-ink/[0.12] hover:shadow-[0_30px_60px_-32px_rgb(15_23_42/0.4)]"
+              <motion.article
+                key={p.num}
+                onMouseMove={handleSpotlight}
+                initial={reduce ? false : { opacity: 0, y: 26 }}
+                whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ duration: 0.55, delay: i * 0.07, ease }}
+                className={cn(
+                  "group relative flex flex-col overflow-hidden rounded-2xl border border-ink/[0.07] bg-white p-6 shadow-[0_24px_60px_-46px_rgb(15_23_42/0.5)] transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-ink/[0.12] hover:shadow-[0_34px_80px_-44px_rgb(15_23_42/0.55)]",
+                  i < 3 ? "lg:col-span-2" : "lg:col-span-3"
+                )}
               >
-                {/* accent hairline */}
-                <span
+                {/* spotlight follows the cursor */}
+                <div
                   aria-hidden
-                  className="absolute inset-y-0 left-0 w-1 origin-top scale-y-0 bg-gradient-to-b transition-transform duration-500 group-hover:scale-y-100"
-                  style={{ background: `linear-gradient(180deg, ${f.bar}, ${f.bar}88)` }}
+                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                  style={{
+                    background: `radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), ${accent}14, transparent 70%)`,
+                  }}
                 />
-                {/* ghost number */}
+                {/* oversized ghost numeral */}
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute -right-1 -top-2 font-display text-[2.6rem] font-black leading-none opacity-[0.06]"
-                  style={{ color: f.bar }}
+                  className="pointer-events-none absolute -right-2 -top-5 select-none font-display text-[5.5rem] font-black leading-none"
+                  style={{ color: `${accent}12` }}
                 >
-                  {num}
+                  {p.num}
                 </span>
 
-                <div className="flex items-start gap-4">
-                  {/* icon */}
-                  <span className={`grid h-12 w-12 shrink-0 place-items-center rounded-2xl ${f.tint} ring-1 ring-inset transition-transform duration-300 group-hover:scale-105`}>
-                    <f.icon className="h-6 w-6" strokeWidth={1.7} />
-                  </span>
+                <span
+                  className="relative grid h-11 w-11 place-items-center rounded-xl text-white shadow-[0_14px_30px_-16px_rgba(11,27,58,0.55)]"
+                  style={{ background: `linear-gradient(140deg, ${accent}, ${accent}cc)` }}
+                >
+                  <p.icon className="icon-hover-pop h-5 w-5" strokeWidth={1.8} />
+                </span>
 
-                  {/* title + desc */}
-                  <span className="min-w-0">
-                    <span className="flex items-center gap-2">
-                      <span className="font-mono text-[0.55rem] font-bold tracking-[0.2em] text-ink-3">{num}</span>
-                      <span aria-hidden className="h-px w-6" style={{ backgroundColor: `${f.bar}55` }} />
-                    </span>
-                    <h3
-                      className="mt-1.5 font-display text-[1.02rem] font-extrabold leading-snug tracking-tight text-ink"
-                      dir={isUr ? "rtl" : "ltr"}
-                    >
-                      {title}
-                    </h3>
-                    <p className="mt-2 text-[0.86rem] leading-relaxed text-ink-2">{desc}</p>
-                  </span>
-                </div>
-              </Reveal>
+                <h3 className="relative mt-5 font-display text-[1.08rem] font-bold leading-snug tracking-[-0.01em] text-[#0B1B3A]">
+                  {p.title}
+                </h3>
+                <span aria-hidden className="relative mt-3 h-px w-9" style={{ backgroundColor: `${accent}66` }} />
+                <p className="relative mt-3 text-[0.9rem] leading-[1.72] text-[#5B6B87]">
+                  {p.line}
+                </p>
+              </motion.article>
             );
           })}
         </div>
-
-        {/* CTA footer — professional blue line */}
-        <Reveal delay={0.1} duration={0.6} className="mt-12 flex items-center justify-center gap-4">
-          <span aria-hidden className="h-px w-14 bg-[#2563EB]/30 sm:w-20" />
-          <p className="text-center font-display text-[0.86rem] font-bold tracking-wide text-[#2563EB]">
-            One method. Every programme. Real results — the Language Hub difference.
-          </p>
-          <span aria-hidden className="h-px w-14 bg-[#2563EB]/30 sm:w-20" />
-        </Reveal>
       </div>
     </section>
   );

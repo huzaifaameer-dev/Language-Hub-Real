@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
-import { ChevronDown, LogOut, User } from "lucide-react";
-import { motion } from "framer-motion";
+import { ArrowRight, ChevronDown, LogOut, User, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dark" }) {
@@ -47,32 +46,25 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
       <div className="flex items-center gap-2">
         <Link
           href="/login"
+          aria-label="Sign in"
           className={cn(
-            "group relative inline-flex h-10 items-center gap-2 rounded-full pl-1.5 pr-4 font-display text-[0.8rem] font-medium tracking-tight transition-all duration-200",
+            "group relative inline-flex h-12 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full font-display text-[0.86rem] font-bold tracking-tight shadow-[0_14px_30px_-16px_rgba(37,99,235,0.6)] ring-1 ring-white/25 transition-all duration-300 ease-out hover:-translate-y-0.5 active:translate-y-0",
             dark
-              ? "border border-white/20 bg-white/10 text-white hover:bg-white/15"
-              : "border border-slate-300 bg-white text-slate-900 shadow-sm hover:border-slate-400 hover:shadow-md",
-            variant === "dark" ? "focus-visible:outline-gold" : "focus-visible:outline-brand/80"
+              ? "bg-[linear-gradient(115deg,#F59E0B_0%,#FCD34D_45%,#D97706_100%)] text-[#3B2400] focus-visible:outline-gold"
+              : "bg-[linear-gradient(115deg,#1D4ED8_0%,#2563EB_45%,#6D4AFF_100%)] text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB]"
           )}
         >
-          <span className="relative grid h-7 w-7 place-items-center rounded-full bg-gradient-to-br from-slate-50 to-white ring-1 ring-slate-200/80">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-4 w-4 text-slate-700"
-            >
-              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </span>
-          Sign in
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 -left-full w-2/3 -skew-x-12 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)] transition-transform duration-[900ms] ease-out group-hover:translate-x-[420%]"
+          />
+          <UserRound className="icon-hover-swing relative h-[1.1rem] w-[1.1rem]" strokeWidth={2.1} />
+          <span className="relative">Sign in</span>
+          <ArrowRight
+            aria-hidden
+            className="relative h-[0.95rem] w-[0.95rem] -translate-x-1 opacity-0 transition-all duration-300 ease-out group-hover:translate-x-0 group-hover:opacity-100"
+            strokeWidth={2.4}
+          />
         </Link>
       </div>
     );
@@ -105,11 +97,10 @@ export function AuthNavButtons({ variant = "light" }: { variant?: "light" | "dar
         aria-expanded={menuOpen}
         aria-label={`${label} profile menu`}
         className={cn(
-          "group inline-flex items-center gap-2 rounded-full py-1 pl-1 pr-3 backdrop-blur-md transition-all duration-300",
-          menuOpen ? "shadow-sm" : "",
+          "inline-flex items-center gap-2 rounded-full py-1 pl-1 pr-3 backdrop-blur-md transition-colors duration-200",
           dark
-            ? "border border-gold/40 bg-gold/10 hover:bg-gold/20 focus-visible:outline-gold"
-            : "border border-ink/12 bg-ivory/75 hover:bg-white hover:border-ink/20 focus-visible:outline-brand/80"
+            ? "border border-gold/40 bg-gold/10 hover:bg-gold/15 focus-visible:outline-gold"
+            : "border border-ink/12 bg-ivory/75 hover:bg-white focus-visible:outline-brand/80"
         )}
       >
         {/* Avatar wrapped in a brand gradient ring */}

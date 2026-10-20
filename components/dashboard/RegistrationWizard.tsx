@@ -708,7 +708,7 @@ export function RegistrationWizard({
                 <button
                   type="button"
                   onClick={next}
-                  className="group inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-7 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-12px_rgb(99_102_241/0.85)] hover:brightness-[1.05]"
+                  className="group inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-7 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(99_102_241/0.95)]"
                 >
                   Next
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -718,7 +718,7 @@ export function RegistrationWizard({
                   type="button"
                   onClick={submit}
                   disabled={submitting}
-                  className="inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-7 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(16_185_129/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-12px_rgb(16_185_129/0.85)] hover:brightness-[1.05] disabled:opacity-60"
+                  className="inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-7 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(16_185_129/0.75)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(16_185_129/0.95)] disabled:opacity-60"
                 >
                   {submitting ? (
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -770,7 +770,7 @@ export function RegistrationWizard({
               <button
                 type="button"
                 onClick={onExit}
-                className="mt-6 inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.05]"
+                className="mt-6 inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(99_102_241/0.95)]"
               >
                 Done <ChevronRight className="h-4 w-4" />
               </button>

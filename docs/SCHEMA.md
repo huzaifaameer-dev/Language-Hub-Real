@@ -31,12 +31,10 @@ is a human summary of the collections and their key fields.
 
 | Collection | Key fields |
 |---|---|
-| `ai_chunks` | hash (unique), source, sourceId, kind, title, text, embedding? (vector RAG) |
-| `ai_analyses` / `ai_feedback` / `ai_reports` | placement / feedback / weekly-agent outputs (offline flag) |
+| `ai_analyses` / `ai_reports` | placement / weekly-agent outputs (offline flag) |
 | `ai_agent_jobs` | refKey (unique), kind (`APPLICATION`/`ENROLLMENT`/`DEMO`/`BLOG`), status, decision{action,reason}, error? |
 | `ai_agent_log` | immutable action trail (kind, action, refKey, ok, offline) |
 | `ai_usage` | daily budget counters for public AI (TTL 8d) |
-| `knowledge_drafts` | AI-suggested FAQ chunks awaiting admin approval |
 | `session_recaps` | AI class recaps (summary, homework, per-student gaps) |
 | `automation_sends` | dedup keys for email/WhatsApp nudges (unique) |
 
@@ -51,11 +49,10 @@ is a human summary of the collections and their key fields.
 | `errors` | persisted server errors (from `onRequestError`) |
 | `settings` | keyed app settings |
 | `placement_test_leads` | public placement-test captures |
-| `ai_feedback_history` | (see `ai_feedback` above) |
 
 ## Indexes & TTL
 
-- Unique: `users.email`, `courses.name`, `blog_posts.slug`, `ai_chunks.hash`,
+- Unique: `users.email`, `courses.name`, `blog_posts.slug`,
   `ai_agent_jobs.refKey`, `referrals.code`, `automation_sends.key`,
   `certificates.certificateId`, `payments.providerRef`
 - Hard TTL: `ratelimits`, `auth_tokens`, `ai_usage`

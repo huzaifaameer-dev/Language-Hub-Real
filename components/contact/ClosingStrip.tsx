@@ -1,9 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BadgeCheck, MessageCircle, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, BadgeCheck, MessageCircle, Sparkles } from "lucide-react";
 import { CONTACT, whatsappLink } from "@/lib/content";
-import { BookDemoButton } from "@/components/contact/BookDemoButton";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -11,7 +11,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
 export function ClosingStrip() {
   const waHref =
     CONTACT.whatsappHref ||
-    whatsappLink("Assalam o alaikum! I'd like to book a free demo at Language Hub.");
+    whatsappLink("Assalam o alaikum! I'd like to know more about Language Hub.");
 
   return (
     <section
@@ -62,7 +62,7 @@ export function ClosingStrip() {
             </span>
 
             <h2 className="mx-auto mt-5 max-w-2xl font-display text-[clamp(1.7rem,4vw,2.6rem)] font-extrabold leading-tight tracking-[-0.02em] text-ink">
-              Free demo.
+              Find your level.
               <br />
               <span
                 style={{
@@ -72,13 +72,14 @@ export function ClosingStrip() {
                   color: "transparent",
                 }}
               >
-                Choose your batch today.
+                Start today.
               </span>
             </h2>
 
             <p className="mx-auto mt-4 max-w-xl text-[0.95rem] leading-relaxed text-ink-2">
-              One live session is enough to know if we are the right fit — no
-              commitment and no hidden steps, just a real conversation.
+              Take the free 10-minute placement test to see exactly where you
+              stand — then choose the batch that fits. No commitment, no hidden
+              steps.
             </p>
 
             {/* divider */}
@@ -90,7 +91,20 @@ export function ClosingStrip() {
 
             {/* CTA row */}
             <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-              <BookDemoButton />
+              <Link
+                href="/placement-test"
+                className="group relative inline-flex h-12 items-center gap-2.5 overflow-hidden rounded-full bg-[linear-gradient(115deg,#1D4ED8_0%,#2563EB_45%,#6D4AFF_100%)] px-7 font-display text-[0.88rem] font-bold tracking-tight text-white shadow-[0_16px_34px_-16px_rgba(37,99,235,0.75)] ring-1 ring-white/25 transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_24px_48px_-16px_rgba(37,99,235,0.9)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] active:translate-y-0"
+              >
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 -left-full w-2/3 -skew-x-12 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.38),transparent)] transition-transform duration-[900ms] ease-out group-hover:translate-x-[420%]"
+                />
+                <span className="relative">Check Your Level — Free</span>
+                <ArrowRight
+                  className="relative h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5"
+                  strokeWidth={2.2}
+                />
+              </Link>
               <a
                 href={waHref}
                 target="_blank"
@@ -104,7 +118,7 @@ export function ClosingStrip() {
 
             <p className="mt-7 flex items-center justify-center gap-2 font-mono text-[0.6rem] font-bold uppercase tracking-[0.2em] text-[#64748B]">
               <BadgeCheck className="h-3.5 w-3.5 text-emerald-500" strokeWidth={2.2} />
-              Free demo · No commitment · Small batches
+              Free level test · No commitment · Small batches
             </p>
           </div>
         </motion.div>

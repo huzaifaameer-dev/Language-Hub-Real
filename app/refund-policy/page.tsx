@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CONTACT } from "@/lib/content";
+import Link from "next/link";
+import { legalContactEmail } from "@/lib/content";
 import { appBaseUrl } from "@/lib/base-url";
 import { LegalShell } from "@/components/legal/LegalShell";
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${baseUrl}/refund-policy` },
 };
 
-const email = CONTACT.email || "support@languagehub.example";
+const email = legalContactEmail();
 
 export default function RefundPolicyPage() {
   return (
@@ -47,7 +48,13 @@ export default function RefundPolicyPage() {
           heading: "How to request a refund",
           body: (
             <ol className="ml-5 list-decimal space-y-1.5">
-              <li>Email {email} with your name, enrolled batch, and reason.</li>
+              <li>
+                {email ? (
+                  <>Email <a className="text-brand-deep underline" href={`mailto:${email}`}>{email}</a> with your name, enrolled batch, and reason.</>
+                ) : (
+                  <>Use our <Link href="/feedback" className="text-brand-deep underline">contact form</Link> with your name, enrolled batch, and reason.</>
+                )}
+              </li>
               <li>Include your payment reference (Stripe session / transaction ID / screenshot).</li>
               <li>We respond within 3 working days.</li>
             </ol>
@@ -79,7 +86,12 @@ export default function RefundPolicyPage() {
           body: (
             <p>
               Refund questions:{" "}
-              <a className="text-brand-deep underline" href={`mailto:${email}`}>{email}</a>.
+              {email ? (
+                <a className="text-brand-deep underline" href={`mailto:${email}`}>{email}</a>
+              ) : (
+                <Link href="/feedback" className="text-brand-deep underline">our contact form</Link>
+              )}
+              .
             </p>
           ),
         },

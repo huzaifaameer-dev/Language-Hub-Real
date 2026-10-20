@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useReducedMotionSafe } from "@/lib/hooks";
 import { BadgeCheck, MessageCircle, Pin, Send, ThumbsUp, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBodyScrollLock } from "@/lib/hooks";
@@ -19,10 +20,8 @@ interface CommentItem {
   likedTmp?: boolean;
 }
 
-const ease = [0.16, 1, 0.3, 1] as const;
-
 /** Per-session comment cache — reopening a discussion renders instantly, then
- *  refreshes in the background. */
+ * refreshes in the background. */
 const commentCache = new Map<string, CommentItem[]>();
 
 export function NewsCommentsPanel({
@@ -44,7 +43,7 @@ export function NewsCommentsPanel({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const reduce = useReducedMotion();
+  const reduce = useReducedMotionSafe();
 
   useBodyScrollLock(open);
   useEscapeKey(onClose, open);

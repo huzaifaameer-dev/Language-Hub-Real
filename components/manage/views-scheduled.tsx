@@ -29,7 +29,7 @@ export function ScheduledView({ user }: { user: MgUserLite }) {
   const [busy, setBusy] = useState(true);
   const [resched, setResched] = useState<Scheduled | null>(null);
   const [when, setWhen] = useState("");
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   const load = () => {
     setBusy(true);
@@ -130,7 +130,7 @@ export function ScheduledView({ user }: { user: MgUserLite }) {
           </div>
         </div>
       ) : null}
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

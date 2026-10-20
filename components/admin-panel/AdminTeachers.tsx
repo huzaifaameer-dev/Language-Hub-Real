@@ -242,7 +242,7 @@ function CreateTeacherForm({
           <button
             type="submit"
             disabled={busy}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-deep to-brand-deep px-5 font-display text-[0.82rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.6)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.05] disabled:opacity-60"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-brand-deep to-brand-deep px-5 font-display text-[0.82rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.6)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(99_102_241/0.85)] disabled:opacity-60"
           >
             {busy ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />

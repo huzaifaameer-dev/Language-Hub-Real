@@ -168,7 +168,8 @@ export function ManagementApp() {
               try {
                 await fetch("/api/management/logout", { method: "POST" });
               } catch {}
-              window.location.href = "/";
+              router.push("/");
+              router.refresh();
             }}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 font-display text-[0.84rem] font-bold text-slate-500 transition-colors hover:bg-rose-50 hover:text-rose-600"
           >

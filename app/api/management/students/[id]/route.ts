@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { z } from "zod";
 
-import { requireMgRole, canAccessGroup, logMg } from "@/lib/management/core";
+import { requireMgRole, logMg } from "@/lib/management/core";
 import { getUsersCollection, getGroupsCollection } from "@/lib/db";
 
 export const dynamic = "force-dynamic";

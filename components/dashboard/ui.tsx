@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * Shared UI primitives for the student dashboard. Kept tiny so they can be
- * imported by the larger dashboard sections (EnrollmentCard, Bookshelf, modals)
- * once those are split out.
+ * Shared UI primitives for the student dashboard — the small building blocks
+ * (form fields, image resize helper, skeletons) used by RegistrationWizard,
+ * SettingsModal and UserDashboard itself.
  */
 
 import { cn } from "@/lib/utils";

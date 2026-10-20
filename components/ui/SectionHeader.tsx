@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
+import { useReducedMotionSafe } from "@/lib/hooks";
 import { EASE_EXPO } from "@/lib/motion";
 
 interface SectionHeaderProps {
@@ -25,7 +26,7 @@ export function SectionHeader({
   center = true,
   delay = 0,
 }: SectionHeaderProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotionSafe();
   const d = (extra = 0) => delay + extra;
 
   return (

@@ -103,7 +103,7 @@ export function ManageLogin({ target = "/manage" }: { target?: string }) {
           type="submit"
           disabled={busy || !email.trim() || !password}
           className={cn(
-            "mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#1647C7] to-[#6D4AFF] font-display text-[0.95rem] font-extrabold text-white shadow-[0_18px_34px_-16px_rgb(99_102_241/0.8)] transition-all hover:-translate-y-0.5 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
+            "mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#1647C7] to-[#6D4AFF] font-display text-[0.95rem] font-extrabold text-white shadow-[0_18px_34px_-16px_rgb(99_102_241/0.8)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_24px_44px_-16px_rgb(99_102_241/0.95)] disabled:cursor-not-allowed disabled:opacity-50"
           )}
         >
           {busy ? "Signing in…" : "Sign in to management"}

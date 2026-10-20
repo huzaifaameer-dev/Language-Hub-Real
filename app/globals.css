@@ -24,6 +24,8 @@
   --font-display: var(--font-manrope), var(--font-inter), ui-sans-serif, sans-serif;
   --font-serif: var(--font-playfair), Georgia, serif;
   --font-hand: var(--font-caveat), "Patrick Hand", cursive;
+  --font-hero: var(--font-montserrat), var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-headline: var(--font-poppins), var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
@@ -146,6 +148,64 @@
     opacity: 0.9;
     transform: scale(1.15);
   }
+}
+
+/* Animated icon helpers — quiet, lordicon-style life for stroke icons.
+   Hover variants animate only while a parent carrying Tailwind's `.group` is
+   hovered (nothing floats or loops in the background). All are disabled by the
+   global prefers-reduced-motion rule below. */
+@keyframes icon-swing {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(-9deg);
+  }
+  60% {
+    transform: rotate(7deg);
+  }
+}
+
+@keyframes icon-pop {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  45% {
+    transform: scale(1.2) rotate(-6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes icon-lift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.icon-hover-pop,
+.icon-hover-swing,
+.icon-hover-lift {
+  transform-origin: center;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.group:hover .icon-hover-pop {
+  animation: icon-pop 0.45s ease-out;
+}
+
+.group:hover .icon-hover-swing {
+  animation: icon-swing 0.55s ease-in-out;
+}
+
+.group:hover .icon-hover-lift {
+  animation: icon-lift 0.6s ease-in-out;
 }
 
 @keyframes drift-a {
@@ -991,7 +1051,141 @@
     background: linear-gradient(180deg, #2563eb, #f59e0b);
     animation: caret-blink 1s step-end infinite;
   }
-  @keyframes caret-blink {
+  @keyframes soft-rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/**
+ * Flowing-dash shimmer for the "How it works" connectors — short bright dashes
+ * crawl along the dashed number-to-number route, a quiet energy-flow effect.
+ */
+@keyframes flowdash {
+  to {
+    stroke-dashoffset: -220;
+  }
+}
+
+/**
+ * Tower infographic — a soft energy pulse that travels up the central pillar
+ * of the Results tower, clipped to the column so it never leaves the object.
+ * Deliberately slow and quiet: it reads as the tower being "live", not as a
+ * loading spinner.
+ */
+@keyframes tower-pulse {
+  0% {
+    transform: translateY(595px);
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.8;
+  }
+  86% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-120px);
+    opacity: 0;
+  }
+}
+
+/**
+ * Tower plates — a barely-there glow that breathes on a stagger, so the four
+ * discs feel like a single lit object rather than four blinking lights.
+ */
+@keyframes plate-breathe {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/** Halo behind the 100% RESULTS badge — one slow inhale/exhale. */
+@keyframes roof-halo {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.58;
+    transform: scale(1.05);
+  }
+}
+
+/**
+ * Tree — a barely-there breeze that moves the leaf clusters a degree and a
+ * half each way, staggered so the canopy never sways as one rigid block.
+ */
+@keyframes leaf-sway {
+  0%,
+  100% {
+    transform: rotate(-1.4deg);
+  }
+  50% {
+    transform: rotate(1.4deg);
+  }
+}
+
+/**
+ * 4-second auto-cycle for the "What makes learning here different" card.
+ *
+ * One instance runs the full 20s timeline (5 points × 4s) and is shifted with a
+ * positive `animation-delay` so its window lands on the right index. The shape
+ * is strictly sequential — never overlapping:
+ *
+ *   0–4%     fade in  (settle into place)
+ *   4–14%    hold     (read the point)
+ *   14–17%   gravity drop — accelerating downward while blurring out
+ *   17–100%  gone     (a ~0.6s beat where NOTHING is visible before the next
+ *            point fades in at the window boundary)
+ *
+ * Because the drop completes before the timeline hits the next window, the
+ * following point only appears once this one has fully exited, so content never
+ * cross-fades into itself.
+ */
+@keyframes point-cycle {
+  0% {
+    opacity: 0;
+    transform: translateY(32px);
+    filter: blur(10px);
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  4% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+    animation-timing-function: linear;
+  }
+  14% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+    animation-timing-function: cubic-bezier(0.73, 0, 0.86, 0.28);
+  }
+  17% {
+    opacity: 0;
+    transform: translateY(130px);
+    filter: blur(18px);
+    animation-timing-function: linear;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(130px);
+    filter: blur(18px);
+  }
+}
+
+@keyframes caret-blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
   }

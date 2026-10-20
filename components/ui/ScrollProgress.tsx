@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useScroll, useSpring, useReducedMotion, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import { useReducedMotionSafe } from "@/lib/hooks";
 
 /**
  * Thin gradient scroll-progress indicator pinned under the floating navbar.
@@ -9,7 +10,7 @@ import { motion, useScroll, useSpring, useReducedMotion, useTransform } from "fr
  * get a static bar instead of the continuous spring.
  */
 export function ScrollProgress({ className }: { className?: string }) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useReducedMotionSafe();
   const { scrollYProgress } = useScroll();
 
   const progress = useSpring(scrollYProgress, {

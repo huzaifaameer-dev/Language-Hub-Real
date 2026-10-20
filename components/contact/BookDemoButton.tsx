@@ -25,7 +25,7 @@ export function BookDemoButton({
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "group inline-flex h-12 items-center gap-2.5 rounded-full px-7 font-display text-[0.9rem] font-bold transition-all duration-300",
+          "inline-flex h-12 items-center gap-2.5 rounded-full px-7 font-display text-[0.9rem] font-bold transition-colors duration-200",
           variant === "solid"
             ? "bg-ink text-ivory hover:bg-brand-deep"
             : "border border-ivory/25 text-ivory hover:border-gold-light/60 hover:text-gold-light",
@@ -33,7 +33,7 @@ export function BookDemoButton({
         )}
       >
 Book a demo
-        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+        <ArrowRight className="h-4 w-4" />
       </button>
       <DemoBooking open={open} onClose={() => setOpen(false)} />
     </>

@@ -246,7 +246,7 @@ export function SettingsModal({
                 type="button"
                 onClick={saveProfile}
                 disabled={profileBusy}
-                className="inline-flex h-10 items-center gap-2 rounded-full bg-indigo-600 px-5 font-display text-[0.8rem] font-bold text-white shadow-[0_10px_24px_-10px_rgb(99_102_241/0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.06] disabled:opacity-60"
+                className="inline-flex h-10 items-center gap-2 rounded-full bg-indigo-600 px-5 font-display text-[0.8rem] font-bold text-white shadow-[0_10px_24px_-10px_rgb(99_102_241/0.7)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_34px_-10px_rgb(99_102_241/0.9)] disabled:opacity-60"
               >
                 {profileBusy ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : null}
                 Save profile
@@ -289,7 +289,7 @@ export function SettingsModal({
                 type="button"
                 onClick={savePassword}
                 disabled={pwBusy}
-                className="inline-flex h-10 items-center gap-2 rounded-full bg-indigo-600 px-5 font-display text-[0.8rem] font-bold text-white shadow-[0_10px_24px_-10px_rgb(99_102_241/0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-[1.06] disabled:opacity-60"
+                className="inline-flex h-10 items-center gap-2 rounded-full bg-indigo-600 px-5 font-display text-[0.8rem] font-bold text-white shadow-[0_10px_24px_-10px_rgb(99_102_241/0.7)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_34px_-10px_rgb(99_102_241/0.9)] disabled:opacity-60"
               >
                 {pwBusy ? <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : null}
                 Update password

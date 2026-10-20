@@ -113,7 +113,7 @@ export default async function CertificateSharePage({ params }: SharePageProps) {
             <p className="mt-4 font-display text-lg font-extrabold tracking-tight text-brand-deep">
               Javaria Malik
             </p>
-            <p className="font-mono text-[0.58rem] font-bold uppercase tracking-[0.2em] text-ink-3">Founder & Lead Trainer</p>
+            <p className="font-mono text-[0.58rem] font-bold uppercase tracking-[0.2em] text-ink-3">Head of Language Hub</p>
 
             <p className="mt-8 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-emerald-700">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />

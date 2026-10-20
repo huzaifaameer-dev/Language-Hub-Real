@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
+import { ObjectId } from "mongodb";
 import { auth } from "@/auth";
-import { getLiveClassesCollection } from "@/lib/db";
+import { getLiveClassesCollection, getEnrollmentsCollection } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET: Returns upcoming live classes for the signed-in student.
- * POST: Creates a new live class (admin only in practice, but open for seeding).
+ * POST: Creates a live class — staff only. Students must never be able to
+ * schedule (or grant themselves access to) a class.
  */
 
 export async function GET() {
@@ -41,6 +43,10 @@ export async function POST(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
+  const role = session.user.role;
+  if (role !== "ADMIN" && role !== "TEACHER") {
+    return NextResponse.json({ message: "Only staff can schedule classes." }, { status: 403 });
+  }
 
   const body = await request.json().catch(() => ({})) as {
     enrollmentId?: string;
@@ -57,15 +63,26 @@ export async function POST(request: Request) {
   if (!body.enrollmentId || !body.title || !body.scheduledAt || !body.meetingLink) {
     return NextResponse.json({ message: "Missing required fields." }, { status: 400 });
   }
+  if (!ObjectId.isValid(body.enrollmentId)) {
+    return NextResponse.json({ message: "Invalid enrollmentId." }, { status: 400 });
+  }
+
+  // The class belongs to the enrolled student, not the staff member creating
+  // it — GET filters by userId, so writing the actor's id would file the class
+  // under the teacher and hide it from the student.
+  const enr = await (await getEnrollmentsCollection()).findOne({ _id: new ObjectId(body.enrollmentId) });
+  if (!enr) {
+    return NextResponse.json({ message: "Enrollment not found." }, { status: 404 });
+  }
 
   const classes = await getLiveClassesCollection();
   const now = new Date();
 
   const result = await classes.insertOne({
     enrollmentId: body.enrollmentId,
-    userId: session.user.id,
-    course: body.course ?? "",
-    batch: body.batch ?? "",
+    userId: enr.userId,
+    course: body.course ?? enr.subjects?.[0] ?? "",
+    batch: body.batch ?? enr.batch ?? "",
     title: body.title,
     scheduledAt: body.scheduledAt,
     durationMinutes: body.durationMinutes ?? 60,

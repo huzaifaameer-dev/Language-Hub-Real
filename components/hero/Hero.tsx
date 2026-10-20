@@ -1,301 +1,491 @@
 "use client";
-import { useEffect } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, PlayCircle, Sparkles, User } from "lucide-react";
-import { BookDemoButton } from "@/components/contact/BookDemoButton";
+
+import { useRef } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useInView, useReducedMotionSafe } from "@/lib/hooks";
+import {
+  ArrowRight,
+  BookOpen,
+  Briefcase,
+  GraduationCap,
+  MessageCircle,
+  Mic,
+  PenTool,
+  PlayCircle,
+  Volume2,
+} from "lucide-react";
+
 import { useLang } from "@/components/LanguageProvider";
+import { LEARNERS_GUIDED } from "@/lib/content";
+
 const ease = [0.16, 1, 0.3, 1] as const;
 
-/** Lazy scroll — only pulls in Lenis/GSAP on first anchor click. */
+/** Warm ivory paper — never pure white. */
+const PAPER = "#FBFAF7";
+
 async function goTo(id: string) {
-  const { scrollToId } = await import("@/lib/lenis");
+  const { scrollToId } = await import("@/lib/scroll");
   scrollToId(id);
 }
-/* ─── Curved arrow doodle ─── */
-function ArrowDoodle({ className }: { className?: string }) {
+
+const rise = (delay: number, reduce: boolean) => ({
+  initial: { opacity: 0, y: reduce ? 0 : 24 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.8, ease, delay },
+});
+
+/* ───────────────────────────── trust badge ───────────────────────────── */
+
+/**
+ * Trust signal, deliberately understated: no icon, no shadow, no saturated
+ * fill — just a quiet eyebrow line of type above the headline.
+ */
+function TrustBadge({ reduce }: { reduce: boolean }) {
   return (
-    <svg viewBox="0 0 60 40" fill="none" className={className} aria-hidden>
-      <path d="M4 34 C 20 30, 20 8, 50 6" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
-      <path d="M44 12 L 53 5 L 52 15" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity="0.9" />
-    </svg>
+    <motion.div {...rise(0.05, reduce)}>
+      <span className="inline-flex items-center rounded border border-[#0B1B3A]/[0.07] bg-[#F1F4F9] px-2.5 py-1 font-display text-[0.66rem] font-bold uppercase tracking-[0.16em] text-[#5B6B87]">
+        Trusted by {LEARNERS_GUIDED.toLocaleString()}+ Learners
+      </span>
+    </motion.div>
   );
 }
+
+/* ─────────────────────── handwritten editorial note ─────────────────────── */
+
+/**
+ * Editorial annotation, set in the open space the subject in the photograph is
+ * looking toward. No backing wash behind it — the note sits straight on the
+ * photograph so nothing reads as haze around the type.
+ */
+function HandwrittenNote({ reduce }: { reduce: boolean }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: reduce ? 0 : 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.9, ease, delay: 0.65 }}
+      className="relative inline-block -rotate-2"
+    >
+      <p
+        className="whitespace-nowrap text-[1.15rem] font-normal leading-[1.38] tracking-[0.005em] text-ink sm:text-[1.26rem]"
+        style={{ fontFamily: "var(--font-hand)" }}
+      >
+        Better
+        <br />
+        English.
+        <br />
+        Bigger
+        <br />
+        <span className="relative inline-block">
+          Opportunities.
+          <svg
+            aria-hidden
+            className="absolute -bottom-[0.1em] left-0 h-[0.1em] w-full"
+            viewBox="0 0 160 8"
+            fill="none"
+            preserveAspectRatio="none"
+          >
+            <path
+              d="M2 6.8C40 3.8 106 2.6 158 5"
+              stroke="#1E3A5F"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+              opacity="0.38"
+            />
+          </svg>
+        </span>
+      </p>
+    </motion.div>
+  );
+}
+
+/* ───────────────────────────── founder ───────────────────────────── */
+
+/**
+ * Byline, not a profile component: a small circular portrait and two lines of
+ * type. No ring, no card, no tracked-out caps — plain capitalisation so it
+ * reads like a credit line in a magazine.
+ */
+function FounderLine({ reduce }: { reduce: boolean }) {
+  return (
+    <motion.div {...rise(0.52, reduce)} className="flex items-center gap-3">
+      <Image
+        src="/javeria-malik.jpg?v=2"
+        alt="Javaria Malik"
+        width={40}
+        height={40}
+        className="h-10 w-10 shrink-0 rounded-full object-cover"
+      />
+      <span className="min-w-0">
+        <span className="block font-display text-[0.96rem] font-bold leading-tight text-ink">
+          Javaria Malik
+        </span>
+        <span className="mt-0.5 block font-sans text-[0.8rem] leading-tight text-ink-3">
+          Head of Language Hub
+        </span>
+      </span>
+    </motion.div>
+  );
+}
+
+/* ───────────────────────────── actions ───────────────────────────── */
+
+/**
+ * Primary action — a plain text link with a thin arrow. No filled button, so
+ * the headline and the photograph keep all the weight in the composition.
+ * Sends visitors to the free AI placement test: instant value, zero commitment.
+ */
+function PrimaryCta() {
+  return (
+    <Link
+      href="/placement-test"
+      className="group inline-flex items-center gap-1.5 font-display text-[0.95rem] font-bold tracking-[-0.01em] text-[#0B1B3A] transition-colors duration-300 hover:text-[#1D6FB8] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1D6FB8]"
+    >
+      Check Your Level — Free
+      <ArrowRight
+        className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+        strokeWidth={1.8}
+      />
+    </Link>
+  );
+}
+
+/** Secondary action — quieter than the primary, outlined play disc + label. */
+function SecondaryCta({ onGo }: { onGo: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onGo}
+      className="group relative inline-flex items-center gap-3 pb-1.5 font-display text-[0.95rem] font-bold tracking-[-0.01em] text-ink-2 transition-colors duration-300 hover:text-ink"
+    >
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#0B1B3A]/12 transition-colors duration-300 group-hover:border-[#1D6FB8]/45 group-hover:bg-[#1D6FB8]/[0.06]">
+        <PlayCircle className="h-[1.1rem] w-[1.1rem] text-[#1D6FB8]" strokeWidth={1.6} />
+      </span>
+      Explore Courses
+      <span
+        aria-hidden
+        className="absolute inset-x-0 bottom-0 h-px origin-left scale-x-0 bg-[#1D6FB8]/55 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-x-100"
+      />
+    </button>
+  );
+}
+
+/* ───────────────────────────── course strip ───────────────────────────── */
+
+/**
+ * Programme strip — a continuously scrolling marquee.
+ *
+ * The track holds exactly two identical halves, so `translateX(-50%)` lands
+ * precisely on the start of the second copy and the loop has no seam.
+ *
+ * Hover decelerates it (never stops) by rewriting the animation timing so the
+ * normalized progress — and therefore the on-screen position — is preserved
+ * across the speed change; releasing the pointer accelerates it back the same
+ * seamless way.
+ */
+const STRIP: Array<{ icon: typeof GraduationCap; label: string }> = [
+  { icon: GraduationCap, label: "IELTS Preparation" },
+  { icon: MessageCircle, label: "Spoken English" },
+  { icon: Mic, label: "PTE Academic" },
+  { icon: PenTool, label: "Duolingo English Test" },
+  { icon: BookOpen, label: "Creative Writing" },
+  { icon: Briefcase, label: "Business Writing" },
+  { icon: Volume2, label: "Pronunciation Drills" },
+];
+
+/** Steady and slow; on hover it decelerates but never stops. */
+const STRIP_FAST_MS = 70_000;
+const STRIP_SLOW_MS = 150_000;
+
+function CourseStrip({ reduce }: { reduce: boolean }) {
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [stripRef, inView] = useInView<HTMLDivElement>();
+
+  /**
+   * Decelerate / accelerate on hover without ever snapping.
+   *
+   * A CSS marquee's position is purely its NORMALIZED progress — elapsed time
+   * (measured from the current delay) over duration — so the track only stays
+   * continuous if that ratio is identical on both sides of the swap. Two past
+   * bugs are folded into this one formula: assuming the outgoing duration was
+   * always FAST (wrong on mouse-leave → the row lurched forward), and ignoring
+   * the live delay offset (wrong on every swap after the first → progress was
+   * recomputed from a shifted origin). Reading both from the effect and
+   * solving `delay = t - next * progress` keeps progress untouched either way:
+   * the strip simply glides out of the hover from exactly where it was.
+   */
+  const setSpeed = (slow: boolean) => {
+    const el = trackRef.current;
+    if (!el) return;
+    const [anim] = el.getAnimations();
+    if (!anim || !anim.effect) return;
+    const t = Number(anim.currentTime ?? 0);
+    const timing = anim.effect.getTiming();
+    const cur = Number(timing.duration || STRIP_FAST_MS);
+    const next = slow ? STRIP_SLOW_MS : STRIP_FAST_MS;
+    if (next === cur) return;
+    const origin = Number(timing.delay || 0);
+    // progress since the animation's real origin; modulo normalised so a
+    // negative origin delay (a swap that happened in the past) still lands
+    // in [0, 1).
+    const elapsed = (((t - origin) % cur) + cur) % cur;
+    const progress = elapsed / cur;
+    const delay = t - next * progress;
+    anim.effect.updateTiming({
+      duration: next,
+      delay,
+      easing: "linear",
+      iterations: Infinity,
+    });
+  };
+
+  const items: Array<{ icon: typeof GraduationCap; label: string }> = [...STRIP];
+  const loop = [...items, ...items];
+
+  return (
+    <motion.div
+      {...rise(0.85, reduce)}
+      ref={stripRef}
+      className="relative overflow-hidden border-t border-[#0B1B3A]/[0.08] bg-[#F5F2EA]"
+    >
+      <div className="flex items-stretch">
+        {/* Static label rail — gives the band a start point so it reads as a
+            labelled strip rather than a lone marquee. */}
+        <div className="z-10 hidden shrink-0 items-center border-r border-[#0B1B3A]/10 bg-[#F5F2EA] pl-6 pr-6 sm:flex lg:pl-14 lg:pr-7 2xl:pl-16">
+          <span className="font-display text-[0.62rem] font-bold uppercase tracking-[0.22em] text-[#5B6B87]">
+            Our Programmes
+          </span>
+        </div>
+
+        {/* Marquee rail */}
+        <div
+          className="relative min-w-0 flex-1 overflow-hidden"
+          onMouseEnter={() => !reduce && setSpeed(true)}
+          onMouseLeave={() => setSpeed(false)}
+        >
+          {/* Fades to the strip's own tone, so items slide under the band. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#F5F2EA] to-transparent sm:w-20"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[#F5F2EA] to-transparent sm:w-20"
+          />
+
+          <div
+            ref={trackRef}
+            className="flex w-max animate-[marquee_70s_linear_infinite] items-center py-[1.15rem] will-change-transform motion-reduce:animate-none"
+            style={{ animationPlayState: inView ? "running" : "paused" }}
+          >
+            {loop.map(({ icon: Icon, label }, i) => (
+              <div key={`${label}-${i}`} className="flex shrink-0 items-center">
+                {/* A defined tile anchors each item so the row reads as a strip
+                    rather than loose words drifting over the background. */}
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md border border-[#0B1B3A]/[0.08] bg-white/85">
+                  <Icon className="h-3.5 w-3.5 text-[#6B7A99]" strokeWidth={1.8} />
+                </span>
+                <span className="ml-2.5 whitespace-nowrap font-display text-[0.84rem] font-semibold tracking-tight text-[#3B4A6B]">
+                  {label}
+                </span>
+                <span
+                  aria-hidden
+                  className="mx-6 h-4 w-px bg-[#0B1B3A]/15 sm:mx-8"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ───────────────────────────── hero ───────────────────────────── */
+
 export function Hero() {
   const { lang } = useLang();
   const isUr = lang === "ur";
-  const reduce = useReducedMotion();
-  useEffect(() => {
-    const t = setTimeout(() => document.getElementById("home")?.style.setProperty("--flash", "1"), 300);
-    return () => clearTimeout(t);
-  }, []);
+  const reduce = useReducedMotionSafe() === true;
+
   return (
     <section
       id="home"
       data-section
-      className="relative overflow-hidden"
       dir={isUr ? "rtl" : "ltr"}
       aria-label="Welcome to Language Hub"
-      style={{ background: "#F8FAFF" }}
+      className="relative isolate overflow-hidden"
+      style={{ background: PAPER }}
     >
-      {/* ─── Background atmosphere ─── */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        {/* Cool-white → pale-blue base gradient */}
+      {/* Paper field: a soft white bloom behind the copy, warm ivory at the
+          base. Enough to keep the type crisp, never enough to look like a
+          gradient background. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, #F8FAFF 0%, #F3F7FF 55%, #EEF1FF 100%)",
+              "radial-gradient(90% 70% at 14% 26%, #FFFFFF 0%, rgba(255,255,255,0) 62%), radial-gradient(70% 60% at 4% 100%, #F2F0E9 0%, rgba(242,240,233,0) 62%)",
           }}
         />
-        {/* Large organic blobs — visible, soft boundaries */}
-        <div className="absolute -right-48 -top-44 h-[40rem] w-[40rem] rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, #B9CFFF 0%, rgba(185,207,255,0) 70%)", opacity: 0.8 }} />
-        <div className="absolute -left-40 top-16 h-[34rem] w-[34rem] rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, #E0D9FF 0%, rgba(224,217,255,0) 70%)", opacity: 0.85 }} />
-        <div className="absolute bottom-0 right-1/4 h-[26rem] w-[26rem] rounded-[50%]" style={{ background: "radial-gradient(50% 50% at 50% 50%, #C9DFFF 0%, rgba(201,223,255,0) 70%)", opacity: 0.75 }} />
-        {/* Soft radial light near content */}
-        <div className="absolute -left-10 top-1/3 h-96 w-96 rounded-full" style={{ background: "radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 70%)" }} />
-        {/* Subtle diagonal/curved shape entering upper-left */}
-        <svg viewBox="0 0 600 600" className="absolute -left-32 -top-20 h-[34rem] w-[34rem] opacity-90" fill="none" aria-hidden>
-          <path d="M60 20 C 220 120, 260 320, 120 540 C 90 480, 70 260, 40 40 Z" fill="#E1EBFF" opacity="0.95" />
-          <path d="M120 10 C 280 100, 330 300, 200 520" stroke="#9DB8F5" strokeWidth="2" strokeLinecap="round" opacity="1" />
-        </svg>
-        {/* Right-side tiny decorations — visible dot grid */}
-        <div
-          className="absolute inset-y-0 right-0 w-1/2 opacity-70"
-          style={{
-            backgroundImage:
-              "radial-gradient(rgb(37 99 235 / 0.34) 1px, transparent 1px)",
-            backgroundSize: "22px 22px",
-            maskImage: "radial-gradient(ellipse at 62% 42%, black 15%, transparent 76%)",
-            WebkitMaskImage: "radial-gradient(ellipse at 62% 42%, black 15%, transparent 76%)",
-          }}
-        />
-        {/* Extra secondary dot patch near content left */}
-        <div
-          className="absolute inset-y-0 left-0 w-1/3 opacity-50"
-          style={{
-            backgroundImage:
-              "radial-gradient(rgb(109 74 255 / 0.22) 1px, transparent 1px)",
-            backgroundSize: "30px 30px",
-            maskImage: "radial-gradient(ellipse at 30% 60%, black 10%, transparent 70%)",
-            WebkitMaskImage: "radial-gradient(ellipse at 30% 60%, black 10%, transparent 70%)",
-          }}
-        />
-        <svg viewBox="0 0 300 500" className="absolute right-8 top-16 hidden w-56 lg:block" fill="none" aria-hidden>
-          <circle cx="150" cy="60" r="3.5" fill="#6D4AFF" opacity="0.9" />
-          <circle cx="205" cy="110" r="2.5" fill="#2563EB" opacity="0.9" />
-          <circle cx="240" cy="80" r="3" fill="#2563EB" opacity="0.95" />
-          <circle cx="270" cy="120" r="2" fill="#6D4AFF" opacity="0.9" />
-          <circle cx="225" cy="200" r="2.5" fill="#2563EB" opacity="0.85" />
-          <circle cx="250" cy="300" r="3" fill="#6D4AFF" opacity="0.85" />
-          <path d="M230 40 C 260 140, 240 220, 260 300" stroke="#9DB8F5" strokeWidth="2" strokeDasharray="1 7" strokeLinecap="round" opacity="1" />
-          <path d="M20 140 A 90 90 0 0 1 170 120" stroke="#B9D1FF" strokeWidth="2" strokeLinecap="round" opacity="1" />
-          <path d="M60 320 A 80 80 0 0 0 190 300" stroke="#B9CFFF" strokeWidth="1.5" strokeDasharray="2 10" strokeLinecap="round" opacity="0.9" />
-          <path d="M120 40 C 150 70, 180 100, 200 150" stroke="#C9DAFF" strokeWidth="1.5" strokeDasharray="1 8" strokeLinecap="round" opacity="0.9" />
-        </svg>
       </div>
-      {/* ─── Main grid ─── */}
-      <div className="relative mx-auto grid max-w-[1440px] items-center gap-10 px-6 pt-24 pb-6 sm:px-10 lg:grid-cols-[1.08fr_0.92fr] lg:gap-6 lg:px-14 lg:pt-28 lg:pb-8 2xl:px-16">
-        {/* ═══════════════ LEFT — Content ═══════════════ */}
-        <div className="max-w-2xl" dir={isUr ? "rtl" : "ltr"}>
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease }}
-            className="flex items-center gap-2"
-          >
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white/80 px-4 py-2 text-[0.8rem] font-semibold text-[#1647C7] shadow-[0_8px_24px_-12px_rgb(11_27_58/0.15)] backdrop-blur-md">
-              <Sparkles className="h-4 w-4 text-[#f59e0b]" strokeWidth={2} />
-              Estimated 8 years experience
-            </span>
-          </motion.div>
-          {/* Heading */}
-          <motion.h1
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.1 }}
-            className="mt-7 max-w-[700px] font-display font-extrabold leading-[1.0] tracking-[-0.02em] text-[#0B1B3A]"
-            style={{ fontSize: "clamp(2.9rem, 6.4vw, 4.85rem)" }}
-          >
-            <motion.span
-              className="block"
+
+      {/* Full-bleed grid: the copy column is padded, the photograph column is
+          not — it runs to the right edge of the viewport on every desktop
+          width, which is what makes it read as an editorial image rather than
+          a panel. Navbar is 4.2rem tall and fixed, hence the top offset. */}
+      <div className="relative grid items-center pt-[4.2rem] lg:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)]">
+        {/* ═══════════ LEFT — copy ═══════════ */}
+        <div className="flex items-center px-6 pb-12 pt-10 sm:px-10 lg:py-[clamp(3rem,6vh,5rem)] lg:pl-[clamp(2rem,4.5vw,5.5rem)] lg:pr-6 2xl:pr-12">
+          <div className="w-full max-w-[38rem]">
+            <TrustBadge reduce={reduce} />
+
+            {/* Poppins at 700: rounder and lighter than the previous face, so
+                the block reads cleaner and more modern without losing presence.
+                Colour still does the emphasis — no gradients, no glow. */}
+            <motion.h1
               initial={{ opacity: 0, y: reduce ? 0 : 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease, delay: 0.08 }}
+              transition={{ duration: 0.9, ease, delay: 0.14 }}
+              className="mt-7 max-w-[38rem] text-[#0B1B3A]"
+              style={{
+                fontFamily: "var(--font-headline)",
+                fontSize: "clamp(2.5rem, 4.9vw, 4.7rem)",
+                fontWeight: 700,
+                lineHeight: 0.97,
+                letterSpacing: "-0.04em",
+              }}
             >
-              Master{" "}
-              <span className="relative inline-block">
-                <span style={{ backgroundImage: "linear-gradient(135deg,#2563EB,#6D4AFF)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
-                  English
+              <span className="block">
+                Master{" "}
+                <span className="relative inline-block">
+                  <span className="text-[#1D6FB8]">English</span>
+                  {/* Thin, hand-drawn rather than a text-decoration: the curve
+                      is deliberately uneven and sits tight under the word. */}
+                  <svg
+                    aria-hidden
+                    className="absolute -bottom-[0.05em] left-0 h-[0.09em] w-full"
+                    viewBox="0 0 200 10"
+                    fill="none"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M2 7.8C54 4.6 132 3.4 198 5.6"
+                      stroke="#1D6FB8"
+                      strokeWidth="2.2"
+                      strokeLinecap="round"
+                      opacity="0.38"
+                    />
+                  </svg>
                 </span>
-                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 12" fill="none" aria-hidden>
-                  <path d="M3 9C60 3 150 3 197 7" stroke="url(#lhh)" strokeWidth="4" strokeLinecap="round" />
-                  <defs>
-                    <linearGradient id="lhh" x1="0" y1="0" x2="200" y2="0">
-                      <stop stopColor="#2563EB" />
-                      <stop offset="1" stopColor="#6D4AFF" />
-                    </linearGradient>
-                  </defs>
-                </svg>
               </span>
-            </motion.span>
-            <motion.span
-              className="block"
-              initial={{ opacity: 0, y: reduce ? 0 : 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease, delay: 0.16 }}
+              <span className="block">and speak with</span>
+              <span className="block text-[#2E6472]">confidence.</span>
+            </motion.h1>
+
+            <motion.p
+              {...rise(0.4, reduce)}
+              className="mt-7 max-w-[31rem] text-[1.04rem] leading-[1.68] text-ink-3"
             >
-              and speak with
-            </motion.span>
-            <motion.span
-              className="block"
-              initial={{ opacity: 0, y: reduce ? 0 : 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease, delay: 0.24 }}
+              Learn to speak, score, and express yourself fluently through live,
+              small-batch classes built around real conversation.
+            </motion.p>
+
+            {/* Hairline gives the authority block its own section instead of
+                letting it float in the same gap as everything else. */}
+            <div className="mt-8 max-w-[31rem] border-t border-[#0B1B3A]/10 pt-6">
+              <FounderLine reduce={reduce} />
+            </div>
+
+            <motion.div
+              {...rise(0.6, reduce)}
+              className="mt-9 flex flex-wrap items-center gap-x-9 gap-y-5"
             >
-              <span style={{ backgroundImage: "linear-gradient(135deg,#2563EB,#6D4AFF)", WebkitBackgroundClip: "text", backgroundClip: "text", color: "transparent" }}>
-                confidence.
-              </span>
-            </motion.span>
-          </motion.h1>
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: reduce ? 0 : 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease, delay: 0.34 }}
-            className="mt-6 max-w-lg text-[#64748B]"
-            style={{ fontSize: "1.05rem", lineHeight: 1.55 }}
-          >
-            Learn to speak, score, and express yourself fluently through live, small-batch
-            classes built around real conversation.
-          </motion.p>
-          {/* Instructor line */}
-          <motion.div
-            initial={{ opacity: 0, y: reduce ? 0 : 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease, delay: 0.4 }}
-            className="mt-4 flex items-center gap-2 text-[#0B1B3A]"
-          >
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-[#2563EB]/10">
-              <User className="h-3.5 w-3.5 text-[#1647C7]" strokeWidth={2.2} />
-            </span>
-            <span className="font-display text-[0.98rem] font-semibold">Javaria Malik.</span>
-          </motion.div>
-          {/* CTA row */}
-          <motion.div
-            initial={{ opacity: 0, y: reduce ? 0 : 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease, delay: 0.46 }}
-            className="mt-8 flex flex-wrap items-center gap-4"
-          >
-            <BookDemoButton variant="solid" className="px-8 text-[0.95rem]" />
-            <button
-              type="button"
-              onClick={() => goTo("courses")}
-              className="group inline-flex h-[3.4rem] items-center gap-2.5 rounded-full border border-[#BFD3FF]/70 bg-white px-8 font-display text-[0.95rem] font-semibold text-[#1647C7] shadow-[0_10px_24px_-14px_rgb(11_27_58/0.2)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2563EB]/50 hover:shadow-[0_16px_36px_-16px_rgb(37_99_235/0.3)]"
-            >
-              <PlayCircle className="h-5 w-5 text-[#1647C7]" strokeWidth={1.8} />
-              Explore Courses
-              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.2} />
-            </button>
-          </motion.div>
+              <PrimaryCta />
+              <SecondaryCta onGo={() => goTo("courses")} />
+            </motion.div>
+          </div>
         </div>
-        {/* ═══════════════ RIGHT — Student Character ═══════════════ */}
-        <div className="relative mx-auto w-full max-w-xl lg:max-w-none lg:pl-4">
-          {/* Organic abstract shape behind the character — more visible */}
+
+        {/* ═══════════ RIGHT — full-bleed photograph ═══════════ */}
+        <div className="relative h-[24rem] w-full sm:h-[30rem] lg:h-[clamp(34rem,82vh,52rem)]">
+          {/* Soft seam only. The blur is confined to the outer ~18% of the
+              image so the photograph itself stays sharp and fully legible. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute left-1/2 top-[4%] h-[125%] w-[125%] -translate-x-1/2"
+            className="absolute inset-0 overflow-hidden"
+            style={{
+              maskImage:
+                "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.45) 9%, #000 19%, #000 100%)",
+              WebkitMaskImage:
+                "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.45) 9%, #000 19%, #000 100%)",
+            }}
+          >
+            <Image
+              src="/hero-editorial.jpg"
+              alt=""
+              fill
+              priority
+              aria-hidden
+              sizes="(min-width: 1024px) 58vw, 100vw"
+              className="scale-[1.04] object-cover opacity-70 blur-[16px]"
+            />
+          </div>
+
+          {/* Sharp layer — fully opaque past ~22% of its width. */}
+          <motion.div
+            initial={{ opacity: 0, scale: reduce ? 1 : 1.025 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, ease, delay: 0.12 }}
+            className="absolute inset-0 overflow-hidden"
+            style={{
+              maskImage:
+                "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.3) 6%, rgba(0,0,0,0.8) 14%, #000 22%, #000 100%)",
+              WebkitMaskImage:
+                "linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.3) 6%, rgba(0,0,0,0.8) 14%, #000 22%, #000 100%)",
+            }}
+          >
+            <Image
+              src="/hero-editorial.jpg"
+              alt="A Language Hub learner practising spoken English during a live small-batch class"
+              fill
+              priority
+              sizes="(min-width: 1024px) 58vw, 100vw"
+              className="object-cover"
+            />
+          </motion.div>
+
+          {/* Ivory wash: just enough to melt the left edge into the page tone.
+              It stops well before mid-image so the photograph stays clear. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(50% 50% at 50% 42%, #DCE9FF 0%, #EAF2FF 35%, rgba(234,242,255,0) 72%)",
-              opacity: 0.85,
+                "linear-gradient(90deg, #FBFAF7 0%, rgba(251,250,247,0.9) 3%, rgba(251,250,247,0.48) 9%, rgba(251,250,247,0.14) 16%, rgba(251,250,247,0) 25%)",
             }}
           />
+          {/* Light feather on the bottom edge only, so it meets the course
+              strip without dimming the subject. */}
           <div
             aria-hidden
-            className="pointer-events-none absolute top-1/2 left-1/2 h-[96%] w-[92%] -translate-x-[66%] -translate-y-1/2 rounded-[50%]"
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-20"
             style={{
-              border: "2px solid rgba(37,99,235,0.42)",
-              boxShadow: "inset 0 0 42px -22px rgba(37,99,235,0.38), 0 0 54px -26px rgba(37,99,235,0.55)",
+              background: "linear-gradient(180deg, rgba(251,250,247,0) 0%, rgba(251,250,247,0.72) 100%)",
             }}
           />
-          {/* Handwritten annotation (top-left of character) */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="absolute left-0 top-2 z-30 hidden lg:block"
-          >
-            <ArrowDoodle className="absolute -left-12 top-14 w-16" />
-            <p className="font-hand text-[1.8rem] font-semibold leading-[1.05] text-[#1647C7]" style={{ fontFamily: "var(--font-hand)" }}>
-              Better<br />English.<br />Bigger<br />Opportunities.
-            </p>
-          </motion.div>
-          {/* Character — large foreground, no rectangular frame */}
-          <motion.div
-            initial={{ opacity: 0, y: reduce ? 0 : 34 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, ease, delay: 0.2 }}
-            className="relative z-10 mx-auto w-[88%] max-w-[31rem] lg:w-auto lg:max-w-none"
-          >
-            <img
-              src="/hero-student.png"
-              alt="Student learning English at Language Hub"
-              className="h-auto w-full object-contain"
-            />
-          </motion.div>
-          {/* Paper-plane + dotted flight path */}
-          <motion.svg
-            viewBox="0 0 200 160"
-            fill="none"
-            className="absolute left-2 top-[38%] z-10 hidden w-32 lg:block"
-            aria-hidden
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-          >
-            <path
-              d="M10 150 C 60 130, 90 60, 150 30"
-              stroke="#2563EB"
-              strokeWidth="2.5"
-              strokeDasharray="2 8"
-              strokeLinecap="round"
-              opacity="0.95"
-            />
-            <g transform="translate(150 30)">
-              <path d="M0 0 L14 -6 L6 2 L16 5 L0 10 Z" fill="#2563EB" opacity="0.95" />
-            </g>
-            <circle cx="60" cy="110" r="3.5" fill="#6D4AFF" opacity="0.95" />
-            <circle cx="100" cy="70" r="3" fill="#2563EB" opacity="0.9" />
-            <circle cx="128" cy="48" r="2.5" fill="#6D4AFF" opacity="0.85" />
-          </motion.svg>
+
+          {/* Editorial annotation, set in the open space the subject in the
+              photograph is looking toward — between the headline block and her
+              face, never over either. Nudge `left`/`top` if the crop moves. */}
+          <div className="pointer-events-none absolute left-[11%] top-[18%] sm:left-[14%] sm:top-[20%] lg:left-[17%] lg:top-[22%]">
+            <HandwrittenNote reduce={reduce} />
+          </div>
         </div>
       </div>
-      {/* ─── Bottom soft curve — elegant, clearly visible, no text ─── */}
-      <div className="pointer-events-none -mt-6" aria-hidden>
-        <svg viewBox="0 0 1440 100" preserveAspectRatio="none" className="block h-[52px] w-full sm:h-[68px]">
-          <defs>
-            <linearGradient id="curveGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#DCE9FF" />
-              <stop offset="50%" stopColor="#C9DAFF" />
-              <stop offset="100%" stopColor="#E9E3FF" />
-            </linearGradient>
-          </defs>
-          <path
-            fill="url(#curveGrad)"
-            d="M0,0 C180,70 360,16 560,44 C760,72 940,86 1140,58 C1280,34 1360,22 1440,40 L1440,100 L0,100 Z"
-          />
-          <path
-            fill="none"
-            stroke="#A7C3FF"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            opacity="0.9"
-            d="M0,92 C180,64 360,24 560,48 C760,72 940,88 1140,60 C1280,38 1360,30 1440,44"
-          />
-        </svg>
-      </div>
+
+      <CourseStrip reduce={reduce} />
     </section>
   );
 }

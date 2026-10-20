@@ -13,13 +13,25 @@ jobs:
       - name: Trigger /api/automations
         env:
           AUTOMATION_SECRET: ${{ secrets.AUTOMATION_SECRET }}
+          # Set this repository variable to the real production origin, e.g.
+          # https://www.languagehub.example  (Settings → Secrets and variables →
+          # Actions → Variables). It is intentionally NOT hardcoded here.
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
         run: |
-          # TODO: Replace ACADEMY_PRODUCTION_URL with your real production domain,
-          # e.g. https://www.languagehub.example. Secret is sent via header
-          # (never in the URL, so it cannot leak into proxy/access logs).
-          ACADEMY_PRODUCTION_URL="https://your-domain.example"
+          set -euo pipefail
+          if [ -z "${PRODUCTION_URL:-}" ]; then
+            echo "::error::PRODUCTION_URL repository variable is not set."
+            echo "Add it under Settings → Secrets and variables → Actions → Variables."
+            exit 1
+          fi
+          if [ -z "${AUTOMATION_SECRET:-}" ]; then
+            echo "::error::AUTOMATION_SECRET secret is not set."
+            exit 1
+          fi
+          # The secret travels in a header, never in the query string, so it
+          # cannot leak into proxy or access logs.
           curl -fsS \
             -H "User-Agent: github-actions-cron" \
             -H "Authorization: Bearer $AUTOMATION_SECRET" \
-            "$ACADEMY_PRODUCTION_URL/api/automations" \
+            "$PRODUCTION_URL/api/automations" \
             || echo "automations run reported a non-2xx status"

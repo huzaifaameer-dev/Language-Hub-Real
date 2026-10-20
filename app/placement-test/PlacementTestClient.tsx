@@ -205,7 +205,7 @@ export function PlacementTestClient() {
             <button
               type="button"
               onClick={() => setPhase("quiz")}
-              className="mt-8 inline-flex h-13 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-10 font-display text-[0.92rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(110_90_224/0.7)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110"
+              className="mt-8 inline-flex h-13 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-10 font-display text-[0.92rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(110_90_224/0.7)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_52px_-16px_rgb(110_90_224/0.9)]"
             >
               Start the test <ArrowRight className="h-4 w-4" />
             </button>
@@ -322,7 +322,7 @@ export function PlacementTestClient() {
                 <button
                   type="button"
                   onClick={finishQuiz}
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-6 font-display text-[0.82rem] font-bold text-white shadow-[0_12px_30px_-12px_rgb(110_90_224/0.6)] transition-all hover:-translate-y-0.5 hover:brightness-110"
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-6 font-display text-[0.82rem] font-bold text-white shadow-[0_12px_30px_-12px_rgb(110_90_224/0.6)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-14px_rgb(110_90_224/0.85)]"
                 >
                   Submit <CheckCircle className="h-4 w-4" />
                 </button>
@@ -438,7 +438,7 @@ export function PlacementTestClient() {
               <div className="mt-4 flex flex-wrap gap-3">
                 <ApplyButton
                   courseKey={registrationKeyForCatalogName(result.recommendedCourse)}
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-7 font-display text-[0.82rem] font-bold text-white transition-all hover:-translate-y-0.5 hover:brightness-110"
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-7 font-display text-[0.82rem] font-bold text-white transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-14px_rgb(110_90_224/0.85)]"
                 >
                   <BookOpen className="h-4 w-4" /> Apply now
                 </ApplyButton>

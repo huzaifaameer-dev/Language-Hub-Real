@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { GraduationCap, Mail, Pencil, Phone, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GroupLite } from "./types";
@@ -34,15 +34,25 @@ export function StudentsView() {
   const [busy, setBusy] = useState(true);
   const [editing, setEditing] = useState<Student | null>(null);
   const [creating, setCreating] = useState(false);
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   const form0 = { name: "", email: "", phone: "", notes: "", groupIds: [] as string[] };
   const [form, setForm] = useState(form0);
   const [saving, setSaving] = useState(false);
 
-  const load = () => {
+  // Debounce the search term so typing doesn't fire a request per keystroke.
+  const [debouncedQ, setDebouncedQ] = useState(q);
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      setDebouncedQ(q);
+      setPage(1);
+    }, 350);
+    return () => window.clearTimeout(t);
+  }, [q]);
+
+  const load = useCallback(() => {
     setBusy(true);
-    fetch(`/api/management/students?q=${encodeURIComponent(q)}&page=${page}&status=active`)
+    fetch(`/api/management/students?q=${encodeURIComponent(debouncedQ)}&page=${page}&status=active`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d) {
@@ -52,14 +62,10 @@ export function StudentsView() {
       })
       .finally(() => setBusy(false));
     fetch("/api/management/groups").then((r) => (r.ok ? r.json() : null)).then((d) => setGroups((d?.groups ?? []) as GroupLite[]));
-  };
+  }, [debouncedQ, page]);
   useEffect(() => {
     queueMicrotask(() => load());
-  }, [page]);
-  useEffect(() => {
-    const t = window.setTimeout(() => setPage(1), 350);
-    return () => window.clearTimeout(t);
-  }, [q]);
+  }, [load]);
 
   const openCreate = () => {
     setForm({ ...form0, groupIds: groups[0] ? [groups[0].id] : [] });
@@ -227,7 +233,7 @@ export function StudentsView() {
           </div>
         </div>
       </Modal>
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

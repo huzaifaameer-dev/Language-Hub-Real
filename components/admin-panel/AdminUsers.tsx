@@ -21,7 +21,6 @@ const PAGE_SIZE = 15;
 
 export function AdminUsers({ items }: { items: AdminUser[] }) {
   const [rows, setRows] = useState<AdminUser[]>(items);
-  const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState<Filter>("ALL");
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -34,14 +33,12 @@ export function AdminUsers({ items }: { items: AdminUser[] }) {
       setRows(items);
       return;
     }
-    setBusy(true);
     fetch("/api/admin/users", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d && Array.isArray(d.users)) setRows(d.users as AdminUser[]);
       })
-      .catch(() => {})
-      .finally(() => setBusy(false));
+      .catch(() => {});
   }, [items]);
 
   const setFilterPageReset = (f: Filter) => {

@@ -303,7 +303,7 @@ export function AdminFeedback() {
                         type="button"
                         disabled={busy === f.id || f.status === "REVIEWED"}
                         onClick={() => setStatus(f, "REVIEWED")}
-                        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 font-display text-[0.72rem] font-bold text-white shadow-[0_10px_24px_-12px_rgb(16_185_129/0.7)] transition-all hover:brightness-110 disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 font-display text-[0.72rem] font-bold text-white shadow-[0_10px_24px_-12px_rgb(16_185_129/0.7)] transition-[transform,box-shadow] hover:shadow-[0_16px_32px_-14px_rgb(16_185_129/0.85)] disabled:opacity-50"
                       >
                         {busy === f.id ? <Spin /> : <Eye className="h-3.5 w-3.5" />} Mark reviewed
                       </button>

@@ -10,10 +10,9 @@ import {
   GraduationCap,
   LayoutDashboard,
   LogOut,
-  Sparkles,
   Trophy,
   User,
-  UserCircle,
+  UserRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEscapeKey } from "@/components/ui/FocusTrap";
@@ -21,10 +20,9 @@ import { useEscapeKey } from "@/components/ui/FocusTrap";
 const ease = [0.16, 1, 0.3, 1] as const;
 
 /**
- * Premium account system — a single premium "identity chip" that works for
- * guests and signed-in users alike. Guests get a magnetic "Sign in" pill;
- * signed-in users get a conic-gradient avatar ring, a name + role label and a
- * glass dropdown with their account, dashboard, placement test and sign out.
+ * Account chip for the navbar — a calm "Sign in" button for guests;
+ * signed-in users get an avatar, a name + role label and a clean
+ * dropdown with their account, dashboard, placement test and sign out.
  */
 export function AccountChip() {
   const { data: session, status } = useSession();
@@ -59,7 +57,12 @@ export function AccountChip() {
   }, [open]);
 
   if (status === "loading") {
-    return <span aria-hidden className="hidden h-11 w-11 animate-pulse rounded-full bg-ink/[0.06] md:block" />;
+    return (
+      <span
+        aria-hidden
+        className="hidden h-12 w-[7.5rem] animate-pulse rounded-full bg-ink/[0.06] md:block"
+      />
+    );
   }
 
   const isAuthed = !!session?.user;
@@ -83,26 +86,30 @@ export function AccountChip() {
         href="/login"
         prefetch
         aria-label="Sign in"
-        className="group relative hidden items-center gap-2 rounded-full pl-1.5 pr-4 py-2.5 border border-slate-300 bg-white font-display text-[0.8rem] font-medium tracking-tight text-slate-900 shadow-sm transition-all duration-200 hover:border-slate-400 hover:shadow-md md:inline-flex"
+        className="group relative hidden h-12 items-center gap-2.5 overflow-hidden rounded-full bg-[linear-gradient(115deg,#1D4ED8_0%,#2563EB_45%,#6D4AFF_100%)] p-1.5 pr-5 font-display text-[0.86rem] font-bold tracking-tight text-white shadow-[0_14px_30px_-16px_rgba(37,99,235,0.7)] ring-1 ring-white/25 transition-[transform,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_24px_48px_-16px_rgba(37,99,235,0.85)] focus-visible:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2563EB] active:translate-y-0 md:inline-flex"
       >
-        <span className="relative grid h-6 w-6 place-items-center rounded-full bg-gradient-to-br from-slate-50 to-white ring-1 ring-slate-200/80">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-3.5 w-3.5 text-slate-700"
-          >
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
+        {/* light sweep on hover */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 -left-full w-2/3 -skew-x-12 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.42),transparent)] transition-transform duration-[900ms] ease-out group-hover:translate-x-[420%]"
+        />
+        {/* soft top gloss */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-4 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.7),transparent)]"
+        />
+
+        <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-white/18 ring-1 ring-white/30 backdrop-blur-[2px] transition-transform duration-300 ease-out group-hover:scale-[1.06]">
+          <UserRound className="icon-hover-swing h-[1.15rem] w-[1.15rem]" strokeWidth={2.1} />
         </span>
-        Sign in
+
+        <span className="relative select-none">Sign in</span>
+
+        <ArrowRight
+          aria-hidden
+          className="relative h-[0.95rem] w-[0.95rem] -translate-x-1.5 opacity-0 transition-all duration-300 ease-out group-hover:translate-x-0 group-hover:opacity-100"
+          strokeWidth={2.4}
+        />
       </Link>
     );
   }
@@ -116,23 +123,17 @@ export function AccountChip() {
         aria-expanded={open}
         aria-haspopup="menu"
         className={cn(
-          "group flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-3.5 transition-all duration-300",
+          "flex items-center gap-2.5 rounded-full py-1.5 pl-1.5 pr-3.5 transition-colors duration-200",
           open
-            ? "bg-white shadow-[0_16px_36px_-16px_rgb(37_99_235/0.45)] ring-1 ring-[#2563EB]/15"
-            : "border border-[#E6EDFF] bg-white/80 shadow-[0_8px_22px_-14px_rgb(11_27_58/0.2)] ring-1 ring-inset ring-white/40 hover:-translate-y-0.5 hover:border-[#2563EB]/35 hover:shadow-[0_14px_32px_-16px_rgb(37_99_235/0.5)]"
+            ? "bg-white ring-1 ring-[#2563EB]/20"
+            : "border border-[#E6EDFF] bg-white/85 ring-1 ring-inset ring-white/50 hover:bg-white"
         )}
       >
-        {/* Conic-ring avatar */}
+        {/* Avatar */}
         <span className="relative grid h-9 w-9 shrink-0 place-items-center">
           <span
             aria-hidden
-            className={cn(
-              "absolute inset-0 rounded-full transition-all duration-500",
-              open
-                ? "bg-[conic-gradient(from_90deg,#2563EB,#0EA5E9,#6D4AFF,#F0C36D,#2563EB)]"
-                : "bg-[conic-gradient(from_90deg,#2563EB,#6D4AFF,#0EA5E9,#2563EB)]"
-            )}
-            style={{ animation: "spin 6s linear infinite" }}
+            className="absolute inset-0 rounded-full bg-[conic-gradient(from_90deg,#2563EB,#6D4AFF,#0EA5E9,#2563EB)]"
           />
           <span className="absolute inset-[2px] grid place-items-center overflow-hidden rounded-full bg-white">
             {image ? (
@@ -210,7 +211,7 @@ export function AccountChip() {
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}
                 role="menuitem"
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2.5 font-display text-[0.78rem] font-bold uppercase tracking-[0.06em] text-rose-600 transition-all duration-300 hover:bg-rose-100 hover:shadow-[0_10px_24px_-12px_rgb(225_29_72/0.45)]"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2.5 font-display text-[0.78rem] font-bold uppercase tracking-[0.06em] text-rose-600 transition-colors duration-200 hover:bg-rose-100"
               >
                 <LogOut className="h-4 w-4" strokeWidth={2.2} />
                 Sign out
@@ -243,14 +244,13 @@ function MenuItem({
       onClick={onClick}
       className="group flex items-start gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-[#2563EB]/[0.05]"
     >
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2563EB]/[0.08] text-[#1647C7] transition-transform group-hover:scale-105">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2563EB]/[0.08] text-[#1647C7]">
         {icon}
       </span>
       <span className="flex min-w-0 flex-1 flex-col leading-tight">
-        <span className="font-display text-[0.84rem] font-bold text-ink group-hover:text-[#1647C7]">{label}</span>
+        <span className="font-display text-[0.84rem] font-bold text-ink">{label}</span>
         {note ? <span className="mt-0.5 text-[0.66rem] font-medium text-ink-3">{note}</span> : null}
       </span>
-      <ArrowRight className="mt-2 h-4 w-4 shrink-0 -translate-x-1 text-[#2563EB] opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" strokeWidth={2.2} />
     </Link>
   );
 }

@@ -2,13 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  BadgeCheck,
   BotMessageSquare,
   CalendarClock,
-  CircleX,
   Compass,
   FileText,
-  Lightbulb,
   MessageCircleMore,
   RefreshCw,
   Sparkles,
@@ -109,7 +106,7 @@ export function AdminAi() {
           type="button"
           onClick={() => void generate()}
           disabled={busy}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-6 py-2.5 font-display text-[0.78rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(110_90_224/0.8)] transition-all hover:-translate-y-0.5 hover:brightness-110 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-6 py-2.5 font-display text-[0.78rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(110_90_224/0.8)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_20px_40px_-14px_rgb(110_90_224/0.95)] disabled:opacity-50"
         >
           {busy ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -188,7 +185,6 @@ export function AdminAi() {
       <QuerySection />
       <TriageSection />
       <RecapSection />
-      <FlywheelSection />
       <DemoBriefSection />
 
       {/* History */}
@@ -523,111 +519,6 @@ export function RecapSection() {
           </div>
         )}
       </div>
-    </GlassPanel>
-  );
-}
-
-interface Draft {
-  id: string;
-  title: string;
-  faq: string;
-  source: string;
-  offline: boolean;
-  createdAt: string;
-}
-
-export function FlywheelSection() {
-  const [drafts, setDrafts] = useState<Draft[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [busyId, setBusyId] = useState<string | null>(null);
-
-  const load = useCallback(() => {
-    fetch("/api/admin/growth/knowledge-drafts")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (d?.drafts) setDrafts(d.drafts as Draft[]);
-      })
-      .catch(() => {});
-  }, []);
-  useEffect(load, [load]);
-
-  const mine = async () => {
-    if (busy) return;
-    setBusy(true);
-    try {
-      await fetch("/api/admin/growth/knowledge-drafts", { method: "POST" });
-      load();
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const decide = async (id: string, action: "approve" | "reject") => {
-    setBusyId(id);
-    try {
-      await fetch(`/api/admin/growth/knowledge-drafts/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action }),
-      });
-      load();
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  return (
-    <GlassPanel>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <SectionTitle kicker="Knowledge flywheel" title="Teach the tutor" />
-        <button
-          type="button"
-          onClick={() => void mine()}
-          disabled={busy}
-          className="inline-flex h-10 items-center gap-2 rounded-xl border border-brand/30 bg-brand/[0.06] px-4 font-display text-[0.7rem] font-bold text-brand-deep transition-all hover:bg-brand/[0.12] disabled:opacity-50"
-        >
-          {busy ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Lightbulb className="h-4 w-4" />}
-          Mine recent submissions
-        </button>
-      </div>
-      <p className="mt-2 font-mono text-[0.6rem] uppercase tracking-widest text-ink-3">
-        Approve drafts → they become RAG knowledge the tutor &amp; guide can answer from.
-      </p>
-      {drafts.length === 0 ? (
-        <p className="mt-4 rounded-2xl border border-dashed border-ink/12 py-8 text-center font-mono text-[0.78rem] text-ink-3">
-          No drafts in the queue.
-        </p>
-      ) : (
-        <div className="mt-4 flex flex-col gap-2.5">
-          {drafts.map((d) => (
-            <div key={d.id} className="rounded-2xl border border-ink/10 bg-white/70 p-4">
-              <p className="font-display text-[0.88rem] font-extrabold text-ink">{d.title}</p>
-              <p className="mt-1 text-[0.82rem] leading-relaxed text-ink-2">{d.faq}</p>
-              <div className="mt-3 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => void decide(d.id, "approve")}
-                  disabled={busyId === d.id}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 font-display text-[0.64rem] font-bold text-white transition-all hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  <BadgeCheck className="h-3.5 w-3.5" /> Approve
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void decide(d.id, "reject")}
-                  disabled={busyId === d.id}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-ink/12 px-3 font-display text-[0.64rem] font-bold text-ink-2 transition-all hover:border-rose-300 hover:text-rose-600 disabled:opacity-50"
-                >
-                  <CircleX className="h-3.5 w-3.5" /> Reject
-                </button>
-                {d.offline && (
-                  <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 font-mono text-[0.52rem] font-bold uppercase text-amber-700">offline</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </GlassPanel>
   );
 }

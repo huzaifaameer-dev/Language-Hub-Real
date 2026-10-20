@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CONTACT } from "@/lib/content";
+import Link from "next/link";
+import { legalContactEmail } from "@/lib/content";
 import { appBaseUrl } from "@/lib/base-url";
 import { LegalShell } from "@/components/legal/LegalShell";
 
@@ -12,7 +13,7 @@ export const metadata: Metadata = {
   alternates: { canonical: `${baseUrl}/terms` },
 };
 
-const email = CONTACT.email || "support@languagehub.example";
+const email = legalContactEmail();
 
 export default function TermsPage() {
   return (
@@ -88,8 +89,18 @@ export default function TermsPage() {
           heading: "Contact",
           body: (
             <p>
-              For questions about these terms, email{" "}
-              <a className="text-brand-deep underline" href={`mailto:${email}`}>{email}</a>.
+              For questions about these terms,{" "}
+              {email ? (
+                <>
+                  email{" "}
+                  <a className="text-brand-deep underline" href={`mailto:${email}`}>{email}</a>.
+                </>
+              ) : (
+                <>
+                  use our <Link href="/feedback" className="text-brand-deep underline">contact form</Link>{" "}
+                  and we will get back to you.
+                </>
+              )}
             </p>
           ),
         },

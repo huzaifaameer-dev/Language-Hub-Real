@@ -1,20 +1,28 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { FOUNDER } from "@/lib/content";
+import { useInView, useReducedMotionSafe } from "@/lib/hooks";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
 const BIO = [
-  "Javaria Malik is the CEO and founder of Language Hub, where she has spent over 8 years turning hesitant speakers into confident communicators. Her conversation-first method treats English as a living skill — something learners actually use, not merely study.",
+  "Javaria Malik is the Head of Language Hub, where she has spent over 8 years turning hesitant speakers into confident communicators. Her conversation-first method treats English as a living skill — something learners actually use, not merely study.",
   "Under her leadership, every programme pairs structured lessons with real speaking practice, mock interviews and honest feedback — so progress in the classroom shows up in real conversations.",
 ];
 
 /** CEO / Founder spotlight — calm, calm luxury. */
 export function FounderSpotlight() {
+  const [sectionRef, inView] = useInView();
+  const reduce = useReducedMotionSafe();
+  // Loop the ambient glows only while the section is on screen (and never
+  // under reduced motion) — off screen they hold a single soft value.
+  const live = inView && !reduce;
   return (
     <section
       id="founder"
+      ref={sectionRef}
       data-section
       className="relative overflow-hidden bg-[#F4F7FF] px-6 py-16 sm:px-12 sm:py-20"
       aria-label="Founder profile"
@@ -29,15 +37,18 @@ export function FounderSpotlight() {
         >
           {/* Background: image + emerald/blue glows */}
           <div aria-hidden className="pointer-events-none absolute inset-0">
+            {/* Decorative full-bleed backdrop behind the glows — next/image would
+                add no optimisation here and risks layout shift. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/ceo-bg.jpg" alt="" className="h-full w-full object-cover opacity-[0.25]" />
             <motion.div
-              animate={{ opacity: [0.22, 0.4, 0.22] }}
+              animate={live ? { opacity: [0.22, 0.4, 0.22] } : { opacity: 0.3 }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               className="absolute -right-28 -top-28 h-80 w-80 rounded-[50%]"
               style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(16 185 129 / 0.22), transparent 70%)" }}
             />
             <motion.div
-              animate={{ opacity: [0.18, 0.34, 0.18] }}
+              animate={live ? { opacity: [0.18, 0.34, 0.18] } : { opacity: 0.26 }}
               transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
               className="absolute -bottom-28 -left-24 h-80 w-80 rounded-[50%]"
               style={{ background: "radial-gradient(50% 50% at 50% 50%, rgb(59 130 246 / 0.20), transparent 70%)" }}
@@ -47,38 +58,40 @@ export function FounderSpotlight() {
           {/* animated hairline — emerald → blue */}
           <motion.div
             aria-hidden
-            animate={{ scaleX: [0.35, 1, 0.35] }}
+            animate={live ? { scaleX: [0.35, 1, 0.35] } : { scaleX: 1 }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             className="absolute inset-x-0 top-0 h-[3px] origin-left bg-gradient-to-r from-emerald-400 via-sky-400 to-blue-500"
           />
 
-          <div className="relative grid gap-10 p-8 sm:p-10 lg:grid-cols-[300px_1fr] lg:gap-14">
-            {/* Photo */}
-            <motion.div
-              animate={{ y: [0, -5, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              className="relative mx-auto w-full max-w-[20rem] lg:mx-0"
-            >
-              <motion.span
+          <div className="relative grid gap-10 p-8 sm:p-10 lg:grid-cols-[340px_1fr] lg:gap-14">
+            {/* Photo — a fixed portrait (no floating), framed to the image's
+                own ratio so the whole picture shows, vertically centred in
+                the card */}
+            <div className="relative mx-auto w-full max-w-[22rem] lg:mx-0 lg:self-center">
+              <span
                 aria-hidden
-                animate={{ scale: [1, 1.06, 1], opacity: [0.35, 0.6, 0.35] }}
-                transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -inset-3 rounded-[1.6rem] bg-emerald-500/40 blur-2xl"
+                className="absolute -inset-3 rounded-[1.6rem] bg-emerald-500/30 blur-2xl"
               />
               <span className="relative block overflow-hidden rounded-[1.35rem] ring-1 ring-white/15">
                 {FOUNDER.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={FOUNDER.image} alt={FOUNDER.name} className="aspect-[4/5] w-full object-cover" />
+                  <Image
+                    src={FOUNDER.image}
+                    alt={FOUNDER.name}
+                    width={1281}
+                    height={1228}
+                    sizes="(min-width: 1024px) 340px, 90vw"
+                    className="aspect-[1281/1228] w-full object-cover object-center"
+                  />
                 ) : (
-                  <span className="grid aspect-[4/5] w-full place-items-center bg-gradient-to-br from-emerald-500 to-blue-600">
+                  <span className="grid aspect-[1281/1228] w-full place-items-center bg-gradient-to-br from-emerald-500 to-blue-600">
                     <span className="font-display text-5xl font-extrabold text-white">{FOUNDER.name.charAt(0)}</span>
                   </span>
                 )}
               </span>
               <span className="absolute -bottom-3 -right-3 rounded-full border border-emerald-400/40 bg-[#0B1322] px-3 py-1.5 font-mono text-[0.6rem] font-bold tracking-[0.2em] text-emerald-300 shadow-lg">
-                CEO
+                Head
               </span>
-            </motion.div>
+            </div>
 
             {/* Identity + bio */}
             <div className="flex flex-col justify-center text-center lg:text-start">
@@ -109,9 +122,8 @@ export function FounderSpotlight() {
                 transition={{ delay: 0.26, duration: 0.5, ease }}
                 className="mt-1.5 font-display text-[0.92rem] font-semibold text-slate-400"
               >
-                Founder of Pakistan&apos;s conversation-first English academy
+                Leading Pakistan&apos;s conversation-first English academy
               </motion.p>
-
               {/* Bio */}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}

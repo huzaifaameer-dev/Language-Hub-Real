@@ -3,7 +3,6 @@ import type { Db } from "mongodb";
 import bcrypt from "bcryptjs";
 import type { CourseInfo } from "@/lib/course-data";
 import { FALLBACK_COURSES } from "@/lib/course-data";
-import { TESTIMONIALS } from "@/lib/content";
 
 const uri = process.env.MONGODB_URI ?? "mongodb://127.0.0.1:27017";
 const dbName = process.env.MONGODB_DB ?? "languagehub";
@@ -867,14 +866,9 @@ export function ensureInit(): Promise<void> {
         db.collection("referral_redeems").createIndex({ redeemedAt: -1 }),
         db.collection("automation_sends").createIndex({ key: 1 }, { unique: true }),
         db.collection("automation_sends").createIndex({ sentAt: -1 }),
-        db.collection("ai_chunks").createIndex({ hash: 1 }, { unique: true }),
-        db.collection("ai_chunks").createIndex({ sourceId: 1 }),
-        db.collection("ai_chunks").createIndex({ updatedAt: 1 }),
         db.collection("ai_analyses").createIndex({ createdAt: -1 }),
         db.collection("ai_analyses").createIndex({ email: 1 }),
-        db.collection("ai_feedback").createIndex({ userId: 1, createdAt: -1 }),
         db.collection("ai_reports").createIndex({ createdAt: -1 }),
-        db.collection("knowledge_drafts").createIndex({ status: 1, createdAt: -1 }),
         db.collection("session_recaps").createIndex({ createdAt: -1 }),
         db.collection("session_recaps").createIndex({ course: 1 }),
         db.collection("applications").createIndex({ waitlistHoldUntil: 1 }),
@@ -1158,33 +1152,8 @@ export async function getReferralRedeemsCollection() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  AI: RAG knowledge chunks, placement analyses, feedback, reports    */
+/*  AI: placement analyses, reports                                   */
 /* ------------------------------------------------------------------ */
-
-/** One retrievable text chunk of the tutor knowledge base. */
-export interface AiChunkDoc {
-  _id?: unknown;
-  /** Content hash — unique key used to upsert without duplicates. */
-  hash: string;
-  /** Where the text came from: course / faq / blog / feature. */
-  source: string;
-  /** Stable identifier within the source (course name, faq index, blog slug). */
-  sourceId: string;
-  /** Corpus category: course, module, faq, blog, feature. */
-  kind: string;
-  /** Human-readable heading for the source chip in the chat UI. */
-  title: string;
-  /** The chunk text used as retrieval context. */
-  text: string;
-  /** Vector embedding (absent when the knowledge base is built without an AI key). */
-  embedding?: number[] | null;
-  updatedAt: Date;
-}
-
-export async function getAiChunksCollection() {
-  const db = await getDb();
-  return db.collection<AiChunkDoc>("ai_chunks");
-}
 
 /** Stored result of an AI placement-test analysis. */
 export interface AiAnalysisDoc {
@@ -1207,30 +1176,6 @@ export interface AiAnalysisDoc {
 export async function getAiAnalysesCollection() {
   const db = await getDb();
   return db.collection<AiAnalysisDoc>("ai_analyses");
-}
-
-/** AI essay / speaking feedback submitted by a learner. */
-export interface AiFeedbackDoc {
-  _id?: unknown;
-  userId: string;
-  kind: "essay" | "speaking";
-  /** Optional prompt/task (e.g. IELTS Task 2 essay question). */
-  taskPrompt?: string | null;
-  /** The submitted essay or speaking transcript. */
-  text: string;
-  /** Full AI feedback text. */
-  feedback: string;
-  /** Parsed grade/band when determinable (e.g. "Band 6.5"). */
-  grade?: string | null;
-  model?: string | null;
-  /** True when produced by the rule-based offline fallback. */
-  offline: boolean;
-  createdAt: Date;
-}
-
-export async function getAiFeedbackCollection() {
-  const db = await getDb();
-  return db.collection<AiFeedbackDoc>("ai_feedback");
 }
 
 /** AI-generated ops report (e.g. the weekly teacher-assistant summary). */
@@ -1270,27 +1215,8 @@ export function generateReferralCode(userId: string, name?: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Growth: knowledge drafts + session recaps                          */
+/*  Growth: session recaps                                             */
 /* ------------------------------------------------------------------ */
-
-/** A proposed RAG knowledge chunk waiting for an admin approval decision. */
-export interface KnowledgeDraftDoc {
-  _id?: unknown;
-  title: string;
-  faq: string;
-  source: string;
-  offline: boolean;
-  model?: string | null;
-  status: "draft" | "approved" | "rejected";
-  seedId?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export async function getKnowledgeDraftsCollection() {
-  const db = await getDb();
-  return db.collection<KnowledgeDraftDoc>("knowledge_drafts");
-}
 
 /** An AI-generated session recap for a live class. */
 export interface SessionRecapDoc {

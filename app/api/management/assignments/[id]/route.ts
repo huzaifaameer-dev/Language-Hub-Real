@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import { z } from "zod";
 
-import { requireMgRole, canAccessGroup, logMg, dispatchMessage, notifyGroup, scopedGroupIds } from "@/lib/management/core";
-import { getMgAssignmentsCollection, getGroupsCollection } from "@/lib/db";
+import { requireMgRole, logMg, dispatchMessage, notifyGroup, scopedGroupIds } from "@/lib/management/core";
+import { getMgAssignmentsCollection } from "@/lib/db";
 import { MgAssignmentSchema } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -12,12 +12,6 @@ const ActionSchema = z.object({
   action: z.enum(["publish", "schedule", "close", "reopen", "delete"]).optional(),
   scheduledFor: z.string().datetime({ offset: true }).optional().nullable(),
 });
-
-async function loadOwned(userId: string, id: string) {
-  const col = await getMgAssignmentsCollection();
-  if (!ObjectId.isValid(id)) return null;
-  return col.findOne({ _id: new ObjectId(id), teacherId: userId });
-}
 
 export async function GET(_request: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
@@ -86,8 +80,6 @@ export async function PATCH(request: Request, ctx: { params: Promise<{ id: strin
   if (action.success && action.data.action) {
     if (action.data.action === "publish") {
       await col.updateOne({ _id: doc._id }, { $set: { status: "PUBLISHED", publishedAt: now, scheduledFor: null, updatedAt: now } });
-      const groups = await getGroupsCollection();
-      const gNames = (await groups.find({ _id: { $in: doc.groupIds.map((g) => new ObjectId(g)) } }, { projection: { name: 1 } }).toArray()).map((g) => String(g.name));
       const text = `Salam! 📚 New assignment: "${doc.title}". ${doc.instructions ? `Instructions: ${doc.instructions.slice(0, 180)}… ` : ""}Deadline: ${
         doc.deadline ? doc.deadline.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "soon"
       }. Submit: ${base()}/my-learning`;

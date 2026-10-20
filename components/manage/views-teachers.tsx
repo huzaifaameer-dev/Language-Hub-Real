@@ -30,7 +30,7 @@ export function TeachersView({ groups }: { groups: GroupLite[] }) {
   const [form, setForm] = useState({ name: "", email: "", phone: "" });
   const [pick, setPick] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const { items, push } = useToasts();
+  const { items, push, dismiss } = useToasts();
 
   const load = () => {
     setBusy(true);
@@ -185,7 +185,7 @@ export function TeachersView({ groups }: { groups: GroupLite[] }) {
           <MgButton onClick={() => void saveAssign()} disabled={saving || pick.length === 0}>Assign {pick.length || ""}</MgButton>
         </div>
       </Modal>
-      <Toasts items={items} onClose={() => {}} />
+      <Toasts items={items} onClose={dismiss} />
     </div>
   );
 }

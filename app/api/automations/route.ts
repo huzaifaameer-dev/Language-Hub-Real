@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { ObjectId } from "mongodb";
 import { getDb } from "@/lib/db";
 import {
   sendAbandonedApplicationEmail,
@@ -11,6 +12,15 @@ import { createDedupTracker } from "@/lib/automation-dedup";
 import { notify, notifyAdmins } from "@/lib/notifications";
 import { sendWaText, waConfigured } from "@/lib/whatsapp";
 import { staleLearners, weekKey, nudgeCopy, digestCopy } from "@/lib/growth/streaks";
+import {
+  expiredHolds,
+  freshWaitlistCandidates,
+  holdDeadline,
+  offersFromVacancies,
+  onHoldApps,
+  type VacantBatch,
+  type WaitlistApp,
+} from "@/lib/growth/waitlist";
 import { completionPercent, makeCertificateId, shouldIssueCertificate, issueDate } from "@/lib/growth/certificate";
 import { runAgentRound } from "@/lib/ai/agent/engine";
 
@@ -215,11 +225,28 @@ export async function GET(request: Request) {
   const pendingApps = await db
     .collection("applications")
     .find({ status: "PENDING", waitlistHoldUntil: null })
-    .project({ userId: 1, name: 1, course: 1, createdAt: 1 })
+    .project({ userId: 1, email: 1, name: 1, course: 1, createdAt: 1, waitlistHoldUntil: 1 })
     .limit(2000)
     .toArray();
 
-  // Compute live seats per (course, batch) and match against pending applicants.
+  // 1. Release holds whose 24-hour window lapsed, so those applicants become
+  //    eligible for a fresh offer instead of being stranded forever.
+  const apps = pendingApps as unknown as WaitlistApp[];
+  for (const app of expiredHolds(apps, now)) {
+    await db
+      .collection("applications")
+      .updateOne({ _id: app._id as ObjectId }, { $unset: { waitlistHoldUntil: "" }, $set: { updatedAt: now } })
+      .catch(() => {});
+    app.waitlistHoldUntil = null;
+  }
+
+  // 2. Applicants already holding a live offer are skipped; the rest are
+  //    candidates, oldest application first.
+  const heldIds = new Set(onHoldApps(apps, now).map((a) => String(a._id)));
+  const candidates = freshWaitlistCandidates(apps.filter((a) => !heldIds.has(String(a._id))));
+
+  // 3. Live seats per (course, batch), derived from real enrolment counts.
+  const vacancies: VacantBatch[] = [];
   const courseDocs = await db.collection("courses").find({ active: true }).project({ name: 1, batches: 1 }).toArray();
   for (const doc of courseDocs) {
     const batches = (doc.batches ?? []) as Array<{ name: string; seatsTotal: number }>;
@@ -228,33 +255,48 @@ export async function GET(request: Request) {
         (e) => (e.subjects ?? []).includes(doc.name) && e.batch === b.name
       ).length;
       const seatsLeft = Math.max(0, (b.seatsTotal ?? 0) - used);
-      if (seatsLeft <= 0) continue;
-      for (const app of pendingApps) {
-        if (app.course !== doc.name) continue;
-        const key = `wlist:${String(app._id)}`;
-        if (await dedup.alreadySent(key)) continue;
-        const holdUntil = new Date(now.getTime() + 24 * 3600000);
-        try {
-          await notify(app.userId, {
-            kind: "seat-open",
-            title: `A seat opened in ${doc.name}`,
-            message: `The ${b.name} batch has a free seat. Apply now to claim it within 24 hours.`,
-            href: "/dashboard",
-          });
-          await db.collection("applications").updateOne({ _id: app._id }, { $set: { waitlistHoldUntil: holdUntil, updatedAt: now } });
-        } catch {
-          continue;
-        }
-        await dedup.markSent(key);
-        sent.push({ kind: "waitlist_seat_offer", to: app.email ?? String(app.userId) });
-      }
+      if (seatsLeft > 0) vacancies.push({ course: doc.name, batch: b.name, seatsLeft });
     }
   }
-  // Expire holds from previous ticks.
-  await db
-    .collection("applications")
-    .updateMany({ waitlistHoldUntil: { $lte: now } }, { $unset: { waitlistHoldUntil: "" } })
-    .catch(() => {});
+
+  // 4. Match applicants to vacancies and claim each offer atomically. The
+  //    conditional update IS the idempotency guard: whichever tick flips
+  //    waitlistHoldUntil away from null wins the seat, so a concurrent run (or
+  //    a re-offer after a lapsed hold) can never notify the same applicant twice.
+  for (const { app, batch } of offersFromVacancies(candidates, vacancies)) {
+    const holdUntil = holdDeadline(now);
+    let claimed = false;
+    try {
+      const res = await db.collection("applications").updateOne(
+        { _id: app._id as ObjectId, waitlistHoldUntil: null },
+        { $set: { waitlistHoldUntil: holdUntil, updatedAt: now } }
+      );
+      claimed = res.modifiedCount === 1;
+    } catch {
+      continue;
+    }
+    if (!claimed) continue;
+
+    try {
+      await notify(app.userId, {
+        kind: "seat-open",
+        title: `A seat opened in ${app.course}`,
+        message: `The ${batch.batch} batch has a free seat. Apply now to claim it within 24 hours.`,
+        href: "/dashboard",
+      });
+      sent.push({ kind: "waitlist_seat_offer", to: app.email || String(app.userId) });
+    } catch {
+      // Notification failed after we claimed the seat — release the hold so the
+      // next tick can retry rather than silently burning the applicant's offer.
+      await db
+        .collection("applications")
+        .updateOne(
+          { _id: app._id as ObjectId, waitlistHoldUntil: holdUntil },
+          { $unset: { waitlistHoldUntil: "" } }
+        )
+        .catch(() => {});
+    }
+  }
 
   /* ---------- 7. Engagement nudges for stale learners + weekly digest ---------- */
   const progressRows = await db

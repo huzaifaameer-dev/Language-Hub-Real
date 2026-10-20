@@ -4,7 +4,6 @@ import { getStaffSession } from "@/lib/admin-session";
 import {
   getDb,
   getGroupsCollection,
-  getSubmissionsCollection,
   getMessagesCollection,
   getUsersCollection,
   logAdminAction,

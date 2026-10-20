@@ -45,10 +45,10 @@ export function Logo({ mode = "light", size = "md", className, priority = false,
         )}
       >
         <Image
-          src="/logo-lh.png"
+          src="/download/Geometric LH Ribbon Emblem.png"
           alt="Language Hub logo"
-          width={640}
-          height={640}
+          width={1254}
+          height={1254}
           {...loadProps}
           className="h-full w-full rounded-lg object-contain"
         />
@@ -58,10 +58,10 @@ export function Logo({ mode = "light", size = "md", className, priority = false,
 
   return (
     <Image
-      src="/logo-lh.png"
+      src="/download/Geometric LH Ribbon Emblem.png"
       alt="Language Hub logo"
-      width={640}
-      height={640}
+      width={1254}
+      height={1254}
       {...loadProps}
       className={cn("object-contain", sizeClasses[size], className)}
     />

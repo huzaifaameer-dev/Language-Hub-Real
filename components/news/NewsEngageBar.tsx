@@ -11,38 +11,27 @@ type Reaction = "like" | "interested" | "not_interested" | null;
 const ease = [0.16, 1, 0.3, 1] as const;
 
 /**
- * Reaction + comments bar for a news post. Counts are supplied as props by the
- * server-rendered post page — no extra fetch on load, so opening a post is
- * snappy even on a cold serverless instance.
+ * Reaction + comments bar for a news post. The comment count is supplied as a
+ * prop by the server-rendered post page; per-viewer reaction state is hydrated
+ * client-side because the page itself is ISR-cached and viewer-agnostic.
  */
 export function NewsEngageBar({
   slug,
   title,
-  likeCount,
-  interestedCount,
-  notInterestedCount,
   commentCount,
   myReaction = null,
 }: {
   slug: string;
   title: string;
-  likeCount: number;
-  interestedCount: number;
-  notInterestedCount: number;
   commentCount: number;
   myReaction?: Reaction | null;
 }) {
   const [my, setMy] = useState<Reaction>(myReaction);
-  const [counts, setCounts] = useState({
-    like: likeCount,
-    interested: interestedCount,
-    not_interested: notInterestedCount,
-  });
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentCountState, setCommentCountState] = useState(commentCount);
 
   // The post page can be server-rendered/cached, so per-viewer state is fetched
-  // client-side: hydrate the "already liked" state + authoritative counts.
+  // client-side: hydrate the "already liked" state.
   useEffect(() => {
     let on = true;
     fetch(`/api/news/${encodeURIComponent(slug)}/reaction`, { cache: "no-store" })
@@ -50,7 +39,6 @@ export function NewsEngageBar({
       .then((d) => {
         if (!on || !d) return;
         if (typeof d.myReaction === "string" || d.myReaction === null) setMy(d.myReaction);
-        if (d.counts) setCounts(d.counts);
       })
       .catch(() => {});
     return () => {
@@ -60,14 +48,7 @@ export function NewsEngageBar({
 
   const react = async (type: Exclude<Reaction, null>) => {
     const next: Reaction = my === type ? null : type;
-    const prev = my;
     setMy(next);
-    setCounts((c) => {
-      const nc = { ...c };
-      if (prev) nc[prev] = Math.max(0, nc[prev] - 1);
-      if (next) nc[next] = nc[next] + 1;
-      return nc;
-    });
     try {
       const res = await fetch(`/api/news/${encodeURIComponent(slug)}/reaction`, {
         method: "POST",
@@ -77,7 +58,6 @@ export function NewsEngageBar({
       const d = await res.json().catch(() => null);
       if (res.ok && d) {
         if (typeof d.myReaction === "string" || d.myReaction === null) setMy(d.myReaction);
-        if (d.counts) setCounts(d.counts);
       }
     } catch { /* rely on optimistic */ }
   };

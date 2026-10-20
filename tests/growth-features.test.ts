@@ -4,7 +4,7 @@ import { generateReferralCode } from "../lib/db";
 import { autoReplyFor, sendWaText, waConfigured } from "../lib/whatsapp";
 import { PLACEMENT_QUESTIONS, calculatePlacement } from "../lib/placement-test-data";
 import { DICTS, enDict, urDict, type Lang } from "../lib/i18n";
-import { COURSE_FAQS, SUCCESS_STORIES } from "../lib/content";
+import { COURSE_FAQS } from "../lib/content";
 
 describe("referral code generation", () => {
   it("produces a stable, URL-safe, unique code from a name + user id", () => {
@@ -141,15 +141,6 @@ describe("per-course FAQ + SEO content", () => {
         expect(f.q.length).toBeGreaterThan(0);
         expect(f.a.length).toBeGreaterThan(0);
       }
-    }
-  });
-
-  it("success stories all have a slug and a measurable before/after outcome", () => {
-    for (const s of SUCCESS_STORIES) {
-      expect(s.slug.length).toBeGreaterThan(0);
-      expect(s.before.length).toBeGreaterThan(0);
-      expect(s.after.length).toBeGreaterThan(0);
-      expect(s.highlights.length).toBeGreaterThan(0);
     }
   });
 });

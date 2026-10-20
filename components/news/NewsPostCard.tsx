@@ -34,25 +34,13 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 export function NewsPostCard({ post, index = 0 }: { post: FeedPost; index?: number }) {
   const [my, setMy] = useState<Reaction>(post.myReaction ?? null);
-  const [counts, setCounts] = useState({
-    like: post.likeCount ?? 0,
-    interested: post.interestedCount ?? 0,
-    not_interested: post.notInterestedCount ?? 0,
-  });
   const [commentCount, setCommentCount] = useState(post.commentCount ?? 0);
   const [commentsOpen, setCommentsOpen] = useState(false);
 
   const react = async (type: Exclude<Reaction, null>) => {
     const next: Reaction = my === type ? null : type;
-    const prev = my;
-    // Optimistic
+    // Optimistic — the server is the source of truth and re-confirms below.
     setMy(next);
-    setCounts((c) => {
-      const nextC = { ...c };
-      if (prev) nextC[prev] = Math.max(0, nextC[prev] - 1);
-      if (next) nextC[next] = nextC[next] + 1;
-      return nextC;
-    });
     try {
       const res = await fetch(`/api/news/${encodeURIComponent(post.slug)}/reaction`, {
         method: "POST",
@@ -62,10 +50,9 @@ export function NewsPostCard({ post, index = 0 }: { post: FeedPost; index?: numb
       const d = await res.json().catch(() => null);
       if (res.ok && d) {
         if (typeof d.myReaction === "string" || d.myReaction === null) setMy(d.myReaction);
-        if (d.counts) setCounts(d.counts);
       }
     } catch {
-      // server sync failed — count display may drift until refresh
+      // server sync failed — the highlight may drift until refresh
     }
   };
 
@@ -171,7 +158,7 @@ export function NewsPostCard({ post, index = 0 }: { post: FeedPost; index?: numb
           <span className="font-mono text-[0.56rem] text-ink-3">{post.views} views</span>
           <Link
             href={`/news/${post.slug}`}
-            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-4 py-2 font-display text-[0.7rem] font-bold uppercase tracking-[0.06em] text-white shadow-[0_10px_22px_-10px_rgb(110_90_224/0.8)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110"
+            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-4 py-2 font-display text-[0.7rem] font-bold uppercase tracking-[0.06em] text-white shadow-[0_10px_22px_-10px_rgb(110_90_224/0.8)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_34px_-12px_rgb(110_90_224/0.9)]"
           >
             Read full post <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
           </Link>
@@ -183,6 +170,7 @@ export function NewsPostCard({ post, index = 0 }: { post: FeedPost; index?: numb
         postTitle={post.title}
         open={commentsOpen}
         onClose={() => setCommentsOpen(false)}
+        onPosted={() => setCommentCount((c) => c + 1)}
       />
     </>
   );

@@ -12,10 +12,11 @@ export const enDict: Dict = {
   "nav.courses": "Courses",
   "nav.pricing": "Pricing",
   "nav.reviews": "Reviews",
+  "nav.enroll": "How it works",
   "nav.faq": "FAQ",
   "nav.team": "Team",
   "nav.blog": "Blog",
-  "nav.programme": "Programme",
+  "nav.programme": "Overview",
   "nav.daily-news": "Daily News",
   "nav.why-choose": "Why choose us",
   "nav.placement": "Placement Test",
@@ -41,14 +42,12 @@ export const enDict: Dict = {
   "hero.trust": "Trusted by learners across Pakistan and beyond",
   "hero.badge": "EST. 8+ yrs",
   "hero.explore": "Explore Courses",
-  "hero.studentsGuided": "600+ students guided",
   "hero.certified": "IELTS · PTE · DET specialist coaching",
   "hero.card.ielts.label": "IELTS average",
   "hero.card.progress.label": "learner progress",
 
   // Stats
   "stats.students": "Students guided",
-  "stats.years": "Years teaching",
   "stats.programmes": "Programmes",
   "stats.batches": "Daily batches",
 
@@ -93,10 +92,11 @@ export const enDict: Dict = {
   "pricing.batchFull": "batch full",
 
   // Reviews
-  "reviews.eyebrow": "Student Voices",
-  "reviews.title1": "Proven results,",
-  "reviews.title2": "validated.",
-  "reviews.subtitle": "Real learners, real progress — here's what our students say about their experience.",
+  "reviews.eyebrow": "Student Stories",
+  "reviews.title1": "Real learners.",
+  "reviews.title2": "Real progress.",
+  "reviews.subtitle": "Honest experiences from learners building confidence with Language Hub.",
+  "reviews.readFull": "Read full review",
   "reviews.allStories": "Read all success stories",
 
   // FAQ
@@ -134,23 +134,6 @@ export const enDict: Dict = {
   "journey.stage4.word": "Grow",
   "journey.stage4.body": "Confidence compounds. Communication becomes natural. New doors begin to open.",
 
-  // Features / Philosophy
-  "features.eyebrow": "The Hub Difference",
-  "features.title1": "Why learners",
-  "features.title2": "choose us.",
-  "features.subtitle": "A method built around real communication, real people and real results — not textbooks alone.",
-  "features.f1.title": "Live Conversation Practice",
-  "features.f1.desc": "Speak from your very first session. Real, guided dialogues — not scripted drills — so fluency builds naturally and confidently.",
-  "features.f2.title": "Small Batches",
-  "features.f2.desc": "Classes capped at 10–20 learners. Every voice is heard with personal attention, so progress stays visible week after week.",
-  "features.f3.title": "Personalised Expression",
-  "features.f3.desc": "Find your own English voice — the tone, rhythm and vocabulary that are unmistakably you. Not textbook English, but yours.",
-  "features.f4.title": "Exam Preparation Excellence",
-  "features.f4.desc": "Structured IELTS, PTE and Duolingo pathways with mock-test cadence and score-focused feedback for measurable band gains.",
-  "features.f5.title": "Accelerated Measurable Progress",
-  "features.f5.desc": "A clear learn → practice → express pathway. Trackable milestones and honest feedback cycles keep momentum compounding.",
-  "features.f6.title": "Flexible Scheduling Options",
-  "features.f6.desc": "Afternoon, evening and weekend batches that fit real schedules — consistency without compromise.",
 
   // CTA banner
   "cta.eyebrow": "Start today",
@@ -190,10 +173,11 @@ export const urDict: Dict = {
   "nav.courses": "کورسز",
   "nav.pricing": "فیس",
   "nav.reviews": "تاثرات",
+  "nav.enroll": "طریقۂ کار",
   "nav.faq": "سوالات",
   "nav.team": "ٹیم",
   "nav.blog": "بلاگ",
-  "nav.programme": "پروگرام",
+  "nav.programme": "جائزہ",
   "nav.daily-news": "ڈیلی نیوز",
   "nav.why-choose": "ہمیں کیوں چنتے ہیں",
   "nav.placement": "لیول ٹیسٹ",
@@ -218,13 +202,11 @@ export const urDict: Dict = {
   "hero.trust": "پاکستان بھر کے سیکھنے والوں کا اعتماد",
   "hero.badge": "۸+ سال کا تجربہ",
   "hero.explore": "کورسز دیکھیں",
-  "hero.studentsGuided": "۶۰۰+ طلبہ کی رہنمائی",
   "hero.certified": "IELTS · PTE · DET ماہرانہ کوچنگ",
   "hero.card.ielts.label": "آئی ایل ٹی ایس اوسط",
   "hero.card.progress.label": "طالب علم کی ترقی",
 
   "stats.students": "طلبا کی رہنمائی",
-  "stats.years": "سال تدریس",
   "stats.programmes": "پروگرام",
   "stats.batches": "روزانہ بیچ",
 
@@ -268,10 +250,11 @@ export const urDict: Dict = {
   "pricing.batchFull": "بیچ مکمل",
 
   // Reviews
-  "reviews.eyebrow": "طلبہ کی آواز",
-  "reviews.title1": "ثابت شدہ نتائج،",
-  "reviews.title2": "توثیق شدہ۔",
-  "reviews.subtitle": "حقیقی سیکھنے والے، حقیقی ترقی — یہ ہے وہ جو ہمارے طلبہ کہتے ہیں۔",
+  "reviews.eyebrow": "طلبہ کی کہانیاں",
+  "reviews.title1": "حقیقی زبان سیکھنے والے۔",
+  "reviews.title2": "حقیقی پیش رفت۔",
+  "reviews.subtitle": "زبان ہب سے اعتماد حاصل کر رہے سیکھنے والوں کے صادقانہ تجربات۔",
+  "reviews.readFull": "پورا پڑھیں",
   "reviews.allStories": "تمام کامیابی کی کہانیاں پڑھیں",
 
   // FAQ
@@ -309,23 +292,6 @@ export const urDict: Dict = {
   "journey.stage4.word": "ترقی کریں",
   "journey.stage4.body": "اعتماد بڑھتا ہے۔ گفتگو قدرتی بن جاتی ہے۔ نئے دروازے کھلنے لگتے ہیں۔",
 
-  // Features / Philosophy
-  "features.eyebrow": "ہب کا فرق",
-  "features.title1": "سیکھنے والے",
-  "features.title2": "ہمیں کیوں چنتے ہیں۔",
-  "features.subtitle": "ایک طریقہ جو حقیقی گفتگو، حقیقی لوگوں اور حقیقی نتائج پر بنایا گیا ہے — صرف کتابوں پر نہیں۔",
-  "features.f1.title": "لائیو گفتگو کی مشق",
-  "features.f1.desc": "پہلے سے ہی حقیقی، رہنمائی شدہ گفتگو میں حصہ لیں۔ ہماری بولنے پر مبنی طریقہ کار آپ کو معمولی مشقوں کی بجائے حقیقی سمت میں رکھتا ہے — تاکہ روانی قدرتی طور پر اور پراعتماد طریقے سے بڑھے۔",
-  "features.f2.title": "چھوٹے کاروباری گروپ",
-  "features.f2.desc": "10 سے 20 سیکھنے والوں کی کلاسیں یقینی بناتی ہیں کہ ہر آواز سنی جائے۔ انفرادی توجہ، حسب ضرورت تاثرات اور ایسا ماحول جہاں سوالات کی قدر کی جائے۔",
-  "features.f3.title": "ذاتی تخلیقی اظہار",
-  "features.f3.desc": "ہم آپ کو انگریزی میں اپنی منفرد آواز تلاش کرنے میں مدد کرتے ہیں — وہ لہجہ، تال اور الفاظ جو بالکل آپ ہیں۔ یہ کتابی لہجے کی نکال نہیں — یہ آپ کا اپنا لہجہ ہے۔",
-  "features.f4.title": "امتحان کی تیاری میں مہارت",
-  "features.f4.desc": "IELTS، PTE اور ڈولنگو انگلش ٹیسٹ کے لیے منagoon، منظم راستے۔ مذاق ٹیسٹ کی لی، تجزیاتی تاثرات اور اسکور پر مرکوز حکمت عملی جو نمایاں بینڈ بہتری فراہم کرتی ہے۔",
-  "features.f5.title": "تیز ترقی",
-  "features.f5.desc": "سیکھیں → مشق کریں → اظہار کریں — ایک صاف راستہ جو ہر ہفتے مرکوز اور بڑھتا ہے۔ قابل پیمائش مراحل، باقاعدہ تاثرات اور شفاف پیشرفت۔",
-  "features.f6.title": "لچکدار شیڈول",
-  "features.f6.desc": "دوپہر، شام اور ہفتہ ویک اینڈ کی کلاسیں — حقیقی زندگی کے مطابق۔",
 
   // CTA banner
   "cta.eyebrow": "آج شروع کریں",

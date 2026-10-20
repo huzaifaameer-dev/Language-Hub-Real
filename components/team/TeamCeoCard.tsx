@@ -34,6 +34,9 @@ export function TeamCeoCard({ ceo }: { ceo: Ceo }) {
     >
       {/* background: desk image + calm emerald/blue glows */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
+        {/* Decorative full-bleed backdrop behind the glows — next/image would add
+            no optimisation here and risks layout shift. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/ceo-desk.jpg" alt="" className="h-full w-full object-cover opacity-[0.2]" />
         <motion.div
           animate={{ opacity: [0.22, 0.4, 0.22] }}
@@ -57,25 +60,19 @@ export function TeamCeoCard({ ceo }: { ceo: Ceo }) {
         className="absolute inset-x-0 top-0 h-[3px] origin-left bg-gradient-to-r from-emerald-400 via-sky-400 to-blue-500"
       />
 
-      <div className="relative grid gap-10 p-7 sm:p-10 lg:grid-cols-[250px_1fr] lg:gap-12">
-        {/* Portrait */}
-        <motion.div
-          animate={{ y: [0, -5, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="relative mx-auto w-full max-w-[15rem] sm:max-w-[17rem] lg:mx-0"
-        >
-          <motion.span
+      <div className="relative grid gap-10 p-7 sm:p-10 lg:grid-cols-[300px_1fr] lg:gap-12">
+        {/* Portrait — fixed (no floating), framed to the image's own ratio */}
+        <div className="relative mx-auto w-full max-w-[20rem] lg:mx-0 lg:self-center">
+          <span
             aria-hidden
-            animate={{ scale: [1, 1.06, 1], opacity: [0.35, 0.6, 0.35] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute -inset-3 rounded-[1.5rem] bg-emerald-500/40 blur-2xl"
+            className="absolute -inset-3 rounded-[1.5rem] bg-emerald-500/30 blur-2xl"
           />
           <span className="relative block overflow-hidden rounded-[1.3rem] ring-1 ring-white/15">
             {ceo.image ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={ceo.image} alt={ceo.name} className="aspect-[4/5] w-full object-cover" />
+              <img src={ceo.image} alt={ceo.name} className="aspect-[1281/1228] w-full object-cover object-center" />
             ) : (
-              <span className="grid aspect-[4/5] w-full place-items-center bg-gradient-to-br from-emerald-500 to-blue-600">
+              <span className="grid aspect-[1281/1228] w-full place-items-center bg-gradient-to-br from-emerald-500 to-blue-600">
                 <span className="font-display text-5xl font-extrabold text-white">
                   {ceo.name.charAt(0)}
                 </span>
@@ -83,9 +80,9 @@ export function TeamCeoCard({ ceo }: { ceo: Ceo }) {
             )}
           </span>
           <span className="absolute -bottom-3 -right-3 rounded-full border border-emerald-400/40 bg-[#0B1322] px-3 py-1.5 font-mono text-[0.58rem] font-bold tracking-[0.2em] text-emerald-300 shadow-lg">
-            CEO
+            Head
           </span>
-        </motion.div>
+        </div>
 
         {/* Identity */}
         <div className="flex flex-col justify-center text-center lg:text-start">

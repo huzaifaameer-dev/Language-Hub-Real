@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { BookOpen, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NewsPostCard } from "@/components/news/NewsPostCard";
@@ -26,7 +25,6 @@ interface FeedPost {
   publishedAt: string;
 }
 
-const ease = [0.16, 1, 0.3, 1] as const;
 const SORTS = ["latest", "popular"] as const;
 
 export function NewsFeed({ initialPosts, tags }: { initialPosts: FeedPost[]; tags: string[] }) {
@@ -66,7 +64,6 @@ export function NewsFeed({ initialPosts, tags }: { initialPosts: FeedPost[]; tag
     // exactly like the per-post page.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

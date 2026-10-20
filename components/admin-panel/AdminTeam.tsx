@@ -113,7 +113,7 @@ export function AdminTeam() {
             setCreating(true);
             setEditing(null);
           }}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-deep px-4 py-2.5 font-display text-[0.72rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(110_90_224/0.8)] hover:brightness-110"
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-deep px-4 py-2.5 font-display text-[0.72rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(110_90_224/0.8)] transition-[transform,box-shadow] hover:shadow-[0_20px_40px_-14px_rgb(110_90_224/0.95)]"
         >
           <Plus className="h-3.5 w-3.5" /> New member
         </button>
@@ -430,7 +430,7 @@ function Editor({ existing, onDone }: { existing: TeamRow | null; onDone: () => 
         <button
           type="submit"
           disabled={saving}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-deep px-5 py-2.5 font-display text-[0.72rem] font-bold text-white hover:brightness-110 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-deep px-5 py-2.5 font-display text-[0.72rem] font-bold text-white transition-[transform,box-shadow] hover:shadow-[0_16px_34px_-14px_rgb(110_90_224/0.85)] disabled:opacity-50"
         >
           {saving ? <Spin /> : <Check className="h-4 w-4" />} {existing ? "Save changes" : "Add member"}
         </button>

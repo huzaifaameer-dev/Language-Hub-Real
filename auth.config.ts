@@ -6,6 +6,11 @@ import type { NextAuthConfig } from "next-auth";
  */
 export default {
   session: { strategy: "jwt" },
+  // Auth.js v5 reads `AUTH_SECRET`; NextAuth v4 docs pointed at
+  // `NEXTAUTH_SECRET`. Accept either so a deployment that still carries the v4
+  // name keeps its sessions instead of failing every /api/auth/session with
+  // MissingSecret.
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/login",
   },

@@ -35,8 +35,6 @@ export interface CourseInfo {
   seatsLeft?: number;
   /** Syllabus module breakdown */
   modules?: CourseModule[];
-  /** YouTube embed URL for demo video */
-  demoVideoUrl?: string;
   /** What students will learn — key outcomes */
   outcomes?: string[];
 }
@@ -74,7 +72,6 @@ export const FALLBACK_COURSES: CourseInfo[] = [
     ],
     order: 1,
     active: true,
-    demoVideoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     outcomes: [
       "Hold everyday conversations without hesitation",
       "Pronounce words clearly and naturally",
@@ -142,7 +139,6 @@ export const FALLBACK_COURSES: CourseInfo[] = [
     ],
     order: 2,
     active: true,
-    demoVideoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     outcomes: [
       "Understand all four IELTS modules inside out",
       "Score Band 6.5+ with consistent practice",
@@ -209,7 +205,6 @@ export const FALLBACK_COURSES: CourseInfo[] = [
     ],
     order: 3,
     active: true,
-    demoVideoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     outcomes: [
       "Master every question type across PTE, GRE and DET",
       "Score 65+ / 110+ with AI-scored practice",
@@ -276,7 +271,6 @@ export const FALLBACK_COURSES: CourseInfo[] = [
     ],
     order: 4,
     active: true,
-    demoVideoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
     outcomes: [
       "Write clear, professional emails and reports",
       "Craft persuasive business messages",
