@@ -32,13 +32,13 @@ export function Site() {
         <Navbar />
         <main id="main">
           <Hero />
-          <LiveEnrollmentBanner className="mt-6" />
+          <LiveEnrollmentBanner className="mt-4" />
           <Stats />
+          <Courses />
           <Features />
           <EnrollmentPath />
-          <Courses />
-          <Journey />
           <Reviews />
+          <Journey />
           <FounderSpotlight />
           <ClosingStrip />
         </main>

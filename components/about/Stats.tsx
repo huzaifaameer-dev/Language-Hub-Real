@@ -2,9 +2,18 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import {
+  ArrowUpRight,
+  CalendarDays,
+  GraduationCap,
+  Sparkles,
+  UsersRound,
+} from "lucide-react";
 import { LEARNERS_GUIDED } from "@/lib/content";
-
-const ease = [0.16, 1, 0.3, 1] as const;
+import { useReducedMotionSafe } from "@/lib/hooks";
+import { EASE_EXPO } from "@/lib/motion";
+import { cn } from "@/lib/utils";
 
 interface StatsData {
   students: number;
@@ -12,64 +21,70 @@ interface StatsData {
   dailyBatches: number;
 }
 
-/**
- * Verified fallbacks. The live database always wins, but if it is briefly
- * empty the band still shows honest figures instead of a blank gap.
- */
 const FALLBACK: StatsData = {
   students: LEARNERS_GUIDED,
   programmes: 4,
   dailyBatches: 3,
 };
 
-/**
- * Editorial figures — the lead number carries the trust, the other two sit
- * quieter beside it. Each value stays database-backed unless noted otherwise.
- */
 const FIGURES: Array<{
   key: keyof StatsData;
   label: string;
-  suffix?: string;
-  lead?: boolean;
   caption: string;
+  suffix?: string;
+  icon: typeof UsersRound;
+  tone: "teal" | "coral" | "amber";
+  accent: string;
 }> = [
   {
     key: "students",
-    label: "Students guided",
+    label: "Learners guided",
     suffix: "+",
-    lead: true,
-    caption: "Learners across every programme",
+    caption: "Across every programme, batch and level.",
+    icon: UsersRound,
+    tone: "teal",
+    accent: "#0f6b5c",
   },
   {
     key: "programmes",
-    label: "Programmes",
+    label: "Focused programmes",
     caption: "Spoken English · IELTS · PTE · Duolingo",
+    icon: GraduationCap,
+    tone: "coral",
+    accent: "#fb6a47",
   },
   {
     key: "dailyBatches",
     label: "Daily batches",
-    caption: "Morning · evening · weekend",
+    caption: "Morning, evening and weekend timings.",
+    icon: CalendarDays,
+    tone: "amber",
+    accent: "#d99a1a",
   },
 ];
 
-/** Gentle, scroll-triggered reveal used across the band. */
-const reveal = (delay: number) => ({
-  initial: { opacity: 0, y: 18 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: "-40px" as const },
-  transition: { duration: 0.7, ease, delay },
-});
+const CLAY: Record<string, string> = {
+  teal: "clay",
+  coral: "clay clay-coral",
+  amber: "clay clay-amber",
+};
+
+const ICON_INK: Record<string, string> = {
+  teal: "#0f6b5c",
+  coral: "#d0452a",
+  amber: "#8a5a00",
+};
 
 /**
- * Section 1 — "Language Hub in numbers".
- *
- * A type-led band in Poppins: eyebrow, a confident two-column statement, then a
- * ledger of figures separated by hair rules. The lead figure is the visual
- * anchor; the supporting pair stay quieter so the row reads in hierarchy, not
- * as three equal cards.
+ * "Language Hub in numbers" — an editorial ledger rather than three small
+ * boxes: one calm statement on the left, three figures on hairline-separated
+ * rows on the right. Figures reveal with a masked rise (no layout shift, no
+ * truncated captions) and the whole panel carries the same surface + hover
+ * language as the course and review cards below it.
  */
 export function Stats() {
   const [data, setData] = useState<StatsData | null>(null);
+  const reduce = useReducedMotionSafe();
 
   useEffect(() => {
     let mounted = true;
@@ -84,110 +99,142 @@ export function Stats() {
     };
   }, []);
 
-  // Live numbers when the database has them; verified fallbacks otherwise, so
-  // the band never renders an empty gap. The learner count is floored at the
-  // shared headline figure, so it can never read lower than the hero's claim.
   const valueFor = (k: keyof StatsData): number => {
     const v = data?.[k];
     const base = typeof v === "number" && v > 0 ? v : FALLBACK[k];
     return k === "students" ? Math.max(LEARNERS_GUIDED, base) : base;
   };
 
+  const reveal = (delay: number) => ({
+    initial: reduce ? false : { opacity: 0, y: 18 },
+    whileInView: reduce ? undefined : { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-60px" as const },
+    transition: { duration: 0.65, delay, ease: EASE_EXPO },
+  });
+
   return (
     <section
       id="stats"
       data-section
       aria-label="Language Hub in numbers"
-      className="relative overflow-hidden px-6 pt-16 pb-12 sm:px-12 sm:pt-20 sm:pb-14 lg:px-16 lg:pt-24 lg:pb-16"
-      style={{ background: "linear-gradient(180deg, #EFF4FC 0%, #E8EDF9 100%)" }}
+      className="relative overflow-hidden bg-white px-5 pb-16 pt-12 sm:px-8 sm:pb-20 sm:pt-14"
     >
-      <div className="mx-auto max-w-6xl">
-        {/* Eyebrow — rules either side open the statement like a ledger heading. */}
-        <motion.div {...reveal(0)} className="flex items-center gap-4">
-          <span aria-hidden className="h-px w-8 bg-[#0B1B3A]/30" />
-          <span className="font-display text-[0.66rem] font-bold uppercase tracking-[0.24em] text-[#5B6B87]">
-            Language Hub in numbers
-          </span>
-          <span aria-hidden className="hidden h-px flex-1 bg-[#0B1B3A]/10 sm:block" />
-        </motion.div>
+      <div className="mx-auto max-w-7xl">
+        <div className="relative overflow-hidden rounded-[2rem] border border-line bg-white shadow-[0_40px_90px_-58px_rgba(6,46,40,0.4)] sm:rounded-[2.35rem]">
+          {/* quiet atmosphere */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-70"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, rgba(15,107,92,0.028) 0 1px, transparent 1px 26px)",
+            }}
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#14a08c]/12 blur-[110px]"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -bottom-28 right-0 h-72 w-72 rounded-full bg-[#fb6a47]/10 blur-[110px]"
+          />
 
-        {/* Statement — heading left, supporting right (editorial two-column). */}
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.05fr_1fr] lg:items-end lg:gap-16">
-          <motion.h2
-            {...reveal(0.06)}
-            className="max-w-[16ch] text-[clamp(2.1rem,4.6vw,3.3rem)] leading-[1.03] tracking-[-0.03em] text-[#0B1B3A]"
-            style={{ fontFamily: "var(--font-headline)", fontWeight: 700 }}
-          >
-            Built for real{" "}
-            <span className="text-[#1D6FB8]">learning.</span>
-          </motion.h2>
-          <motion.p
-            {...reveal(0.12)}
-            className="max-w-[30rem] text-[0.98rem] leading-[1.75] text-[#5B6B87] lg:pb-1.5"
-          >
-            Small batches, focused programmes, and personal support that help
-            learners move forward with confidence.
-          </motion.p>
-        </div>
+          <div className="relative grid gap-10 p-7 sm:p-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16 lg:p-14">
+            {/* statement */}
+            <div>
+              <motion.span {...reveal(0)} className="eyebrow-ref">
+                Language Hub in numbers
+              </motion.span>
 
-        {/* Hairline — closes the statement before the evidence. */}
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.8, ease, delay: 0.14 }}
-          aria-hidden
-          className="mt-11 h-px w-full bg-[#0B1B3A]/12 lg:mt-14"
-        />
+              <motion.h2 {...reveal(0.06)} className="section-title-ref mt-4">
+                Built for real{" "}
+                <span className="text-[#0f6b5c]">learning.</span>
+              </motion.h2>
 
-        {/* Figures — a ledger: lead figure anchored, two quieter columns split
-            by thin rules, each with a factual caption underneath. */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 sm:divide-x sm:divide-[#0B1B3A]/10">
-          {FIGURES.map((f, i) => {
-            const value = valueFor(f.key);
-            return (
-              <motion.div
-                key={f.key}
-                {...reveal(0.2 + i * 0.08)}
-                className={
-                  "py-9 sm:py-10 sm:px-9 " +
-                  (i > 0 ? "border-t border-[#0B1B3A]/10 sm:border-t-0 " : "sm:pl-0") +
-                  (i === FIGURES.length - 1 ? "sm:pr-0" : "")
-                }
+              <motion.p
+                {...reveal(0.12)}
+                className="mt-4 max-w-md font-sans text-[0.96rem] leading-[1.8] text-ink-2"
               >
-                <p
-                  className="leading-none tracking-[-0.04em] text-[#0B1B3A]"
-                  style={{
-                    fontFamily: "var(--font-headline)",
-                    fontWeight: 700,
-                    fontSize: f.lead
-                      ? "clamp(3rem, 6vw, 4.6rem)"
-                      : "clamp(2.3rem, 3.8vw, 3rem)",
-                  }}
-                >
-                  {value.toLocaleString()}
-                  {f.suffix ? <span className="text-[#1D6FB8]">{f.suffix}</span> : null}
-                </p>
-                <p className="mt-3 font-display text-[0.98rem] font-bold text-[#0B1B3A]">
-                  {f.label}
-                </p>
-                <p className="mt-1.5 max-w-[15rem] text-[0.8rem] leading-snug text-[#5B6B87]">
-                  {f.caption}
-                </p>
-              </motion.div>
-            );
-          })}
-        </div>
+                Small batches, measurable progress and a teacher who knows your
+                name — the numbers behind the method, not just the marketing.
+              </motion.p>
 
-        {/* Quiet live caption — a small, honest signal that the figures are
-            real and keep moving, not a frozen marketing number. */}
-        <motion.p
-          {...reveal(0.44)}
-          className="mt-8 flex items-center gap-2 font-mono text-[0.62rem] font-bold uppercase tracking-[0.2em] text-[#8B97AB] sm:mt-10"
-        >
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-          Figures update live as new learners join
-        </motion.p>
+              <motion.div {...reveal(0.18)} className="mt-7 flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-2 rounded-full border border-[#dcefe9] bg-[#f3fbf8] px-3.5 py-1.5 font-display text-[0.6rem] font-bold uppercase tracking-[0.16em] text-[#0a4e43]">
+                  <Sparkles className="h-3.5 w-3.5 text-[#14a08c]" strokeWidth={2.2} />
+                  Teaching since 2018
+                </span>
+                <Link
+                  href="/success-stories"
+                  className="group inline-flex items-center gap-1.5 font-display text-[0.72rem] font-bold text-[#0f6b5c] transition-colors hover:text-[#0a4e43]"
+                >
+                  See the outcomes
+                  <ArrowUpRight
+                    className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    strokeWidth={2.2}
+                  />
+                </Link>
+              </motion.div>
+            </div>
+
+            {/* ledger */}
+            <div className="divide-y divide-[#e9f3ef]">
+              {FIGURES.map((f, i) => {
+                const Icon = f.icon;
+                const value = valueFor(f.key);
+                return (
+                  <motion.div
+                    key={f.key}
+                    {...reveal(0.12 + i * 0.08)}
+                    className="group/stat flex items-center gap-4 py-5 first:pt-0 last:pb-0 sm:gap-6"
+                  >
+                    <span
+                      className={cn(
+                        CLAY[f.tone],
+                        "card-icon h-12 w-12 shrink-0 rounded-2xl sm:h-14 sm:w-14"
+                      )}
+                    >
+                      <Icon
+                        className="relative z-10 h-5 w-5 sm:h-6 sm:w-6"
+                        strokeWidth={1.9}
+                        style={{ color: ICON_INK[f.tone] }}
+                      />
+                    </span>
+
+                    <div className="flex min-w-0 flex-1 flex-col-reverse gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-5">
+                      <div className="min-w-0">
+                        <p className="font-display text-[0.94rem] font-bold leading-snug text-ink">
+                          {f.label}
+                        </p>
+                        <p className="mt-0.5 font-sans text-[0.76rem] leading-relaxed text-ink-3">
+                          {f.caption}
+                        </p>
+                      </div>
+
+                      <p
+                        className="shrink-0 font-display text-[1.95rem] font-extrabold leading-none tracking-[-0.04em] text-ink sm:text-[2.35rem]"
+                        aria-label={`${value.toLocaleString()}${f.suffix ?? ""}`}
+                      >
+                        <motion.span
+                          initial={reduce ? false : { y: 14, opacity: 0 }}
+                          whileInView={reduce ? undefined : { y: 0, opacity: 1 }}
+                          viewport={{ once: true, margin: "-60px" }}
+                          transition={{ duration: 0.7, delay: 0.25 + i * 0.08, ease: EASE_EXPO }}
+                          className="inline-block tabular-nums"
+                        >
+                          {value.toLocaleString()}
+                          {f.suffix ? (
+                            <span style={{ color: f.accent }}>{f.suffix}</span>
+                          ) : null}
+                        </motion.span>
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

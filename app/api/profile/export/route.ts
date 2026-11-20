@@ -1,83 +1,63 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 
-import { auth } from "@/auth";
-import { getDb, COURSE_LIST } from "@/lib/db";
+import { currentUser } from "@/lib/server/session";
+import { q } from "@/lib/server/pg";
+
+export const dynamic = "force-dynamic";
 
 /**
- * GDPR-style data export: everything this app stores about the signed-in user.
- * Downloads as a JSON file (no sensitive admin data is included).
+ * GDPR-style export: every row this app stores about the signed-in learner,
+ * as a downloadable JSON file. No password hash, no admin data.
  */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await currentUser();
+  if (!user) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
-  if (!ObjectId.isValid(session.user.id)) {
-    return NextResponse.json({ message: "Invalid session." }, { status: 400 });
-  }
 
-  const db = await getDb();
-  const userId = session.user.id;
-
-  const [user, applications, enrollments, notifications] = await Promise.all([
-    db
-      .collection("users")
-      .findOne(
-        { _id: new ObjectId(userId) },
-        { projection: { password: 0, seedVersion: 0, failedAttempts: 0, lockUntil: 0 } }
-      ),
-    db.collection("applications").find({ userId }).sort({ createdAt: -1 }).toArray(),
-    db.collection("enrollments").find({ userId }).sort({ createdAt: -1 }).toArray(),
-    db.collection("notifications").find({ userId }).sort({ createdAt: -1 }).toArray(),
+  const [registrations, enrollments, notifications, certificates] = await Promise.all([
+    q<Record<string, unknown>>(
+      "SELECT * FROM registrations WHERE user_id = $1 ORDER BY created_at DESC",
+      [user.id]
+    ),
+    q<Record<string, unknown>>(
+      "SELECT * FROM enrollments WHERE user_id = $1 ORDER BY created_at DESC",
+      [user.id]
+    ),
+    q<Record<string, unknown>>(
+      "SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC",
+      [user.id]
+    ),
+    q<Record<string, unknown>>(
+      "SELECT * FROM certificates WHERE user_id = $1 ORDER BY issued_at DESC",
+      [user.id]
+    ),
   ]);
-
-  if (!user) {
-    return NextResponse.json(
-      { message: "Session expired. Sign in again." },
-      { status: 401 }
-    );
-  }
-
-  const toIso = (d: unknown) => (d instanceof Date ? d.toISOString() : null);
 
   const data = {
     exportedAt: new Date().toISOString(),
     profile: {
+      id: user.id,
       name: user.name,
       email: user.email,
-      whatsapp: user.whatsapp ?? "",
-      image: user.image ?? null,
-      role: user.role ?? "USER",
-      createdAt: toIso(user.createdAt),
+      phone: user.phone,
+      bio: user.bio,
+      image: user.image,
+      role: user.role,
+      emailVerified: Boolean(user.email_verified),
+      referralCode: user.referral_code,
+      createdAt: new Date(user.created_at).toISOString(),
     },
-    applications: applications.map((a) => ({
-      id: String(a._id),
-      ...Object.fromEntries(
-        Object.entries(a).filter(([k]) => !["_id", "userId"].includes(k))
-      ),
-    })),
-    enrollments: enrollments.map((e) => ({
-      id: String(e._id),
-      ...Object.fromEntries(
-        Object.entries(e).filter(([k]) => !["_id", "userId"].includes(k))
-      ),
-    })),
-    notifications: notifications.map((n) => ({
-      id: String(n._id),
-      kind: n.kind,
-      title: n.title,
-      message: n.message,
-      read: n.read,
-      createdAt: toIso(n.createdAt),
-    })),
-    courses: COURSE_LIST,
+    registrations,
+    enrollments,
+    certificates,
+    notifications,
   };
 
   return new Response(JSON.stringify(data, null, 2), {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
-      "Content-Disposition": `attachment; filename="language-hub-export-${userId}.json"`,
+      "Content-Disposition": `attachment; filename="language-hub-export-${user.id}.json"`,
       "Cache-Control": "no-store",
     },
   });

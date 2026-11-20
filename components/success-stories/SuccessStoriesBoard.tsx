@@ -45,11 +45,9 @@ export function SuccessStoriesBoard({ stories }: { stories: Story[] }) {
       <div className="min-h-screen bg-site pt-[4.25rem]">
         <div className="mx-auto max-w-6xl px-5 py-12 lg:px-8">
           <header className="text-center">
-            <p className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/5 px-4 py-1.5 font-display text-[0.62rem] font-bold uppercase tracking-[0.24em] text-brand-deep">
-              <Star className="h-3 w-3" /> Success stories
-            </p>
-            <h1 className="mt-4 font-display text-[clamp(2rem,5vw,3rem)] font-extrabold tracking-[-0.03em] text-ink">
-              Students who <span className="brand-text">made it.</span>
+            <span className="eyebrow-ref eyebrow-ref-center">Success stories</span>
+            <h1 className="mt-4 font-display text-[clamp(2.1rem,5vw,3.2rem)] font-extrabold tracking-[-0.035em] text-ink">
+              Students who <span className="text-[#0f6b5c]">made it.</span>
             </h1>
             <p className="mx-auto mt-3 max-w-2xl text-[1rem] leading-relaxed text-ink-2">
               Candid words from the people who lived it. Tap any story to read the
@@ -58,10 +56,14 @@ export function SuccessStoriesBoard({ stories }: { stories: Story[] }) {
           </header>
 
           {stories.length === 0 ? (
-            <div className="mt-14 grid place-items-center rounded-[2rem] border border-dashed border-ink/15 py-24 text-center">
-              <p className="font-display text-5xl font-extrabold text-slate-200">∅</p>
+            <div className="mt-14 grid place-items-center rounded-[2rem] border border-dashed border-ink/15 bg-white/60 px-6 py-20 text-center">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#eaf7f3] text-[#0f6b5c]">
+                <Star className="h-5 w-5" strokeWidth={2} />
+              </span>
               <p className="mt-4 font-display text-[1.1rem] font-bold text-ink-2">Stories are on their way</p>
-              <p className="mt-1 font-mono text-[0.7rem] text-ink-3">Check back after enrolment — success speaks for itself.</p>
+              <p className="mt-1 font-sans text-[0.82rem] text-ink-3">
+                Check back after enrolment — success speaks for itself.
+              </p>
             </div>
           ) : (
             <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -71,12 +73,12 @@ export function SuccessStoriesBoard({ stories }: { stories: Story[] }) {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, ease, delay: Math.min(0.2, i * 0.05) }}
-                  className="group relative flex flex-col overflow-hidden rounded-3xl border border-ink/[0.07] bg-white shadow-[0_10px_30px_-18px_rgb(15_23_42/0.25)] transition-all duration-300 hover:-translate-y-1.5 hover:border-brand/25 hover:shadow-[0_28px_60px_-28px_rgb(110_90_224/0.4)]"
+                  className="group relative flex flex-col rounded-[1.7rem] border border-line bg-white p-2 shadow-[0_22px_48px_-36px_rgba(10,78,67,0.45)] transition-[transform,box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1.5 hover:border-[#b7e4d9] hover:shadow-[0_38px_74px_-38px_rgba(10,78,67,0.5)]"
                 >
-                  <div aria-hidden className="h-1.5 w-full bg-gradient-to-r from-brand via-brand-magenta to-brand-cyan" />
-                  <div className="flex flex-1 flex-col p-6">
-                    <div className="mb-4 flex items-center justify-between gap-3">
-                      <span className="relative grid h-13 w-13 shrink-0 place-items-center overflow-hidden rounded-full bg-gradient-to-br from-brand/25 to-brand-magenta/25 font-display text-lg font-extrabold text-brand-deep ring-2 ring-white shadow-md h-[3.25rem] w-[3.25rem]">
+                  <div className="relative flex flex-1 flex-col overflow-hidden rounded-[1.25rem] border border-[#e6f2ee] bg-[#f3fbf8] p-6">
+                    <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-[linear-gradient(90deg,#0f6b5c,#14a08c,#f5b93c,#fb6a47)]" />
+                    <div className="relative flex items-center gap-3">
+                      <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full bg-[linear-gradient(145deg,#14a08c,#0a4e43)] font-display text-[0.85rem] font-bold text-white ring-2 ring-white shadow-[0_6px_16px_-8px_rgba(10,78,67,0.5)]">
                         {s.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={s.image} alt={`${s.name} avatar`} className="h-full w-full object-cover" />
@@ -87,7 +89,7 @@ export function SuccessStoriesBoard({ stories }: { stories: Story[] }) {
                           <BadgeCheck className="h-2.5 w-2.5" />
                         </span>
                       </span>
-                      <div className="flex items-center gap-1 text-gold" aria-hidden>
+                      <div className="ml-auto flex shrink-0 items-center gap-1 text-gold" aria-hidden>
                         {Array.from({ length: 5 }).map((_, s2) => (
                           <span key={s2} className="text-[0.7rem]">★</span>
                         ))}
@@ -95,18 +97,18 @@ export function SuccessStoriesBoard({ stories }: { stories: Story[] }) {
                     </div>
 
                     <p className="font-display text-[0.98rem] font-extrabold leading-tight text-ink">{s.name}</p>
-                    <p className="mt-0.5 font-display text-[0.58rem] font-bold uppercase tracking-[0.16em] text-brand-deep">
+                    <p className="mt-4 font-display text-[0.56rem] font-bold uppercase tracking-[0.14em] text-[#d9532f]">
                       {s.course}
                     </p>
 
-                    <blockquote className="mt-4 flex-1 overflow-y-auto pr-1 font-serif text-[0.92rem] italic leading-relaxed text-ink-2" style={{ maxHeight: "8.5rem" }}>
+                    <blockquote className="mt-4 line-clamp-4 flex-1 font-serif text-[0.95rem] italic leading-[1.65] text-ink-2">
                       “{s.quote}”
                     </blockquote>
 
-                    <div className="mt-5 flex items-center justify-between gap-2 border-t border-ink/[0.06] pt-4">
+                    <div className="mt-5 flex items-center justify-between gap-2 border-t border-[#dcefe9] pt-4">
                       {s.outcome ? (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-display text-[0.55rem] font-bold uppercase tracking-[0.12em] text-emerald-700">
-                          <Sparkles className="h-3 w-3" /> {s.outcome}
+                        <span className="inline-flex items-center gap-1 rounded-full bg-white px-2.5 py-1 font-display text-[0.55rem] font-bold uppercase tracking-[0.12em] text-[#0a4e43] ring-1 ring-inset ring-[#d7f0e9]">
+                          <Sparkles className="h-3 w-3 text-[#fb6a47]" /> {s.outcome}
                         </span>
                       ) : <span />}
                       <button
@@ -126,7 +128,7 @@ export function SuccessStoriesBoard({ stories }: { stories: Story[] }) {
           <div className="mt-14 text-center">
             <Link
               href="/placement-test"
-              className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-8 font-display text-[0.85rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(110_90_224/0.7)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_52px_-16px_rgb(110_90_224/0.9)]"
+              className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-8 font-display text-[0.85rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(10_78_67/0.7)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_52px_-16px_rgb(10_78_67/0.9)]"
             >
               <Users className="h-4 w-4" /> Be the next success story <ArrowRight className="h-4 w-4" />
             </Link>
@@ -156,7 +158,7 @@ export function SuccessStoriesBoard({ stories }: { stories: Story[] }) {
               animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
               exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.96, y: 12 }}
               transition={{ duration: 0.28, ease }}
-              className="relative z-10 max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-[1.75rem] bg-white shadow-[0_60px_140px_-40px_rgb(15_23_42/0.7)]"
+              className="relative z-10 max-h-[85vh] w-full max-w-xl overflow-y-auto rounded-[1.75rem] bg-white shadow-[0_60px_140px_-40px_rgb(6_46_40/0.7)]"
             >
               <div aria-hidden className="sticky top-0 z-10 h-1.5 w-full shrink-0 bg-gradient-to-r from-brand via-brand-magenta to-brand-cyan" />
               <div className="p-7">
@@ -194,7 +196,7 @@ export function SuccessStoriesBoard({ stories }: { stories: Story[] }) {
                   </div>
                 </div>
 
-                <div className="mt-6 rounded-2xl bg-[#f7f8fc] p-5">
+                <div className="mt-6 rounded-2xl bg-[#f6fbf9] p-5">
                   <Quote className="h-6 w-6 text-brand/30" aria-hidden />
                   <p className="mt-2 font-serif text-[1.05rem] italic leading-relaxed text-ink-2">
                     “{active.quote}”

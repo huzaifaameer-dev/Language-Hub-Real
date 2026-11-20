@@ -15,9 +15,9 @@ export function StaleSession() {
   }, []);
 
   return (
-    <div className="grid min-h-screen place-items-center bg-[#f4f6fb] px-6">
+    <div className="grid min-h-screen place-items-center bg-[#f3fbf8] px-6">
       <div className="flex flex-col items-center gap-4 text-center">
-        <div className="h-12 w-12 animate-pulse rounded-2xl bg-gradient-to-br from-brand/80 to-brand-deep shadow-[0_10px_24px_-8px_rgb(110_90_224/0.6)]" />
+        <div className="h-12 w-12 animate-pulse rounded-2xl bg-gradient-to-br from-brand/80 to-brand-deep shadow-[0_10px_24px_-8px_rgb(10_78_67/0.6)]" />
         <div>
           <p className="font-display text-[0.9rem] font-extrabold tracking-[-0.01em] text-ink">
             Session expired

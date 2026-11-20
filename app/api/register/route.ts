@@ -1,13 +1,24 @@
 import { NextResponse, after } from "next/server";
 import bcrypt from "bcryptjs";
 
-import { getDb, getAuthTokensCollection, ensureIndexesAndAdmin, getReferralsCollection, getReferralRedeemsCollection } from "@/lib/db";
 import { RegisterSchema, fieldErrors } from "@/lib/validate";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 import { sendWelcomeEmail } from "@/lib/email";
-import { generateToken, hashToken } from "@/lib/tokens";
 import { botGuardError } from "@/lib/bot-check";
+import {
+  createUser,
+  findUserByEmail,
+  issueToken,
+  redeemReferral,
+} from "@/lib/server/users";
 
+/**
+ * Creates a learner account in PostgreSQL.
+ *
+ * Anti-enumeration: an address that already exists gets exactly the same
+ * 200 response as a fresh signup — no account is created, no token is issued
+ * and no email is sent, so a caller cannot confirm which emails are registered.
+ */
 export async function POST(request: Request) {
   const rl = await rateLimitDb(await clientKey(request, "register"), 10, 15 * 60 * 1000);
   if (!rl.ok) {
@@ -38,100 +49,56 @@ export async function POST(request: Request) {
   }
 
   const { name, email, password } = parsed.data;
-  const normalized = email.toLowerCase();
-  const referralCode = (body as { referralCode?: unknown })?.referralCode
-    ? String((body as { referralCode?: unknown })?.referralCode).trim().toUpperCase()
-    : "";
+  const normalized = email.trim().toLowerCase();
+  const referralCode =
+    typeof (body as { referralCode?: unknown })?.referralCode === "string"
+      ? String((body as { referralCode?: unknown }).referralCode).trim().toUpperCase()
+      : "";
 
-  const db = await getDb();
-  await ensureIndexesAndAdmin();
-  const users = db.collection("users");
-
-  const existing = await users.findOne({ email: normalized });
-  if (existing) {
-    // Anti-enumeration: respond identically to a successful signup so a caller
-    // cannot use status codes/bodies to confirm whether an email is registered.
-    // No new token, no email — the flow simply looks like "check your inbox".
+  if (await findUserByEmail(normalized)) {
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 
-  const hash = await bcrypt.hash(password, 12);
-  let result: import("mongodb").InsertOneResult<Document>;
+  const passwordHash = await bcrypt.hash(password, 12);
+
+  let created;
   try {
-    result = await users.insertOne({
-      name: name.trim(),
+    created = await createUser({
+      name,
       email: normalized,
-      password: hash,
-      role: "USER",
-      // Optional WhatsApp number so automation can nudge on WhatsApp too.
-      phone: typeof parsed.data.phone === "string" && parsed.data.phone ? parsed.data.phone.trim() : null,
-      emailVerified: null,
-      image: null,
-      createdAt: new Date(),
+      passwordHash,
+      phone:
+        typeof parsed.data.phone === "string" && parsed.data.phone
+          ? parsed.data.phone.trim()
+          : null,
     });
-  } catch (err) {
-    // The backend enforces a unique index on email. Two concurrent requests for
-    // the same address can both pass the findOne guard above; the legitimate
-    // loser surfaces here as E11000. Respond like the happy path instead.
-    const code = (err as { code?: number })?.code;
-    if (code === 11000) {
-      return NextResponse.json({ ok: true }, { status: 200 });
-    }
-    throw err;
+  } catch {
+    // Two concurrent signups for the same address: the unique index rejects the
+    // legitimate loser. Respond exactly like the happy path.
+    return NextResponse.json({ ok: true }, { status: 200 });
   }
 
-  const userId = String(result.insertedId);
-
-  // Record a referral redemption if a valid code was supplied (best-effort).
+  // Referral redemption is advisory — never block signup on it.
   if (referralCode) {
-    try {
-      const referrals = await getReferralsCollection();
-      const referral = await referrals.findOne({ code: referralCode });
-      if (referral) {
-        const redeems = await getReferralRedeemsCollection();
-        await redeems.insertOne({
-          referralCode: referral.code,
-          ownerUserId: String(referral.userId ?? ""),
-          redeemedByEmail: normalized,
-          redeemedByUserId: userId,
-          redeemedAt: new Date(),
-        });
-        await referrals.updateOne(
-          { _id: referral._id },
-          { $inc: { redemptions: 1 }, $set: { updatedAt: new Date() } }
-        );
-      }
-    } catch {
-      // Referral recording is advisory — never block signup on it.
-    }
+    void redeemReferral(referralCode, created.id).catch(() => {});
   }
 
-  // Email-verification token (24h TTL). Verification is optional: it updates
-  // emailVerified but does not gate sign-in.
-  const verifyToken = generateToken();
-  await (await getAuthTokensCollection()).insertOne({
-    userId: String(result.insertedId),
-    token: hashToken(verifyToken),
-    purpose: "email-verify",
-    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    createdAt: new Date(),
-    usedAt: null,
-  });
+  // Optional email verification (24h). It never gates sign-in.
+  const verifyToken = await issueToken(created.id, "VERIFY_EMAIL", 24 * 60);
 
-  // after() keeps the serverless function alive until SMTP finishes; a bare
-  // void promise is frozen mid-flight on Vercel once the response is sent.
   after(async () => {
-    await sendWelcomeEmail({ to: normalized, name, verifyToken });
+    await sendWelcomeEmail({ to: normalized, name: created.name, verifyToken });
   });
 
-  // In dev without SMTP, return a usable verify link so flows stay testable.
+  // With no SMTP configured locally, hand back a usable link so the flow
+  // stays testable without a mail server.
   const devVerifyLink =
     process.env.NODE_ENV !== "production" && !process.env.SMTP_HOST
       ? `/verify-email?token=${verifyToken}`
       : null;
 
   return NextResponse.json(
-    { id: String(result.insertedId), ok: true, devVerifyLink },
+    { id: created.id, ok: true, devVerifyLink },
     { status: 201 }
   );
 }

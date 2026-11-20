@@ -49,7 +49,7 @@ export const CONTACT: AcademyContact = {
   mapUrl: (process.env.NEXT_PUBLIC_ACADEMY_MAP ?? "").trim(),
 };
 
-export const COURSE_ACCENTS = ["#2E5BFF", "#6D4AFF", "#0E9384", "#D98A0B"] as const;
+export const COURSE_ACCENTS = ["#7C3AED", "#9333EA", "#8B5CF6", "#C026D3"] as const;
 
 export interface CourseCard {
   info: CourseInfo;
@@ -78,7 +78,7 @@ export interface Testimonial {
 }
 
 // Default testimonials removed — reviews now come exclusively from the
-// database (admin panel), so admin deletions are permanent and the site only
+// database (dashboard), so admin deletions are permanent and the site only
 // shows real student feedback. Keep empty to avoid any fallback seeding.
 export const TESTIMONIALS: Testimonial[] = [];
 
@@ -145,7 +145,7 @@ export const FOUNDER = {
   name: ACADEMY.founder,
   role: "Head of Language Hub",
   headline: "Javaria Malik",
-  image: "/ceo.jpg?v=4",
+  image: "/founder-2026.jpg",
   quote:
     "Teaching is not only about giving knowledge. It is about helping someone discover what they are capable of becoming.",
   bio: [

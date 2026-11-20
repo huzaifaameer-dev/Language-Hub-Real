@@ -44,10 +44,10 @@ module.exports = {
   // Skip type-checking during build on Vercel (free tier has limited CPU/RAM
   // and TS check hangs). Run `npm run typecheck` locally before pushing.
   typescript: { ignoreBuildErrors: !!process.env.VERCEL },
-  // The driver stays external: webpack must not statically resolve mongodb's
-  // optional native deps (client-side-encryption, kerberos, aws…) or the
-  // bundle breaks at runtime with "Can't resolve 'mongodb-client-encryption'".
-  serverExternalPackages: ["mongodb"],
+  // Keep the drivers external so webpack does not bundle their optional native
+  // deps. PGlite ships a WASM PostgreSQL engine + a data directory; `pg` loads
+  // its own connection bits at runtime.
+  serverExternalPackages: ["@electric-sql/pglite", "pg"],
   // Images are served locally (blog covers at /uploads/blog/...), so we keep
   // them on-disk and only rely on the browser/HTTP caching — no external image
   // CDN. Fetching through Next's optimizer is not needed for these already

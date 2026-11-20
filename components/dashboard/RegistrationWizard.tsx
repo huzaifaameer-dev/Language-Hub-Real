@@ -297,12 +297,12 @@ export function RegistrationWizard({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-slate-900/50 px-3 py-6 backdrop-blur-md sm:px-6">
+    <div className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-[#062e28]/50 px-3 py-6 backdrop-blur-md sm:px-6">
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease }}
-        className="relative w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/60 bg-white shadow-[0_50px_120px_-40px_rgb(15_23_42/0.6)]"
+        className="relative w-full max-w-3xl overflow-hidden rounded-[2rem] border border-white/60 bg-white shadow-[0_50px_120px_-40px_rgb(6_46_40/0.6)]"
         role="dialog"
         aria-modal="true"
         aria-label={`${course.name} registration form`}
@@ -348,7 +348,7 @@ export function RegistrationWizard({
                     className={cn(
                       "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[0.58rem] font-black uppercase tracking-widest transition-all duration-300",
                       active
-                        ? "border-white/60 bg-white text-slate-900 shadow-lg"
+                        ? "border-white/60 bg-white text-ink shadow-lg"
                         : done
                           ? "border-white/40 bg-white/20 text-white"
                           : "border-white/25 text-white/60"
@@ -388,7 +388,7 @@ export function RegistrationWizard({
                       <Field label="Phone number" id="reg-phone" type="tel" value={data.phone} onChange={(v) => set("phone", v)} placeholder="+92 3XX 1234567" error={errors.phone} />
                     </div>
                     <div>
-                      <label htmlFor="reg-address" className="mb-1.5 block font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">
+                      <label htmlFor="reg-address" className="mb-1.5 block font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink-2">
                         Postal address
                       </label>
                       <textarea
@@ -398,10 +398,10 @@ export function RegistrationWizard({
                         rows={2}
                         placeholder="Street, area, city"
                         className={cn(
-                          "w-full resize-none rounded-xl border bg-white px-4 py-3 text-[0.95rem] text-slate-900 shadow-[0_1px_2px_rgb(15_23_42/0.04)] outline-none transition-all placeholder:text-slate-400",
+                          "w-full resize-none rounded-xl border bg-white px-4 py-3 text-[0.95rem] text-ink shadow-[0_1px_2px_rgb(6_46_40/0.04)] outline-none transition-all placeholder:text-ink-3",
                           errors.address
                             ? "border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10"
-                            : "border-slate-200 hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/12"
+                            : "border-[#e6f1ed] hover:border-[#d9ece6] focus:border-[#14a08c] focus:ring-4 focus:ring-[#14a08c]/12"
                         )}
                       />
                       {errors.address ? <p className="mt-1.5 text-[0.78rem] font-medium text-rose-600">{errors.address}</p> : null}
@@ -409,30 +409,30 @@ export function RegistrationWizard({
 
                     {/* photo upload */}
                     <div>
-                      <p className="mb-2 font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">
+                      <p className="mb-2 font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink-2">
                         Your photo <span aria-hidden>*</span>
                       </p>
                       <div className="flex flex-wrap items-center gap-4">
-                        <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200 bg-slate-50">
+                        <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-2xl border-2 border-[#e6f1ed] bg-[#f7fbfa]">
                           {data.photo ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={data.photo} alt="Your photo preview" className="h-full w-full object-cover" />
                           ) : (
-                            <span className="grid h-full w-full place-items-center text-slate-300">
+                            <span className="grid h-full w-full place-items-center text-[#b9cfc9]">
                               <Camera className="h-7 w-7" />
                             </span>
                           )}
-                          <span aria-hidden className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-indigo-600 to-violet-600" />
+                          <span aria-hidden className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-[#0f6b5c] to-[#14a08c]" />
                         </div>
                         <div className="min-w-0 flex-1">
                           <button
                             type="button"
                             onClick={() => photoInput.current?.click()}
-                            className="inline-flex h-10 items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50/60 px-5 font-display text-[0.78rem] font-bold text-indigo-700 transition-all duration-300 hover:-translate-y-0.5 hover:bg-indigo-100"
+                            className="inline-flex h-10 items-center gap-2 rounded-full border border-[#cdebe3] bg-[#f3fbf8]/60 px-5 font-display text-[0.78rem] font-bold text-[#0a4e43] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e3f4ef]"
                           >
                             <Camera className="h-4 w-4" /> {data.photo ? "Change photo" : "Upload photo"}
                           </button>
-                          <p className="mt-1.5 text-[0.72rem] text-slate-400">
+                          <p className="mt-1.5 text-[0.72rem] text-ink-3">
                             JPG, PNG or WebP · under 3 MB. Used on your registration record and the PDF summary.
                           </p>
                           <input ref={photoInput} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={onPhoto} />
@@ -467,8 +467,8 @@ export function RegistrationWizard({
                   <div className="flex flex-col gap-5">
                     {/* focus modules */}
                     <div>
-                      <p className="mb-2 flex items-center gap-2 font-display text-[0.72rem] font-bold text-slate-700">
-                        {course.focusQuestion} <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-slate-400">(choose one or more)</span>
+                      <p className="mb-2 flex items-center gap-2 font-display text-[0.72rem] font-bold text-ink">
+                        {course.focusQuestion} <span className="font-mono text-[0.58rem] font-bold uppercase tracking-widest text-ink-3">(choose one or more)</span>
                       </p>
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                         {course.focusOptions.map((o) => {
@@ -481,11 +481,11 @@ export function RegistrationWizard({
                               className={cn(
                                 "inline-flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-start font-display text-[0.84rem] font-bold transition-all duration-200",
                                 on
-                                  ? "border-indigo-500 bg-indigo-50 text-indigo-700 shadow-[0_10px_24px_-12px_rgb(99_102_241/0.5)]"
-                                  : "border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-600"
+                                  ? "border-[#14a08c] bg-[#f3fbf8] text-[#0a4e43] shadow-[0_10px_24px_-12px_rgb(10_78_67/0.5)]"
+                                  : "border-[#e6f1ed] bg-white text-ink-2 hover:border-[#9fd8cb] hover:text-[#0f6b5c]"
                               )}
                             >
-                              <span className={cn("grid h-5 w-5 shrink-0 place-items-center rounded-md border", on ? "border-indigo-500 bg-indigo-500 text-white" : "border-slate-300")}>
+                              <span className={cn("grid h-5 w-5 shrink-0 place-items-center rounded-md border", on ? "border-[#14a08c] bg-[#14a08c] text-white" : "border-[#d9ece6]")}>
                                 {on ? <Check className="h-3 w-3" strokeWidth={3} /> : null}
                               </span>
                               {o.label}
@@ -550,12 +550,12 @@ export function RegistrationWizard({
                 >
                   <div className="flex flex-col gap-5">
                     {/* fee summary */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/50 px-5 py-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#e3f4ef] bg-[#f3fbf8]/50 px-5 py-4">
                       <div>
-                        <p className="font-display text-[0.58rem] font-bold uppercase tracking-[0.26em] text-indigo-500">Course fee</p>
-                        <p className="mt-1 font-display text-[1.7rem] font-extrabold tracking-[-0.02em] text-slate-900">{registrationFeeLabel(course)}</p>
+                        <p className="font-display text-[0.58rem] font-bold uppercase tracking-[0.26em] text-[#14a08c]">Course fee</p>
+                        <p className="mt-1 font-display text-[1.7rem] font-extrabold tracking-[-0.02em] text-ink">{registrationFeeLabel(course)}</p>
                       </div>
-                      <p className="max-w-[16rem] text-[0.78rem] leading-relaxed text-slate-500">{registrationFeeNote(course)}</p>
+                      <p className="max-w-[16rem] text-[0.78rem] leading-relaxed text-ink-2">{registrationFeeNote(course)}</p>
                     </div>
 
                     <ChoiceGroup
@@ -569,15 +569,15 @@ export function RegistrationWizard({
                     {/* account details */}
                     <div className="grid gap-3 sm:grid-cols-2">
                       {Object.values(PAYMENT_ACCOUNTS).map((acct) => (
-                        <div key={acct.label} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-                          <p className="flex items-center gap-2 font-display text-[0.66rem] font-black uppercase tracking-[0.2em] text-slate-700">
-                            {acct.label === "Easypaisa" ? <ImageIcon className="h-4 w-4 text-emerald-600" /> : <Landmark className="h-4 w-4 text-indigo-600" />}
+                        <div key={acct.label} className="rounded-2xl border border-[#e6f1ed] bg-[#f7fbfa] p-4">
+                          <p className="flex items-center gap-2 font-display text-[0.66rem] font-black uppercase tracking-[0.2em] text-ink">
+                            {acct.label === "Easypaisa" ? <ImageIcon className="h-4 w-4 text-[#0f6b5c]" /> : <Landmark className="h-4 w-4 text-[#0f6b5c]" />}
                             {acct.label}
                           </p>
                           <div className="mt-2 space-y-1">
                             {acct.rows.map((r) => (
-                              <p key={r.label} className="font-mono text-[0.74rem] text-slate-600">
-                                <span className="text-slate-400">{r.label}:</span> <b className="text-slate-900">{r.value}</b>
+                              <p key={r.label} className="font-mono text-[0.74rem] text-ink-2">
+                                <span className="text-ink-3">{r.label}:</span> <b className="text-ink">{r.value}</b>
                               </p>
                             ))}
                           </div>
@@ -594,7 +594,7 @@ export function RegistrationWizard({
 
                     {/* receipt upload */}
                     <div>
-                      <p className="mb-2 font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-slate-600">
+                      <p className="mb-2 font-display text-[0.66rem] font-bold uppercase tracking-[0.2em] text-ink-2">
                         Payment proof {data.payment.receipt ? "(uploaded)" : ""}{" "}
                         <span className="text-rose-500">*</span>
                       </p>
@@ -606,25 +606,25 @@ export function RegistrationWizard({
                           errors.receipt
                             ? "border-rose-300 bg-rose-50/50"
                             : data.payment.receipt
-                              ? "border-emerald-300 bg-emerald-50/50"
-                              : "border-slate-300 bg-slate-50/60 hover:border-indigo-400 hover:bg-indigo-50/40"
+                              ? "border-[#b7e4d9] bg-[#f3fbf8]"
+                              : "border-[#d9ece6] bg-[#f7fbfa] hover:border-[#43c4ae] hover:bg-[#f3fbf8]/40"
                         )}
                       >
                         {data.payment.receipt ? (
                           <>
-                            <BadgeCheck className="h-7 w-7 text-emerald-600" />
-                            <span className="font-display text-[0.9rem] font-bold text-slate-800">{data.payment.receiptName}</span>
-                            <span className="font-mono text-[0.66rem] uppercase tracking-widest text-slate-400">Tap to replace</span>
+                            <BadgeCheck className="h-7 w-7 text-[#0f6b5c]" />
+                            <span className="font-display text-[0.9rem] font-bold text-ink">{data.payment.receiptName}</span>
+                            <span className="font-mono text-[0.66rem] uppercase tracking-widest text-ink-3">Tap to replace</span>
                           </>
                         ) : (
                           <>
-                            <FileText className="h-7 w-7 text-slate-400" />
-                            <span className="font-display text-[0.95rem] font-bold text-slate-700">Upload payment receipt</span>
-                            <span className="font-mono text-[0.66rem] uppercase tracking-widest text-slate-400">supported · 1 file · max 10 MB</span>
+                            <FileText className="h-7 w-7 text-ink-3" />
+                            <span className="font-display text-[0.95rem] font-bold text-ink">Upload payment receipt</span>
+                            <span className="font-mono text-[0.66rem] uppercase tracking-widest text-ink-3">supported · 1 file · max 10 MB</span>
                           </>
                         )}
                       </button>
-                      <p className="mt-1.5 text-[0.72rem] text-slate-400">
+                      <p className="mt-1.5 text-[0.72rem] text-ink-3">
                         Screenshot of your transaction or an account statement — PNG, JPG, WebP or PDF (max 10 MB).
                       </p>
                       <input
@@ -656,7 +656,7 @@ export function RegistrationWizard({
                       htmlFor="reg-agree"
                       className={cn(
                         "flex items-start gap-3 rounded-2xl border px-4 py-4 transition-all",
-                        errors.agreed ? "border-rose-300 bg-rose-50/60" : data.agreed ? "border-emerald-300 bg-emerald-50/50" : "border-slate-200 bg-slate-50/60"
+                        errors.agreed ? "border-rose-300 bg-rose-50/60" : data.agreed ? "border-[#b7e4d9] bg-[#f3fbf8]" : "border-[#e6f1ed] bg-[#f7fbfa]"
                       )}
                     >
                       <input
@@ -664,23 +664,23 @@ export function RegistrationWizard({
                         type="checkbox"
                         checked={data.agreed}
                         onChange={(e) => set("agreed", e.target.checked)}
-                        className="mt-0.5 h-5 w-5 shrink-0 accent-indigo-600"
+                        className="mt-0.5 h-5 w-5 shrink-0 accent-[#0f6b5c]"
                       />
-                      <span className="text-[0.88rem] leading-relaxed text-slate-600">
+                      <span className="text-[0.88rem] leading-relaxed text-ink-2">
                         I hereby declare that the information provided is accurate and true. I understand that any false
                         information may lead to cancellation of my registration.
                       </span>
                     </label>
                     {errors.agreed ? <p className="-mt-2 text-[0.78rem] font-medium text-rose-600">{errors.agreed}</p> : null}
 
-                    <label className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                    <label className="flex items-center gap-3 rounded-2xl border border-[#e6f1ed] bg-white px-4 py-3">
                       <input
                         type="checkbox"
                         checked={data.sendCopy}
                         onChange={(e) => set("sendCopy", e.target.checked)}
-                        className="h-5 w-5 shrink-0 accent-indigo-600"
+                        className="h-5 w-5 shrink-0 accent-[#0f6b5c]"
                       />
-                      <span className="text-[0.88rem] font-medium text-slate-700">
+                      <span className="text-[0.88rem] font-medium text-ink">
                         Send me a copy of my responses by email
                       </span>
                     </label>
@@ -694,11 +694,11 @@ export function RegistrationWizard({
 
           {/* actions */}
           {!done ? (
-            <div className="mt-7 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
+            <div className="mt-7 flex items-center justify-between gap-3 border-t border-[#eef5f2] pt-5">
               <button
                 type="button"
                 onClick={back}
-                className="inline-flex h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 font-display text-[0.85rem] font-bold text-slate-500 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-800"
+                className="inline-flex h-12 items-center gap-2 rounded-xl border border-[#e6f1ed] bg-white px-5 font-display text-[0.85rem] font-bold text-ink-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#d9ece6] hover:text-ink"
               >
                 <ArrowLeft className="h-4 w-4" />
                 {step === "personal" ? "Cancel" : "Back"}
@@ -708,7 +708,7 @@ export function RegistrationWizard({
                 <button
                   type="button"
                   onClick={next}
-                  className="group inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-7 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(99_102_241/0.95)]"
+                  className="group inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-[#0f6b5c] to-[#14a08c] px-7 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(10_78_67/0.75)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(10_78_67/0.95)]"
                 >
                   Next
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -718,7 +718,7 @@ export function RegistrationWizard({
                   type="button"
                   onClick={submit}
                   disabled={submitting}
-                  className="inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-7 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(16_185_129/0.75)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(16_185_129/0.95)] disabled:opacity-60"
+                  className="inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-[#0f6b5c] to-teal-600 px-7 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(16_185_129/0.75)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(16_185_129/0.95)] disabled:opacity-60"
                 >
                   {submitting ? (
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
@@ -745,24 +745,24 @@ export function RegistrationWizard({
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.15, type: "spring", stiffness: 200, damping: 16 }}
-                className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-[0_24px_50px_-16px_rgb(16_185_129/0.7)]"
+                className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-gradient-to-br from-[#14a08c] to-teal-500 text-white shadow-[0_24px_50px_-16px_rgb(16_185_129/0.7)]"
               >
                 <PartyPopper className="h-9 w-9" />
               </motion.span>
-              <p className="mt-5 font-mono text-[0.62rem] font-black uppercase tracking-[0.32em] text-emerald-600">
+              <p className="mt-5 font-mono text-[0.62rem] font-black uppercase tracking-[0.32em] text-[#0f6b5c]">
                 Registration received
               </p>
-              <h3 className="mt-2 font-display text-[1.9rem] font-extrabold tracking-[-0.03em] text-slate-900">
-                Thank you for choosing <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">Language Hub.</span>
+              <h3 className="mt-2 font-display text-[1.9rem] font-extrabold tracking-[-0.03em] text-ink">
+                Thank you for choosing <span className="bg-gradient-to-r from-[#0f6b5c] to-[#14a08c] bg-clip-text text-transparent">Language Hub.</span>
               </h3>
-              <p className="mt-2 font-display text-[0.92rem] text-slate-500">
+              <p className="mt-2 font-display text-[0.92rem] text-ink-2">
                 Every language journey begins with one small step — you&apos;ve just taken yours.
               </p>
-              <div className="mt-5 rounded-2xl border border-indigo-100 bg-indigo-50/60 px-5 py-4">
-                <p className="font-mono text-[0.62rem] uppercase tracking-widest text-indigo-500">Your reference</p>
-                <p className="mt-1 font-mono text-[1.1rem] font-black tracking-wide text-indigo-700">{done.ref}</p>
+              <div className="mt-5 rounded-2xl border border-[#e3f4ef] bg-[#f3fbf8]/60 px-5 py-4">
+                <p className="font-mono text-[0.62rem] uppercase tracking-widest text-[#14a08c]">Your reference</p>
+                <p className="mt-1 font-mono text-[1.1rem] font-black tracking-wide text-[#0a4e43]">{done.ref}</p>
               </div>
-              <p className="mt-4 text-[0.9rem] leading-relaxed text-slate-600">
+              <p className="mt-4 text-[0.9rem] leading-relaxed text-ink-2">
                 We&apos;ve received your application safely. Our team is now
                 reviewing it and will confirm your seat soon.
                 <b> We will reply within 24 hours</b> on WhatsApp or email to confirm your seat and next steps.
@@ -770,7 +770,7 @@ export function RegistrationWizard({
               <button
                 type="button"
                 onClick={onExit}
-                className="mt-6 inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(99_102_241/0.95)]"
+                className="mt-6 inline-flex h-12 items-center gap-2 rounded-xl bg-gradient-to-r from-[#0f6b5c] to-[#14a08c] px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(10_78_67/0.75)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_44px_-12px_rgb(10_78_67/0.95)]"
               >
                 Done <ChevronRight className="h-4 w-4" />
               </button>
@@ -805,12 +805,12 @@ function StepShell({
   return (
     <div>
       <div className="flex items-center gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-[0_10px_24px_-10px_rgb(99_102_241/0.7)]">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-[#0f6b5c] to-[#14a08c] text-white shadow-[0_10px_24px_-10px_rgb(10_78_67/0.7)]">
           {icon}
         </span>
         <div>
-          <h3 className="font-display text-[1.25rem] font-extrabold tracking-[-0.01em] text-slate-900">{title}</h3>
-          <p className="text-[0.8rem] text-slate-400">{hint}</p>
+          <h3 className="font-display text-[1.25rem] font-extrabold tracking-[-0.01em] text-ink">{title}</h3>
+          <p className="text-[0.8rem] text-ink-3">{hint}</p>
         </div>
       </div>
       <div className="mt-5">{children}</div>
@@ -835,7 +835,7 @@ function ChoiceGroup({
 }) {
   return (
     <div>
-      <p className="mb-2 font-display text-[0.72rem] font-bold text-slate-700">
+      <p className="mb-2 font-display text-[0.72rem] font-bold text-ink">
         {title} {required ? <span className="text-rose-500">*</span> : null}
       </p>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -849,11 +849,11 @@ function ChoiceGroup({
               className={cn(
                 "inline-flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-start font-display text-[0.84rem] font-bold transition-all duration-200",
                 on
-                  ? "border-indigo-500 bg-indigo-50 text-indigo-700 shadow-[0_10px_24px_-12px_rgb(99_102_241/0.5)]"
-                  : "border-slate-200 bg-white text-slate-600 hover:border-indigo-300 hover:text-indigo-600"
+                  ? "border-[#14a08c] bg-[#f3fbf8] text-[#0a4e43] shadow-[0_10px_24px_-12px_rgb(10_78_67/0.5)]"
+                  : "border-[#e6f1ed] bg-white text-ink-2 hover:border-[#9fd8cb] hover:text-[#0f6b5c]"
               )}
             >
-              <span className={cn("grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full border-2", on ? "border-indigo-500 bg-indigo-500" : "border-slate-300")}>
+              <span className={cn("grid h-4.5 w-4.5 shrink-0 place-items-center rounded-full border-2", on ? "border-[#14a08c] bg-[#14a08c]" : "border-[#d9ece6]")}>
                 {on ? <span className="h-1.5 w-1.5 rounded-full bg-white" /> : null}
               </span>
               {o}
@@ -892,11 +892,11 @@ function ReviewGrid({ course, data }: { course: RegistrationCourseConfig; data: 
     [course, data, focus]
   );
   return (
-    <div className="grid gap-x-6 gap-y-2 rounded-2xl border border-slate-200 bg-slate-50/50 p-5 sm:grid-cols-2">
+    <div className="grid gap-x-6 gap-y-2 rounded-2xl border border-[#e6f1ed] bg-[#f7fbfa] p-5 sm:grid-cols-2">
       {rows.map(([k, v]) => (
-        <div key={k} className="border-b border-slate-100 pb-2">
-          <dt className="font-mono text-[0.58rem] uppercase tracking-widest text-slate-400">{k}</dt>
-          <dd className="font-display text-[0.9rem] font-bold text-slate-800">{v}</dd>
+        <div key={k} className="border-b border-[#eef5f2] pb-2">
+          <dt className="font-mono text-[0.58rem] uppercase tracking-widest text-ink-3">{k}</dt>
+          <dd className="font-display text-[0.9rem] font-bold text-ink">{v}</dd>
         </div>
       ))}
     </div>

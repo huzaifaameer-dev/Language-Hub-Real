@@ -10,10 +10,10 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 /** Concrete, checkable promises — not vague adjectives. */
 const SIGNALS = [
-  { icon: MessageSquareText, title: "Live small-batch", sub: "Real speaking time, every class" },
-  { icon: CalendarDays, title: "6 days a week", sub: OPENING_HOURS.daysLabel },
-  { icon: Wand2, title: "Free demo + test", sub: "Try before you commit" },
-];
+  { icon: MessageSquareText, title: "Live small-batch", sub: "Real speaking time, every class", tone: "clay" },
+  { icon: CalendarDays, title: "6 days a week", sub: OPENING_HOURS.daysLabel, tone: "clay clay-coral" },
+  { icon: Wand2, title: "Free demo + test", sub: "Try before you commit", tone: "clay clay-amber" },
+] as const;
 
 interface Row {
   id: string;
@@ -21,12 +21,9 @@ interface Row {
 }
 
 /**
- * Trust bar sitting directly under the hero.
- *
- * It leads with real proof — the faces of actual learners (pulled from the
- * testimonials feed) and the headline learner count — then three concrete,
- * checkable facts. No invented ratings, no filler adjectives; if the feed is
- * empty it degrades to a clean icon + text bar rather than a broken cluster.
+ * Trust bar sitting directly under the hero: real learner faces and the
+ * verified count on the left, three concrete facts on the right, all inside a
+ * clean white rail that matches the reference navbar.
  */
 export function LiveEnrollmentBanner({ className }: { className?: string }) {
   const [avatars, setAvatars] = useState<string[]>([]);
@@ -57,15 +54,14 @@ export function LiveEnrollmentBanner({ className }: { className?: string }) {
       transition={{ duration: 0.6, ease }}
       className={cn("relative mx-auto max-w-6xl px-6 sm:px-12", className)}
     >
-      <div className="flex flex-col items-center gap-5 rounded-2xl border border-ink/[0.07] bg-white/90 px-6 py-5 shadow-[0_24px_60px_-40px_rgb(15_23_42/0.45)] backdrop-blur sm:flex-row sm:justify-between sm:gap-8 sm:px-8">
-        {/* Proof cluster — real faces + the verified count */}
+      <div className="flex flex-col items-center gap-5 rounded-3xl border border-[#e3ede9] bg-white px-6 py-5 shadow-[0_24px_60px_-44px_rgba(6,46,40,0.45)] sm:flex-row sm:justify-between sm:gap-8 sm:px-8">
         <div className="flex items-center gap-3.5">
           {avatars.length > 0 ? (
             <div className="flex -space-x-3">
               {avatars.map((src, i) => (
                 <span
                   key={`${src}-${i}`}
-                  className="relative h-11 w-11 overflow-hidden rounded-full bg-gradient-to-br from-[#E8F0FE] to-[#D3E2FB] ring-2 ring-white"
+                  className="relative h-11 w-11 overflow-hidden rounded-full bg-[#eaf7f3] ring-2 ring-white"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={src} alt="" className="h-full w-full object-cover" />
@@ -73,33 +69,34 @@ export function LiveEnrollmentBanner({ className }: { className?: string }) {
               ))}
             </div>
           ) : (
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand/[0.09] text-brand-deep ring-2 ring-white">
-              <UsersRound className="h-5 w-5" strokeWidth={1.9} />
+            <span className="clay h-11 w-11 shrink-0 rounded-xl">
+              <UsersRound className="relative z-10 h-5 w-5 text-[#0f6b5c]" strokeWidth={1.9} />
             </span>
           )}
           <span className="flex flex-col leading-tight">
             <span className="font-display text-[0.92rem] font-bold text-ink">
               Trusted by {LEARNERS_GUIDED.toLocaleString()}+ learners
             </span>
-            <span className="mt-0.5 text-[0.72rem] text-ink-3">
+            <span className="mt-0.5 font-sans text-[0.72rem] text-ink-3">
               Spoken English · IELTS · PTE · Duolingo
             </span>
           </span>
         </div>
 
-        {/* Divider (desktop) */}
-        <span aria-hidden className="hidden h-12 w-px bg-ink/[0.08] sm:block" />
+        <span aria-hidden className="hidden h-12 w-px bg-[#e3ede9] sm:block" />
 
-        {/* Concrete facts */}
         <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4">
           {SIGNALS.map((s) => (
             <span key={s.title} className="group flex items-center gap-2.5">
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand/[0.08] text-brand-deep">
-                <s.icon className="icon-hover-pop h-4 w-4" strokeWidth={1.9} />
+              <span className={cn(s.tone, "h-9 w-9 shrink-0 rounded-xl")}>
+                <s.icon
+                  className="icon-hover-pop relative z-10 h-4 w-4 text-[#0f6b5c]"
+                  strokeWidth={1.9}
+                />
               </span>
               <span className="flex flex-col leading-tight">
                 <span className="font-display text-[0.78rem] font-bold text-ink">{s.title}</span>
-                <span className="mt-0.5 text-[0.68rem] text-ink-3">{s.sub}</span>
+                <span className="mt-0.5 font-sans text-[0.68rem] text-ink-3">{s.sub}</span>
               </span>
             </span>
           ))}

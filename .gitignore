@@ -66,3 +66,7 @@ test-results/
 playwright-report/
 
 .vercel
+
+# Local embedded PostgreSQL data
+.pgdata/
+.neon

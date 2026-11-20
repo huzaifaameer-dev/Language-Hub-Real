@@ -60,7 +60,7 @@ export function DemoBooking({ open, onClose }: { open: boolean; onClose: () => v
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 24, scale: 0.98 }}
               transition={{ duration: 0.4, ease }}
-              className="relative overflow-hidden rounded-3xl bg-white shadow-[0_40px_100px_-30px_rgb(15_23_42/0.5)]"
+              className="relative overflow-hidden rounded-3xl bg-white shadow-[0_40px_100px_-30px_rgb(6_46_40/0.5)]"
             >
               <div
                 aria-hidden="true"
@@ -321,7 +321,7 @@ function Field({
         {icon}
         {label}
       </span>
-      <span className="flex items-center gap-3 rounded-xl border border-ink/10 bg-[#faf8f4] px-4 py-3 transition-colors focus-within:border-brand focus-within:bg-white focus-within:ring-4 focus-within:ring-brand/[0.08]">
+      <span className="flex items-center gap-3 rounded-xl border border-ink/10 bg-[#f6fbf9] px-4 py-3 transition-colors focus-within:border-brand focus-within:bg-white focus-within:ring-4 focus-within:ring-brand/[0.08]">
         {children}
       </span>
       {error ? <span className="text-[0.72rem] font-medium text-rose-600">{error}</span> : null}

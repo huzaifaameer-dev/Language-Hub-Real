@@ -36,11 +36,11 @@ export function SectionHeader({
         whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-8% 0px -8% 0px" }}
         transition={{ duration: 0.6, delay: d(0), ease: EASE_EXPO }}
-        className="inline-flex items-center gap-2.5 font-display text-[0.62rem] font-bold uppercase tracking-[0.32em] text-gold-deep"
+        className="inline-flex items-center gap-2.5 font-display text-[0.62rem] font-bold uppercase tracking-[0.32em] text-brand-deep"
       >
-        <span aria-hidden="true" className="h-px w-8 bg-gold/60" />
+        <span aria-hidden="true" className="h-px w-8 bg-brand/50" />
         {eyebrow}
-        {center && <span aria-hidden="true" className="h-px w-8 bg-gold/60" />}
+        {center && <span aria-hidden="true" className="h-px w-8 bg-brand/50" />}
       </motion.span>
 
       <motion.h2

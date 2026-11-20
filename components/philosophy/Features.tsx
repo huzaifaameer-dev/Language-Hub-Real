@@ -15,9 +15,6 @@ interface HubPoint {
   line: string;
 }
 
-/** One restrained accent per card, so the row reads as a curated set, not a rainbow. */
-const ACCENTS = ["#2563EB", "#6D4AFF", "#0E9384", "#D98A0B", "#1D6FB8"] as const;
-
 const POINTS: HubPoint[] = [
   {
     icon: MessageCircle,
@@ -47,11 +44,14 @@ const POINTS: HubPoint[] = [
     icon: TrendingUp,
     num: "05",
     title: "Real Progress",
-    line: "Experience measurable improvement as your vocabulary, fluency, pronunciation, confidence, and everyday communication skills develop through consistent practice and personalized learning support.",
+    line: "Experience measurable improvement as your vocabulary, fluency, pronunciation, confidence, and everyday communication skills develop through consistent practice and personalized support.",
   },
 ];
 
-/** Track the cursor so each card's hover spotlight follows the pointer. */
+const ACCENTS = ["#0f6b5c", "#fb6a47", "#d99a1a", "#0b7f70", "#12b886"] as const;
+const CLAY = ["clay", "clay clay-coral", "clay clay-amber", "clay clay-deep", "clay clay-mint"] as const;
+const ICON_INK = ["#0f6b5c", "#d0452a", "#8a5a00", "#ffffff", "#0a4e43"] as const;
+
 function handleSpotlight(e: MouseEvent<HTMLElement>) {
   const rect = e.currentTarget.getBoundingClientRect();
   e.currentTarget.style.setProperty("--mx", `${e.clientX - rect.left}px`);
@@ -59,12 +59,9 @@ function handleSpotlight(e: MouseEvent<HTMLElement>) {
 }
 
 /**
- * "What Makes Learning Here Different".
- *
- * Five reasons in a calm 3 + 2 grid — every point visible at once, nothing
- * cycling past the reader. Each card carries its own accent: a gradient icon
- * disc, a large ghost numeral for editorial depth, and a spotlight that follows
- * the cursor. Hover lifts a card a single quiet step.
+ * "Why Language Hub" — five reasons in a 3 + 2 grid on the mint reference
+ * canvas. Each card carries one sequenced accent and a cursor spotlight; hover
+ * lifts a single quiet step with a buttery cubic-bezier.
  */
 export function Features() {
   const reduce = useReducedMotionSafe();
@@ -73,49 +70,43 @@ export function Features() {
     <section
       id="why"
       data-section
-      aria-label="What makes learning here different"
-      className="relative overflow-hidden px-6 pt-12 pb-14 sm:px-12 sm:pt-14 sm:pb-16 lg:px-16 lg:pt-14 lg:pb-16"
-      style={{ background: "linear-gradient(180deg, #EDF3FC 0%, #FBFAF7 100%)" }}
+      aria-label="Why Language Hub"
+      className="bg-mint relative overflow-hidden px-5 pb-20 pt-16 sm:px-8 sm:pb-24 sm:pt-[4.5rem]"
     >
-      {/* faint accent fields so the white cards read as objects on a surface */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            "radial-gradient(60% 45% at 8% 0%, rgba(37,99,235,0.06), transparent 60%), radial-gradient(55% 45% at 100% 100%, rgba(109,74,255,0.06), transparent 60%)",
+            "radial-gradient(58% 44% at 6% 0%, rgba(20,160,140,0.10), transparent 62%), radial-gradient(55% 44% at 100% 100%, rgba(251,106,71,0.07), transparent 60%)",
         }}
       />
 
-      <div className="relative mx-auto max-w-6xl">
-        {/* Heading — editorial, left-aligned */}
+      <div className="relative mx-auto max-w-7xl">
         <motion.div
           initial={reduce ? false : { opacity: 0, y: 20 }}
           whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.7, ease }}
-          className="max-w-2xl"
+          className="mx-auto max-w-2xl text-center"
         >
-          <div className="flex items-center gap-4">
-            <span aria-hidden className="h-px w-8 bg-[#0B1B3A]/30" />
-            <span className="font-display text-[0.66rem] font-bold uppercase tracking-[0.24em] text-[#5B6B87]">
+          <div className="flex items-center justify-center gap-3">
+            <span aria-hidden className="h-px w-7 bg-[#fb6a47]/60" />
+            <span className="font-display text-[0.62rem] font-bold uppercase tracking-[0.3em] text-[#d9532f]">
               Why Language Hub
             </span>
+            <span aria-hidden className="h-px w-7 bg-[#fb6a47]/60" />
           </div>
-          <h2
-            className="mt-5 text-[clamp(1.95rem,4vw,3.05rem)] leading-[1.05] tracking-[-0.025em] text-[#0B1B3A]"
-            style={{ fontFamily: "var(--font-headline)", fontWeight: 700 }}
-          >
-            What Makes Learning Here
-            <span className="text-[#1D6FB8]"> Different</span>
+          <h2 className="mt-4 font-display text-[clamp(1.95rem,4.2vw,3.05rem)] font-extrabold leading-[1.06] tracking-[-0.035em] text-ink">
+            What makes learning here{" "}
+            <span className="text-[#0f6b5c]">different.</span>
           </h2>
-          <p className="mt-4 max-w-[34rem] text-[0.98rem] leading-[1.72] text-[#5B6B87]">
+          <p className="mx-auto mt-4 max-w-[35rem] font-sans text-[0.97rem] leading-[1.8] text-ink-2">
             Five things every learner feels from the first session — real practice,
             real attention, and progress you can actually measure.
           </p>
         </motion.div>
 
-        {/* 3 + 2 grid */}
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-6 lg:gap-6">
           {POINTS.map((p, i) => {
             const accent = ACCENTS[i % ACCENTS.length];
@@ -126,41 +117,42 @@ export function Features() {
                 initial={reduce ? false : { opacity: 0, y: 26 }}
                 whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
+                whileHover={reduce ? undefined : { y: -6 }}
                 transition={{ duration: 0.55, delay: i * 0.07, ease }}
                 className={cn(
-                  "group relative flex flex-col overflow-hidden rounded-2xl border border-ink/[0.07] bg-white p-6 shadow-[0_24px_60px_-46px_rgb(15_23_42/0.5)] transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:border-ink/[0.12] hover:shadow-[0_34px_80px_-44px_rgb(15_23_42/0.55)]",
+                  "group relative flex flex-col overflow-hidden rounded-3xl border border-[#e3ede9] bg-white p-6 shadow-[0_22px_44px_-34px_rgba(10,78,67,0.45)] transition-[box-shadow,border-color] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[#b9e4d9] hover:shadow-[0_38px_70px_-38px_rgba(10,78,67,0.55)]",
                   i < 3 ? "lg:col-span-2" : "lg:col-span-3"
                 )}
               >
-                {/* spotlight follows the cursor */}
+                <span aria-hidden className="card-sheen" />
                 <div
                   aria-hidden
                   className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                   style={{
-                    background: `radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), ${accent}14, transparent 70%)`,
+                    background: `radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), ${accent}12, transparent 70%)`,
                   }}
                 />
-                {/* oversized ghost numeral */}
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute -right-2 -top-5 select-none font-display text-[5.5rem] font-black leading-none"
-                  style={{ color: `${accent}12` }}
+                  className="pointer-events-none absolute right-3 top-0 select-none font-display text-[4rem] font-extrabold leading-none tracking-tighter sm:text-[4.8rem]"
+                  style={{ color: `${accent}16` }}
                 >
                   {p.num}
                 </span>
 
-                <span
-                  className="relative grid h-11 w-11 place-items-center rounded-xl text-white shadow-[0_14px_30px_-16px_rgba(11,27,58,0.55)]"
-                  style={{ background: `linear-gradient(140deg, ${accent}, ${accent}cc)` }}
-                >
-                  <p.icon className="icon-hover-pop h-5 w-5" strokeWidth={1.8} />
+                <span className={cn(CLAY[i % CLAY.length], "card-icon h-12 w-12 rounded-2xl")}>
+                  <p.icon
+                    className="icon-hover-pop relative z-10 h-5 w-5"
+                    strokeWidth={1.9}
+                    style={{ color: ICON_INK[i % ICON_INK.length] }}
+                  />
                 </span>
 
-                <h3 className="relative mt-5 font-display text-[1.08rem] font-bold leading-snug tracking-[-0.01em] text-[#0B1B3A]">
+                <h3 className="relative mt-5 font-display text-[1.08rem] font-bold leading-snug tracking-[-0.02em] text-ink">
                   {p.title}
                 </h3>
-                <span aria-hidden className="relative mt-3 h-px w-9" style={{ backgroundColor: `${accent}66` }} />
-                <p className="relative mt-3 text-[0.9rem] leading-[1.72] text-[#5B6B87]">
+                <span aria-hidden className="relative mt-3 h-1 w-8 rounded-full" style={{ backgroundColor: accent }} />
+                <p className="relative mt-3 font-sans text-[0.89rem] leading-[1.78] text-ink-2">
                   {p.line}
                 </p>
               </motion.article>

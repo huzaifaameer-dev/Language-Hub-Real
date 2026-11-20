@@ -15,7 +15,7 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "linear-gradient(135deg, #0b1220 0%, #1e293b 55%, #0f172a 100%)",
+          background: "linear-gradient(135deg, #062e28 0%, #0b3b34 55%, #102b25 100%)",
           padding: 64,
           fontFamily: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
         }}
@@ -29,7 +29,7 @@ export default function OpengraphImage() {
               width: 56,
               height: 56,
               borderRadius: 16,
-              background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+              background: "linear-gradient(135deg, #0f6b5c 0%, #14a08c 100%)",
               color: "#fff",
               fontSize: 30,
               fontWeight: 800,
@@ -51,7 +51,7 @@ export default function OpengraphImage() {
           <div
             style={{
               display: "flex",
-              background: "linear-gradient(90deg, #6366f1 0%, #8b5cf6 45%, #f59e0b 100%)",
+              background: "linear-gradient(90deg, #0f6b5c 0%, #14a08c 45%, #f59e0b 100%)",
               WebkitBackgroundClip: "text",
               color: "transparent",
               fontSize: 64,
@@ -62,19 +62,19 @@ export default function OpengraphImage() {
           >
             Speak. Write. Shine.
           </div>
-          <div style={{ display: "flex", color: "#cbd5e1", fontSize: 26, fontWeight: 500, maxWidth: 900, lineHeight: 1.35 }}>
+          <div style={{ display: "flex", color: "#b7cbc5", fontSize: 26, fontWeight: 500, maxWidth: 900, lineHeight: 1.35 }}>
             English fluency, confidence and creative expression through practical, interactive learning with Javaria Malik.
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 28, color: "#94a3b8", fontSize: 20, fontWeight: 700 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 28, color: "#93aaa4", fontSize: 20, fontWeight: 700 }}>
           <span style={{ display: "flex", color: "#ffffff" }}>Spoken English</span>
-          <span style={{ display: "flex", width: 6, height: 6, borderRadius: 999, background: "#6366f1" }} />
+          <span style={{ display: "flex", width: 6, height: 6, borderRadius: 999, background: "#0f6b5c" }} />
           <span style={{ display: "flex", color: "#ffffff" }}>IELTS</span>
-          <span style={{ display: "flex", width: 6, height: 6, borderRadius: 999, background: "#8b5cf6" }} />
+          <span style={{ display: "flex", width: 6, height: 6, borderRadius: 999, background: "#14a08c" }} />
           <span style={{ display: "flex", color: "#ffffff" }}>PTE</span>
           <span style={{ display: "flex", width: 6, height: 6, borderRadius: 999, background: "#f59e0b" }} />
-          <span style={{ display: "flex", color: "#faf8f4" }}>Duolingo English</span>
+          <span style={{ display: "flex", color: "#f6fbf9" }}>Duolingo English</span>
         </div>
       </div>
     ),

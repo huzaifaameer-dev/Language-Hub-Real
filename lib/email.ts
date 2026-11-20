@@ -76,11 +76,11 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
 
 function shell(title: string, bodyHtml: string): string {
   return `<!doctype html>
-<html><body style="margin:0;padding:0;background:#eef1f9;font-family:Arial,Helvetica,sans-serif">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eef1f9;padding:28px 12px">
+<html><body style="margin:0;padding:0;background:#eaf7f1;font-family:Arial,Helvetica,sans-serif">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#eaf7f1;padding:28px 12px">
 <tr><td align="center">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #e2e8f0">
-  <tr><td style="padding:26px 30px;background:linear-gradient(135deg,#6366f1,#a855f7);color:#ffffff">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:18px;overflow:hidden;border:1px solid #d7ebe3">
+  <tr><td style="padding:26px 30px;background:linear-gradient(135deg,#0d6a58,#14a08c);color:#ffffff">
     <p style="margin:0;font-size:11px;letter-spacing:.25em;font-weight:bold;text-transform:uppercase;color:#e0e7ff">Language Hub</p>
     <p style="margin:4px 0 0;font-size:20px;font-weight:bold">${title}</p>
   </td></tr>
@@ -103,7 +103,7 @@ export async function sendNewApplicationEmail(input: {
   applicant: string;
   course: string;
 }): Promise<SendEmailResult> {
-  const link = `${appBaseUrl()}/admin-panel`;
+  const link = `${appBaseUrl()}/dashboard`;
   return sendEmail({
     to: input.to,
     subject: `New application: ${input.applicant} → ${input.course}`,
@@ -111,7 +111,7 @@ export async function sendNewApplicationEmail(input: {
     html: shell(
       "New application",
       `<p style="font-weight:600;margin:0 0 10px">${input.applicant} applied for ${input.course}.</p>
-      <p><a href="${link}" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open the admin panel</a></p>`
+      <p><a href="${link}" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open your dashboard</a></p>`
     ),
   });
 }
@@ -124,7 +124,7 @@ export async function sendNewDemoBookingEmail(input: {
   preferredDate: string;
   preferredTime: string;
 }): Promise<SendEmailResult> {
-  const link = `${appBaseUrl()}/admin-panel`;
+  const link = `${appBaseUrl()}/dashboard`;
   return sendEmail({
     to: input.to,
     subject: `New demo booking: ${input.name} · ${input.course}`,
@@ -135,7 +135,7 @@ export async function sendNewDemoBookingEmail(input: {
       <p style="margin:0 0 4px"><strong>Date:</strong> ${input.preferredDate}</p>
       <p style="margin:0 0 4px"><strong>Time:</strong> ${input.preferredTime}</p>
       <p style="margin:0 0 14px"><strong>Course:</strong> ${input.course}</p>
-      <p><a href="${link}" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open the admin panel</a></p>`
+      <p><a href="${link}" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open your dashboard</a></p>`
     ),
   });
 }
@@ -163,7 +163,7 @@ export async function sendDemoBookingConfirmationEmail(input: {
         <tr><td style="padding:8px 0;color:#64748b;font-size:13px"><strong>Time</strong></td><td style="padding:8px 0;font-size:15px;font-weight:600">${input.preferredTime}</td></tr>
       </table>
       <p>Our teacher will reach out to you shortly with the meeting link. In the meantime, feel free to explore our courses:</p>
-      <p><a href="${link}" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">View all courses</a></p>
+      <p><a href="${link}" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">View all courses</a></p>
       <p style="color:#94a3b8;font-size:13px;margin-top:14px">Need to reschedule? Just reply to this email or message us on WhatsApp.</p>
     `),
   });
@@ -224,7 +224,7 @@ export async function sendDecisionEmail(input: {
     <p>Hi ${first},</p>
     <p style="font-weight:600;margin:0 0 10px">${label}.</p>
     ${input.message ? `<p>${input.message}</p>` : ""}
-    <p><a href="${appBaseUrl()}${input.href}" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open your dashboard</a></p>
+    <p><a href="${appBaseUrl()}${input.href}" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open your dashboard</a></p>
     <p style="color:#94a3b8;font-size:13px">or copy: ${appBaseUrl()}${input.href}</p>
   `;
 
@@ -252,7 +252,7 @@ export async function sendResetEmail(input: {
     html: shell("Reset your password", `
       <p>Hi ${first},</p>
       <p>We got a request to reset your password. The link below expires in 30 minutes.</p>
-      <p><a href="${link}" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Choose a new password</a></p>
+      <p><a href="${link}" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Choose a new password</a></p>
       <p style="color:#94a3b8;font-size:13px">or copy: ${link}</p>
       <p style="color:#94a3b8;font-size:13px">If you didn't request this, ignore this email.</p>
     `),
@@ -283,8 +283,8 @@ export async function sendWelcomeEmail(input: {
       <p>Hi ${first},</p>
       <p>Your Language Hub account is ready.</p>
       <p>Apply for a course, pick your batch, and start building your English journey with us.</p>
-      ${verifyLink ? `<p>Please confirm your email so we can keep you posted:</p><p><a href="${verifyLink}" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Confirm your email</a></p>` : ""}
-      <p><a href="${appBaseUrl()}/dashboard" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open your dashboard</a></p>
+      ${verifyLink ? `<p>Please confirm your email so we can keep you posted:</p><p><a href="${verifyLink}" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Confirm your email</a></p>` : ""}
+      <p><a href="${appBaseUrl()}/dashboard" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open your dashboard</a></p>
     `),
   });
 }
@@ -306,7 +306,7 @@ export async function sendSequenceStep2Email(input: {
     html: shell("Almost there", `
       <p>Hi ${first},</p>
       <p>Great to have you on board. We noticed you haven't applied for a course yet — that's the fastest way to lock in your seat and start classes.</p>
-      <p><a href="${appBaseUrl()}/dashboard" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Apply for a course</a></p>
+      <p><a href="${appBaseUrl()}/dashboard" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Apply for a course</a></p>
       <p style="color:#94a3b8;font-size:13px;margin-top:14px">Applications are reviewed within 12 hours.</p>
     `),
   });
@@ -326,7 +326,7 @@ export async function sendAbandonedApplicationEmail(input: {
     html: shell("Finish your application", `
       <p>Hi ${first},</p>
       <p>You started your Language Hub sign-up ${input.daysAgo} day${input.daysAgo !== 1 ? "s" : ""} ago but didn't finish. Batches fill quickly — don't miss out on your preferred time slot.</p>
-      <p><a href="${appBaseUrl()}/signup" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Complete sign-up</a></p>
+      <p><a href="${appBaseUrl()}/signup" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Complete sign-up</a></p>
       <p style="color:#94a3b8;font-size:13px;margin-top:14px">It only takes a minute and seats are confirmed on a first-come basis.</p>
     `),
   });
@@ -350,7 +350,7 @@ export async function sendPaymentReminderEmail(input: {
       <p>Hi ${first},</p>
       <p>Your seat${course} is being held for you, but we haven't received payment yet ${input.daysAgo} day${input.daysAgo !== 1 ? "s" : ""} after we confirmed it.</p>
       ${input.amountLabel ? `<p style="font-weight:600">Amount due: ${input.amountLabel}</p>` : ""}
-      <p><a href="${appBaseUrl()}/dashboard" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Complete your payment</a></p>
+      <p><a href="${appBaseUrl()}/dashboard" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Complete your payment</a></p>
       <p style="color:#94a3b8;font-size:13px;margin-top:14px">If we don't hear back, your seat may be released to the next student on the waitlist.</p>
     `),
   });
@@ -410,7 +410,7 @@ export async function sendRegistrationEmail(
         </table>
         <p>The full registration summary (with the student photo, payment details and payment proof) is attached as a PDF.
         ${input.extraAttachments?.length ? "The original payment receipt is attached as well." : ""}</p>
-        <p><a href="${appBaseUrl()}/admin-panel" style="display:inline-block;background:#6366f1;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open the admin panel</a></p>
+        <p><a href="${appBaseUrl()}/dashboard" style="display:inline-block;background:#0d6a58;color:#ffffff;text-decoration:none;border-radius:9999px;padding:11px 22px;font-weight:bold">Open your dashboard</a></p>
       `)
       : shell("Registration received — we'll reply within 24 hours", `
         <p>Hi ${first},</p>

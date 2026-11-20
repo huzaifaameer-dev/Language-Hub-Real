@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { ensureIndexesAndAdmin, getTestimonialsCollection } from "@/lib/db";
+import { listTestimonials } from "@/lib/server/catalog";
 import { SuccessStoriesBoard, type Story } from "@/components/success-stories/SuccessStoriesBoard";
 
 export const metadata: Metadata = {
@@ -16,18 +16,21 @@ export const revalidate = 300;
  *  server-rendered into the page HTML — no client fetch, no loading spinner,
  *  fast even on a cold serverless instance. */
 async function getStories(): Promise<Story[]> {
-  await ensureIndexesAndAdmin();
-  const col = await getTestimonialsCollection();
-  const docs = await col.find({ active: true }).sort({ order: 1 }).limit(50).toArray();
-  return docs.map((d) => ({
-    id: String(d._id),
-    name: d.name,
-    role: d.role,
-    quote: d.quote,
-    outcome: d.outcome,
-    course: d.course,
-    image: d.image ?? null,
-  }));
+  try {
+    const rows = await listTestimonials(true);
+    return rows.map((d) => ({
+      id: d.id,
+      name: d.name,
+      role: d.role,
+      quote: d.quote,
+      outcome: d.outcome,
+      course: d.course,
+      image: d.image,
+    }));
+  } catch {
+    // Database unreachable — show the friendly empty state instead of a 500.
+    return [];
+  }
 }
 
 export default async function SuccessStoriesPage() {

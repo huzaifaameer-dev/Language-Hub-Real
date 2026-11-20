@@ -2,7 +2,6 @@ import { generateObject } from "ai";
 import { aiConfigured, aiModelLabel, getChatModel } from "@/lib/ai/config";
 import { PlacementAnalysisSchema, type PlacementAnalysis } from "@/lib/ai/schemas";
 import { PLACEMENT_SYSTEM } from "@/lib/ai/prompts";
-import { getAiAnalysesCollection } from "@/lib/db";
 import type { PlacementCategory } from "@/lib/ai/schemas";
 
 export interface PlacementInput {
@@ -145,18 +144,19 @@ async function savePlacementAnalysis(
   model: string | null
 ): Promise<void> {
   try {
-    const col = await getAiAnalysesCollection();
-    await col.insertOne({
-      kind: "placement",
-      email: input.email ?? null,
-      name: input.name ?? null,
-      input: input as unknown as Record<string, unknown>,
-      result: analysis as unknown as Record<string, unknown>,
-      model,
-      offline,
-      createdAt: new Date(),
-    });
+    // Optional telemetry: persisted when PostgreSQL is available, never allowed
+    // to break the response.
+    const { q } = await import("@/lib/server/pg");
+    await q(
+      `INSERT INTO ai_analyses (id, kind, email, name, payload)
+       VALUES (gen_random_uuid()::text, 'placement', $1, $2, $3::jsonb)`,
+      [
+        input.email ?? null,
+        input.name ?? null,
+        JSON.stringify({ input, analysis, model, offline }),
+      ]
+    );
   } catch {
-    // telemetry-style best-effort write; the response already happened
+    // best-effort; the response already happened
   }
 }

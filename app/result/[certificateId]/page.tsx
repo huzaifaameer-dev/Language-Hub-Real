@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { getCertificatesCollection } from "@/lib/db";
+import { getCertificateByPublicId } from "@/lib/server/learner";
 import { appBaseUrl } from "@/lib/base-url";
 
 export const dynamic = "force-dynamic";
@@ -11,8 +11,17 @@ interface SharePageProps {
 }
 
 async function findCertificate(certificateId: string) {
-  const col = await getCertificatesCollection();
-  return col.findOne({ certificateId });
+  const row = await getCertificateByPublicId(certificateId);
+  if (!row) return null;
+  return {
+    certificateId: row.certificate_id,
+    studentName: row.student_name,
+    course: row.course,
+    batch: row.batch,
+    issuedAt: new Date(row.issued_at),
+    completionPercent: row.completion_percent,
+    signedBy: row.signed_by,
+  };
 }
 
 export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
@@ -44,16 +53,16 @@ export default async function CertificateSharePage({ params }: SharePageProps) {
   });
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#f4f1ff] via-[#eef1ff] to-[#fdf6ff] px-4 py-12">
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#eaf7f3] via-[#f3fbf8] to-[#fbfefd] px-4 py-12">
       <div className="relative w-full max-w-2xl">
         {/* Glow behind the certificate */}
         <div
           aria-hidden="true"
           className="absolute inset-0 -z-10 rounded-[2rem] bg-gradient-to-br from-brand/25 via-brand-magenta/20 to-brand-cyan/25 blur-2xl"
         />
-        <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-[0_50px_120px_-40px_rgb(79_70_229/0.5)]">
+        <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-[0_50px_120px_-40px_rgb(10_78_67/0.5)]">
           {/* Top ribbon */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#312e81] via-brand-deep to-brand px-8 py-7 text-center text-white">
+          <div className="relative overflow-hidden bg-gradient-to-br from-[#0a4e43] via-brand-deep to-brand px-8 py-7 text-center text-white">
             <div aria-hidden="true" className="absolute -right-14 -top-16 h-48 w-48 rounded-full bg-brand-cyan/40 blur-2xl" />
             <div aria-hidden="true" className="absolute -bottom-20 -left-14 h-44 w-44 rounded-full bg-brand-magenta/50 blur-2xl" />
             <p className="relative font-mono text-[0.62rem] font-bold uppercase tracking-[0.4em] text-white/70">
@@ -81,15 +90,15 @@ export default async function CertificateSharePage({ params }: SharePageProps) {
             </p>
 
             <div className="mx-auto mt-8 grid max-w-md grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-ink/[0.08] bg-[#f7f8fc] px-3 py-4">
+              <div className="rounded-2xl border border-ink/[0.08] bg-[#f6fbf9] px-3 py-4">
                 <p className="font-display text-lg font-extrabold text-ink">{cert.completionPercent}%</p>
                 <p className="font-mono text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink-3">Completion</p>
               </div>
-              <div className="rounded-2xl border border-ink/[0.08] bg-[#f7f8fc] px-3 py-4">
+              <div className="rounded-2xl border border-ink/[0.08] bg-[#f6fbf9] px-3 py-4">
                 <p className="font-display text-sm font-extrabold leading-tight text-ink">{cert.batch}</p>
                 <p className="mt-1 font-mono text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink-3">Batch</p>
               </div>
-              <div className="rounded-2xl border border-ink/[0.08] bg-[#f7f8fc] px-3 py-4">
+              <div className="rounded-2xl border border-ink/[0.08] bg-[#f6fbf9] px-3 py-4">
                 <p className="font-display text-sm font-extrabold leading-tight text-ink">{issued}</p>
                 <p className="mt-1 font-mono text-[0.55rem] font-bold uppercase tracking-[0.14em] text-ink-3">Issued</p>
               </div>
@@ -101,7 +110,7 @@ export default async function CertificateSharePage({ params }: SharePageProps) {
                   <path
                     d="M8,62 C46,22 96,22 152,62"
                     fill="none"
-                    stroke="#4f46e5"
+                    stroke="#0f6b5c"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                   />

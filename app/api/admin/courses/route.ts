@@ -1,125 +1,121 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { revalidateTag } from "next/cache";
+
 import { requireAdmin } from "@/lib/admin-guard";
-import { ensureIndexesAndAdmin, getCoursesCollection } from "@/lib/db";
-import type { CourseDoc } from "@/lib/db";
+import { audit } from "@/lib/server/admin";
 import {
-  batchUsageFor,
-  courseSeatSummary,
-  seatViews,
-  type EnrolledLike,
-} from "@/lib/course-stats";
-import { getEnrollmentsCollection } from "@/lib/db";
-import { publishEvent } from "@/lib/realtime";
+  createCourse,
+  listCourses,
+  toCourseInfo,
+  updateCourse,
+} from "@/lib/server/catalog";
+import { q } from "@/lib/server/pg";
 
 export const dynamic = "force-dynamic";
 
-const BatchInput = z.object({
-  name: z.string().min(1, "Batch name is required.").max(30).trim(),
-  time: z.string().max(60, "Time too long.").trim().default(""),
-  seatsTotal: z.coerce.number().int().min(1).max(5000, "Capacity out of range."),
-});
-
-const CourseInput = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters.").max(80).trim(),
-  tagline: z.string().max(160).trim().optional().default(""),
-  description: z.string().max(800).trim().optional().default(""),
-  fee: z.coerce.number().int().min(0).max(50_000_000, "Fee out of range."),
-  duration: z.string().max(40).trim().optional().default(""),
-  teacher: z.string().max(80).trim().optional().default(""),
-  schedule: z.string().max(80).trim().optional().default(""),
-  batches: z.array(BatchInput).min(1, "Add at least one batch.").max(8),
-  order: z.coerce.number().int().min(0).max(999).optional().default(99),
-  active: z.coerce.boolean().optional().default(true),
-});
-
+/** Every programme (including inactive) with live enrolment counts. */
 export async function GET() {
   const admin = await requireAdmin();
-  if (!admin) {
-    return NextResponse.json({ message: "Forbidden." }, { status: 403 });
-  }
+  if (!admin) return NextResponse.json({ message: "Forbidden." }, { status: 403 });
 
-  await ensureIndexesAndAdmin();
-  const [coursesCol, enrollmentsCol] = await Promise.all([
-    getCoursesCollection(),
-    getEnrollmentsCollection(),
+  const [records, usage] = await Promise.all([
+    listCourses(false),
+    q<{ course_slug: string; n: number }>(
+      `SELECT course_slug, COUNT(*)::INT AS n
+         FROM enrollments WHERE status IN ('ACTIVE','PAUSED')
+        GROUP BY course_slug`
+    ),
   ]);
 
-  const [courseDocs, enrolledDocs] = await Promise.all([
-    coursesCol.find({}).sort({ order: 1 }).toArray(),
-    enrollmentsCol.find({ status: "ENROLLED" }).project({ batch: 1, subjects: 1 }).toArray(),
-  ]);
+  const enrolled = new Map(usage.map((u) => [u.course_slug, Number(u.n)]));
 
-  const used = batchUsageFor(enrolledDocs as EnrolledLike[]);
-  const payload = courseDocs.map((c) => {
-    const batches = seatViews(c.batches ?? [], used, c.name);
-    return {
-      id: String(c._id),
-      name: c.name,
-      tagline: c.tagline,
-      description: c.description,
-      fee: c.fee,
-      currency: c.currency,
-      duration: c.duration,
-      teacher: c.teacher,
-      schedule: c.schedule,
-      order: c.order,
-      active: c.active,
-      batches,
-      ...courseSeatSummary(batches),
-    };
+  return NextResponse.json({
+    courses: records.map((record) => ({
+      slug: record.slug,
+      ...toCourseInfo(record),
+      active: record.active,
+      sortOrder: record.sortOrder,
+      enrolled: enrolled.get(record.slug) ?? 0,
+    })),
   });
-
-  return NextResponse.json({ courses: payload });
 }
 
+const CreateSchema = z.object({
+  name: z.string().trim().min(2).max(120),
+  slug: z.string().trim().max(120).optional(),
+  tagline: z.string().trim().max(300).optional(),
+  description: z.string().trim().max(4000).optional(),
+  duration: z.string().trim().max(80).optional(),
+  schedule: z.string().trim().max(160).optional(),
+  teacher: z.string().trim().max(120).optional(),
+  fee: z.number().int().min(0).max(10_000_000).optional(),
+  icon: z.string().trim().max(40).optional(),
+  active: z.boolean().optional(),
+  sortOrder: z.number().int().min(0).max(999).optional(),
+});
+
+/** Creates a programme. The slug is derived from the name and kept unique. */
 export async function POST(request: Request) {
   const admin = await requireAdmin();
-  if (!admin) {
-    return NextResponse.json({ message: "Forbidden." }, { status: 403 });
-  }
+  if (!admin) return NextResponse.json({ message: "Forbidden." }, { status: 403 });
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ message: "Invalid JSON." }, { status: 400 });
-  }
-
-  const parsed = CourseInput.safeParse(body);
+  const parsed = CreateSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
-    return NextResponse.json({ errors: parsed.error.issues }, { status: 400 });
-  }
-
-  await ensureIndexesAndAdmin();
-  const courses = await getCoursesCollection();
-  const data = parsed.data;
-  const now = new Date();
-
-  const duplicate = await courses.findOne({
-    name: { $regex: `^${data.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" },
-  });
-  if (duplicate) {
     return NextResponse.json(
-      { message: "A course with that name already exists." },
-      { status: 409 }
+      { message: "Validation failed.", errors: z.flattenError(parsed.error).fieldErrors },
+      { status: 400 }
     );
   }
 
-  const doc: Omit<CourseDoc, "_id"> = {
-    ...data,
-    currency: "PKR",
-    createdAt: now,
-    updatedAt: now,
-  };
-  const { insertedId } = await courses.insertOne(doc);
+  const slug = await createCourse(parsed.data);
+  await audit({
+    actorId: admin.id,
+    actorEmail: admin.email,
+    action: "admin.course_created",
+    targetType: "course",
+    targetId: slug,
+    meta: { name: parsed.data.name },
+  });
 
-  await publishEvent({ table: "courses", at: Date.now() });
-  revalidateTag("catalog", { expire: 0 });
+  return NextResponse.json({ ok: true, slug }, { status: 201 });
+}
 
-  return NextResponse.json(
-    { course: { id: String(insertedId), ...doc } },
-    { status: 201 }
-  );
+const PatchSchema = z.object({
+  slug: z.string().trim().min(1).max(120),
+  name: z.string().trim().min(2).max(120).optional(),
+  tagline: z.string().trim().max(300).optional(),
+  description: z.string().trim().max(4000).optional(),
+  duration: z.string().trim().max(80).optional(),
+  schedule: z.string().trim().max(160).optional(),
+  fee: z.number().int().min(0).max(10_000_000).optional(),
+  active: z.boolean().optional(),
+  sortOrder: z.number().int().min(0).max(999).optional(),
+});
+
+/** Updates one programme. Only the supplied fields change. */
+export async function PATCH(request: Request) {
+  const admin = await requireAdmin();
+  if (!admin) return NextResponse.json({ message: "Forbidden." }, { status: 403 });
+
+  const parsed = PatchSchema.safeParse(await request.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { message: "Validation failed.", errors: z.flattenError(parsed.error).fieldErrors },
+      { status: 400 }
+    );
+  }
+
+  const { slug, ...patch } = parsed.data;
+  await updateCourse(slug, patch);
+
+  await audit({
+    actorId: admin.id,
+    actorEmail: admin.email,
+    action: "admin.course_updated",
+    targetType: "course",
+    targetId: slug,
+    meta: patch,
+  });
+
+  return NextResponse.json({ ok: true });
 }

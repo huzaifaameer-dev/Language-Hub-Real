@@ -1,250 +1,253 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { SectionHeader } from "@/components/ui/SectionHeader";
-import { useLang } from "@/components/LanguageProvider";
-import { useInView, useReducedMotionSafe } from "@/lib/hooks";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { useReducedMotionSafe } from "@/lib/hooks";
 import { EASE_EXPO } from "@/lib/motion";
-import { Briefcase, Mic, Presentation, UserCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ArrowRight, BarChart3, Headphones, MessageSquare, Play, Users } from "lucide-react";
 
-/**
- * The four experiences of every programme, presented as a split "experience
- * stage": a quiet numbered index on the left drives a large, colour-graded
- * panel on the right. Each chapter owns its own gradient world — blue, violet,
- * teal, gold — and the stage crossfades between them while a hairline progress
- * bar counts down to the next. Hover a row to jump; tap on touch.
- *
- * Deliberately unlike anything else on the site: no illustration, no cards —
- * one composed object with light, colour and motion doing the work.
- *
- * The section header (eyebrow / title / subtitle) is intentionally untouched.
- */
-const CHAPTERS = [
+const STEPS = [
   {
     n: "01",
-    label: "Speaking practice",
-    icon: Mic,
+    icon: Headphones,
     title: "Fluency & Confidence",
-    desc: "Speak naturally, express your ideas clearly and build confidence for real-world communication.",
-    from: "#0E2A6B",
-    via: "#2E5BFF",
-    to: "#7FB2FF",
+    desc: "Speak naturally, express ideas clearly, and build confidence for real-world communication.",
+    tile: "bg-[#cdeee3] text-[#2f8a74]",
   },
   {
     n: "02",
-    label: "Guest mentors",
-    icon: Presentation,
+    icon: Users,
     title: "Chief Guest Sessions",
     desc: "Learn from experienced speakers and special guests who share practical insights.",
-    from: "#2A1170",
-    via: "#6D4AFF",
-    to: "#B79BFF",
+    tile: "bg-[#f6b09c] text-[#8f2f19]",
   },
   {
     n: "03",
-    label: "Personal coaching",
-    icon: UserCheck,
+    icon: MessageSquare,
     title: "One-on-One Sessions",
-    desc: "Get personalized attention, focused practice and feedback based on your goals.",
-    from: "#06403C",
-    via: "#0E9384",
-    to: "#4FE0B3",
+    desc: "Get personalized attention, focused practice, and feedback based on your goals.",
+    tile: "bg-[#ffd97a] text-[#8a5f00]",
   },
   {
     n: "04",
-    label: "Interview practice",
-    icon: Briefcase,
+    icon: BarChart3,
     title: "Mock Interviews",
-    desc: "Practice real interview situations, improve communication and receive constructive feedback.",
-    from: "#5C3208",
-    via: "#D98A0B",
-    to: "#FBD46A",
+    desc: "Practice real interview situations and improve communication skills with expert feedback.",
+    tile: "bg-[#0d5c4d] text-white",
   },
 ] as const;
 
-const BEAT = 4000;
+const CYCLE_MS = 5000;
 
+/**
+ * "Your journey" — the four experiences every programme is built around.
+ * One card is highlighted at a time (peach fill, coral edge, coral bar) and the
+ * highlight walks to the next card every five seconds, forever.
+ */
 export function Journey() {
-  const { dict, lang } = useLang();
-  const isUr = lang === "ur";
   const reduce = useReducedMotionSafe();
-  const [active, setActive] = useState(0);
-  const [sectionRef, inView] = useInView();
+  const [active, setActive] = useState(1);
 
   useEffect(() => {
-    // Only advance while the stage is on screen — off-screen the beat and the
-    // drifting gradient both hold, and the interval restarts cleanly on return.
-    if (reduce || !inView) return;
-    const id = window.setInterval(() => setActive((a) => (a + 1) % CHAPTERS.length), BEAT);
+    const id = window.setInterval(
+      () => setActive((current) => (current + 1) % STEPS.length),
+      CYCLE_MS
+    );
     return () => window.clearInterval(id);
-  }, [reduce, active, inView]);
+  }, []);
 
-  const c = CHAPTERS[active];
+  const rise = (delay: number, y = 18) => ({
+    initial: reduce ? false : { opacity: 0, y },
+    whileInView: reduce ? undefined : { opacity: 1, y: 0 },
+    viewport: { once: true, margin: "-8% 0px" },
+    transition: { duration: 0.65, delay, ease: EASE_EXPO },
+  });
 
   return (
     <section
       id="journey"
-      ref={sectionRef}
       data-section
-      className="relative overflow-hidden bg-site px-6 pb-20 pt-14 sm:px-10 sm:pt-16 md:pb-28"
-      aria-label="What makes a Language Hub programme"
+      aria-label="Your learning journey"
+      className="relative overflow-hidden bg-[#fbfefd] px-5 py-20 sm:px-8 sm:py-24"
     >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-32 left-1/2 h-[38rem] w-[38rem] -translate-x-1/2 rounded-full bg-[#305CDE]/[0.06] blur-[120px]"
-      />
-
-      <div className="relative mx-auto max-w-6xl">
-        <SectionHeader
-          eyebrow={dict["journey.eyebrow"]}
-          title={
-            isUr ? (
-              <>
-                {dict["journey.title1"]} <span className="brand-text">{dict["journey.title2"]}</span>
-              </>
-            ) : (
-              <>
-                From quiet to <span className="brand-text">confident.</span>
-              </>
-            )
-          }
-          subtitle={
-            isUr
-              ? dict["journey.subtitle"]
-              : "Live classes paired with real, human-led practice — the experiences that build confident communicators."
-          }
-        />
+      {/* soft organic field on the right */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <span className="absolute -right-[10%] -top-[30%] h-[46rem] w-[46rem] rounded-full bg-[#e7f8f0]" />
+        <span className="absolute right-[6%] -top-[6%] h-[16rem] w-[26rem] rounded-[6rem] bg-[#77c6ab]/35" />
+        <span className="absolute left-[42%] top-[64%] h-[26rem] w-[26rem] rounded-full bg-[#f2fbf7]" />
       </div>
 
-      <motion.div
-        initial={reduce ? false : { opacity: 0, y: 34 }}
-        whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-10% 0px -10% 0px" }}
-        transition={{ duration: 0.8, ease: EASE_EXPO }}
-        className="relative mx-auto mt-14 max-w-[1160px]"
-      >
-        <div className="overflow-hidden rounded-[1.75rem] border border-ink/[0.08] bg-white shadow-[0_50px_120px_-60px_rgb(11_27_58/0.55)] sm:rounded-[2rem]">
-          <div className="grid lg:grid-cols-[0.82fr_1.18fr]">
-            {/* ── index ── */}
-            <div className="relative z-10 flex flex-col justify-center bg-white px-6 py-7 sm:px-9 sm:py-9 lg:px-11 lg:py-12">
-              <span className="font-mono text-[0.56rem] font-bold uppercase tracking-[0.3em] text-ink-3">
-                Four experiences
+      <div className="relative mx-auto grid max-w-[1440px] items-center gap-14 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.7fr)] xl:gap-12">
+        {/* ── copy ─────────────────────────────────────────────────────── */}
+        <motion.div {...rise(0)} className="relative z-10 max-w-[32rem]">
+          <p className="flex items-center gap-3 font-display text-[0.7rem] font-bold uppercase tracking-[0.28em] text-[#f26a4a]">
+            <span aria-hidden className="h-px w-7 bg-[#f4a78f]" />
+            Your Journey
+            <span aria-hidden className="h-px w-7 bg-[#f4a78f]" />
+          </p>
+
+          <h2 className="mt-5 font-display text-[clamp(2.6rem,4.6vw,4.1rem)] font-extrabold leading-[1.03] tracking-[-0.045em] text-[#0b1f1b]">
+            From quiet to
+            <br />
+            <span className="relative inline-block text-[#0d6a58]">
+              confident.
+              <svg
+                aria-hidden
+                viewBox="0 0 300 16"
+                preserveAspectRatio="none"
+                className="absolute -bottom-2 left-0 h-[14px] w-full"
+              >
+                <path
+                  d="M4 11c58-7 190-9 292-4"
+                  fill="none"
+                  stroke="#f26a4a"
+                  strokeWidth="5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
+          </h2>
+
+          <p className="mt-7 max-w-[25rem] font-sans text-[1rem] leading-[1.8] text-[#5c706a]">
+            Four experiences every programme is built around — a calm, continuous path
+            from your first sentence to a confident communicator.
+          </p>
+
+          <div className="mt-9 flex flex-wrap items-center gap-5">
+            <Link
+              href="/courses"
+              className="group inline-flex h-[3.35rem] items-center gap-3 rounded-full bg-[#0d5c4d] px-7 font-display text-[0.92rem] font-bold text-white shadow-[0_18px_30px_-16px_rgba(13,92,77,0.85)] transition-transform duration-300 hover:-translate-y-0.5"
+            >
+              Start Your Journey
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+
+            <button type="button" className="group flex items-center gap-3 text-left">
+              <span className="grid h-12 w-12 place-items-center rounded-full bg-[#e3f5ec] text-[#0d5c4d] ring-1 ring-[#cfeade] transition-transform duration-300 group-hover:scale-105">
+                <Play className="ml-0.5 h-4 w-4 fill-current" />
               </span>
-              <div className="mt-5 flex flex-col lg:mt-7">
-                {CHAPTERS.map((ch, i) => {
-                  const on = active === i;
-                  return (
-                    <button
-                      key={ch.n}
-                      type="button"
-                      onMouseEnter={() => setActive(i)}
-                      onFocus={() => setActive(i)}
-                      onClick={() => setActive(i)}
-                      aria-pressed={on}
-                      className="group relative flex w-full items-center gap-4 border-t border-ink/[0.07] py-4 text-left outline-none first:border-t-0 lg:py-5"
+              <span className="leading-tight">
+                <span className="block font-display text-[0.82rem] font-bold text-[#10231f]">
+                  Watch Video
+                </span>
+                <span className="mt-0.5 block font-sans text-[0.68rem] text-[#7b8f89]">
+                  1 min • Learn more
+                </span>
+              </span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* ── cards ────────────────────────────────────────────────────── */}
+        <div className="relative">
+          {/* hand-drawn arrow from the copy toward the cards */}
+          <svg
+            aria-hidden
+            viewBox="0 0 120 70"
+            className="pointer-events-none absolute -left-10 bottom-24 hidden h-16 w-20 text-[#2f8a74] xl:block"
+          >
+            <path
+              d="M4 60C28 58 62 48 78 26c6-8 8-14 8-18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <path
+              d="M74 12l12 2-7 11"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+
+          {/* yellow sparkle accents */}
+          <svg
+            aria-hidden
+            viewBox="0 0 42 46"
+            className="pointer-events-none absolute -right-1 -top-2 hidden h-11 w-10 text-[#f2c230] lg:block"
+          >
+            <path d="M6 2l2.4 7.6L16 12l-7.6 2.4L6 22l-2.4-7.6L-4 12l7.6-2.4z" fill="currentColor" />
+            <path d="M30 18l1.7 5.3L37 25l-5.3 1.7L30 32l-1.7-5.3L23 25l5.3-1.7z" fill="currentColor" opacity=".85" />
+            <path d="M22 36l1.2 3.8L27 41l-3.8 1.2L22 46l-1.2-3.8L17 41l3.8-1.2z" fill="currentColor" opacity=".6" />
+          </svg>
+
+          <div className="relative grid items-stretch gap-8 pt-10 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4 xl:gap-6 xl:pt-8">
+            {STEPS.map((step, i) => {
+              const Icon = step.icon;
+              const isActive = i === active;
+              return (
+                <motion.div key={step.n} {...rise(0.1 + i * 0.09, 26)} className="relative">
+                  <article
+                    data-active={isActive || undefined}
+                    className={cn(
+                      "group relative flex h-full min-h-[19rem] flex-col items-center rounded-[1.4rem] border px-5 pb-8 pt-9 text-center transition-[background-color,border-color,box-shadow] duration-500 ease-out",
+                      isActive
+                        ? "border-[#f7b5a3] bg-[#fdf2ed] shadow-[0_28px_50px_-30px_rgba(242,106,74,0.55)]"
+                        : "border-[#eef4f1] bg-white shadow-[0_20px_45px_-34px_rgba(13,71,60,0.5)]"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "absolute -top-4 left-1/2 grid h-9 w-9 -translate-x-1/2 place-items-center rounded-full border font-display text-[0.68rem] font-bold transition-colors duration-500",
+                        isActive
+                          ? "border-[#f7b5a3] bg-[#fbe0d6] text-[#c9492a]"
+                          : "border-[#e9f0ed] bg-white text-[#8d9f99]"
+                      )}
                     >
-                      <span
-                        className={[
-                          "font-mono text-[0.62rem] font-bold tracking-[0.2em] transition-colors duration-300",
-                          on ? "text-[#305CDE]" : "text-ink-3",
-                        ].join(" ")}
-                      >
-                        {ch.n}
-                      </span>
-                      <span
-                        className={[
-                          "font-display text-[1.02rem] font-bold tracking-tight transition-all duration-300 lg:text-[1.18rem]",
-                          on ? "translate-x-0.5 text-ink" : "text-ink-3 group-hover:text-ink-2",
-                        ].join(" ")}
-                      >
-                        {ch.title}
-                      </span>
-                      <span
-                        className={[
-                          "ml-auto h-2 w-2 rounded-full transition-all duration-300",
-                          on ? "scale-100 bg-[#305CDE]" : "scale-0 bg-transparent",
-                        ].join(" ")}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* ── stage ── */}
-            <div className="relative min-h-[360px] overflow-hidden lg:min-h-[480px]">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={c.n}
-                  initial={reduce ? false : { opacity: 0, scale: 1.04 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.99 }}
-                  transition={{ duration: 0.6, ease: EASE_EXPO }}
-                  className="absolute inset-0"
-                  style={{
-                    backgroundImage: `linear-gradient(135deg, ${c.from} 0%, ${c.via} 55%, ${c.to} 100%)`,
-                  }}
-                >
-                  {/* drifting light + grain for material depth */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute inset-0 motion-safe:animate-[gradient-pan_9s_ease-in-out_infinite]"
-                    style={{
-                      animationPlayState: inView ? "running" : "paused",
-                      backgroundImage:
-                        "radial-gradient(58% 58% at 22% 18%, rgb(255 255 255 / 0.30), transparent 70%), radial-gradient(48% 48% at 88% 92%, rgb(255 255 255 / 0.16), transparent 72%)",
-                    }}
-                  />
-
-                  <div className="relative flex h-full flex-col justify-end p-7 text-white sm:p-9 lg:p-11">
-                    <span className="font-mono text-[0.58rem] font-bold uppercase tracking-[0.3em] text-white/70">
-                      {c.label}
+                      {step.n}
                     </span>
-                    <h3 className="mt-3 max-w-[16ch] font-display text-[1.7rem] font-extrabold leading-[1.05] tracking-[-0.02em] sm:text-[2rem] lg:text-[2.3rem]">
-                      {c.title}
+
+                    <span
+                      className={cn(
+                        "grid h-[3.85rem] w-[3.85rem] place-items-center rounded-full transition-transform duration-500",
+                        step.tile,
+                        isActive && "scale-105"
+                      )}
+                    >
+                      <Icon className="h-[1.6rem] w-[1.6rem]" strokeWidth={1.9} />
+                    </span>
+
+                    <h3 className="mt-5 flex min-h-[2.96rem] max-w-[10.5rem] items-center justify-center font-display text-[1.14rem] font-bold leading-[1.3] tracking-[-0.012em] text-[#10231f]">
+                      {step.title}
                     </h3>
-                    <p className="mt-3.5 max-w-[42ch] text-[0.92rem] leading-relaxed text-white/85 lg:text-[0.98rem]">
-                      {c.desc}
+
+                    <p className="mt-3 min-h-[4.3rem] max-w-[11.5rem] font-sans text-[0.82rem] leading-[1.72] text-[#647872]">
+                      {step.desc}
                     </p>
 
-                    <div className="mt-6 flex items-center gap-4">
-                      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white/15 ring-1 ring-inset ring-white/30 backdrop-blur-sm lg:h-14 lg:w-14">
-                        <c.icon className="h-5 w-5 lg:h-6 lg:w-6" strokeWidth={1.8} />
-                      </span>
-                      <span className="font-mono text-[0.68rem] font-bold tracking-[0.2em] text-white/70">
-                        {c.n} <span className="text-white/40">/ 04</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* oversized ghost numeral */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute -right-4 -top-10 select-none font-display text-[10rem] font-black leading-none text-white/10 lg:text-[15rem]"
-                  >
-                    {c.n}
-                  </span>
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "absolute bottom-[2px] left-1/2 h-[4px] -translate-x-1/2 rounded-full bg-[#f26a4a] transition-all duration-500",
+                        isActive ? "w-[55%] opacity-100" : "w-0 opacity-0"
+                      )}
+                    />
+                  </article>
                 </motion.div>
-              </AnimatePresence>
+              );
+            })}
+          </div>
 
-              {/* countdown bar — only while visible, so it restarts in sync
-                  with the interval when the stage comes back on screen */}
-              {!reduce && inView ? (
-                <span className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-[3px] bg-black/15">
-                  <motion.span
-                    key={`${active}-bar`}
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ duration: BEAT / 1000, ease: "linear" }}
-                    className="block h-full origin-left bg-white/70"
-                  />
-                </span>
-              ) : null}
-            </div>
+          {/* pagination dots */}
+          <div className="mt-10 flex items-center justify-center gap-2 xl:mt-12">
+            {STEPS.map((step, i) => (
+              <span
+                key={step.n}
+                aria-hidden
+                className={cn(
+                  "rounded-full transition-all duration-500",
+                  i === active ? "h-2.5 w-2.5 bg-[#7d8a1f]" : "h-2 w-2 bg-[#d8eae2]"
+                )}
+              />
+            ))}
           </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   );
 }

@@ -2,18 +2,22 @@ import { NextResponse } from "next/server";
 
 import { auth } from "@/auth";
 import { botGuardError } from "@/lib/bot-check";
-import { ensureIndexesAndAdmin, getFeedbackCollection } from "@/lib/db";
+import { createFeedback } from "@/lib/server/learner";
 import { FeedbackSchema, fieldErrors } from "@/lib/validate";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-/** Public feedback intake: works for guests and signed-in users; lands in the
- *  admin Feedback tab. Rate-limited and verified against a honeypot. */
+/** Public feedback intake: guests and signed-in learners both work; the row
+ *  lands in the admin panel's Feedback inbox. Rate-limited + honeypot-checked. */
 export async function POST(request: Request) {
   const session = await auth();
 
-  const rl = await rateLimitDb(await clientKey(request, "feedback"), 5, 10 * 60 * 1000);
+  const rl = await rateLimitDb(
+    await clientKey(request, "feedback"),
+    5,
+    10 * 60 * 1000
+  );
   if (!rl.ok) {
     return NextResponse.json(
       { message: `Too many submissions. Try again in ${rl.retryAfter}s.` },
@@ -28,8 +32,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid request body." }, { status: 400 });
   }
 
-  const bot = botGuardError(body);
-  if (bot) {
+  if (botGuardError(body)) {
     return NextResponse.json({ message: "Submission rejected." }, { status: 400 });
   }
 
@@ -41,25 +44,17 @@ export async function POST(request: Request) {
     );
   }
 
-  await ensureIndexesAndAdmin();
-  const col = await getFeedbackCollection();
-  const now = new Date();
   const d = parsed.data;
-
-  const result = await col.insertOne({
+  const row = await createFeedback({
+    userId: session?.user?.id ?? null,
     name: d.name.trim(),
     email: d.email?.trim() || null,
-    userId: session?.user?.id ?? null,
     category: d.category,
     rating: d.rating,
     subject: d.subject.trim(),
     message: d.message.trim(),
     contactOk: !!d.contactOk,
-    status: "NEW",
-    adminNote: null,
-    createdAt: now,
-    updatedAt: now,
   });
 
-  return NextResponse.json({ id: String(result.insertedId), ok: true }, { status: 201 });
+  return NextResponse.json({ id: row.id, ok: true }, { status: 201 });
 }

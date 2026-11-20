@@ -205,7 +205,7 @@ export function PlacementTestClient() {
             <button
               type="button"
               onClick={() => setPhase("quiz")}
-              className="mt-8 inline-flex h-13 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-10 font-display text-[0.92rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(110_90_224/0.7)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_52px_-16px_rgb(110_90_224/0.9)]"
+              className="mt-8 inline-flex h-13 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-10 font-display text-[0.92rem] font-bold text-white shadow-[0_16px_40px_-16px_rgb(10_78_67/0.7)] transition-[transform,box-shadow] duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_52px_-16px_rgb(10_78_67/0.9)]"
             >
               Start the test <ArrowRight className="h-4 w-4" />
             </button>
@@ -224,7 +224,7 @@ export function PlacementTestClient() {
             transition={{ duration: 0.4, ease }}
           >
             {/* Header bar */}
-            <div className="sticky top-[4.25rem] z-10 -mx-5 flex items-center justify-between border-b border-ink/10 bg-[#faf8f4]/90 px-5 py-3 backdrop-blur-md sm:-mx-8 sm:px-8">
+            <div className="sticky top-[4.25rem] z-10 -mx-5 flex items-center justify-between border-b border-ink/10 bg-[#f6fbf9]/90 px-5 py-3 backdrop-blur-md sm:-mx-8 sm:px-8">
               <div className="flex items-center gap-3">
                 <span className="font-display text-[0.85rem] font-extrabold text-ink">
                   {current + 1}/{PLACEMENT_QUESTIONS.length}
@@ -278,7 +278,7 @@ export function PlacementTestClient() {
                     onClick={() => selectAnswer(i)}
                     className={`flex items-center gap-4 rounded-xl border px-5 py-4 text-left transition-all duration-200 ${
                       answers[current] === i
-                        ? "border-brand bg-brand/[0.06] shadow-[0_0_0_2px_rgb(99_102_241/0.3)]"
+                        ? "border-brand bg-brand/[0.06] shadow-[0_0_0_2px_rgb(10_78_67/0.3)]"
                         : "border-ink/10 bg-white hover:border-brand/40 hover:bg-brand/[0.02]"
                     }`}
                   >
@@ -322,7 +322,7 @@ export function PlacementTestClient() {
                 <button
                   type="button"
                   onClick={finishQuiz}
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-6 font-display text-[0.82rem] font-bold text-white shadow-[0_12px_30px_-12px_rgb(110_90_224/0.6)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-14px_rgb(110_90_224/0.85)]"
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-6 font-display text-[0.82rem] font-bold text-white shadow-[0_12px_30px_-12px_rgb(10_78_67/0.6)] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-14px_rgb(10_78_67/0.85)]"
                 >
                   Submit <CheckCircle className="h-4 w-4" />
                 </button>
@@ -368,16 +368,16 @@ export function PlacementTestClient() {
             </h1>
 
             {/* Score card */}
-            <div className="mt-6 w-full max-w-md rounded-2xl border border-ink/10 bg-white p-8 text-center shadow-[0_20px_60px_-20px_rgb(15_23_42/0.12)]">
+            <div className="mt-6 w-full max-w-md rounded-2xl border border-ink/10 bg-white p-8 text-center shadow-[0_20px_60px_-20px_rgb(6_46_40/0.12)]">
               <div className="relative mx-auto h-32 w-32">
                 <svg className="h-full w-full -rotate-90" viewBox="0 0 120 120">
-                  <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e9f2" strokeWidth="10" />
+                  <circle cx="60" cy="60" r="52" fill="none" stroke="#e3ede9" strokeWidth="10" />
                   <circle
                     cx="60"
                     cy="60"
                     r="52"
                     fill="none"
-                    stroke={result.percentage >= 70 ? "#10b981" : result.percentage >= 40 ? "#f59e0b" : "#6366f1"}
+                    stroke={result.percentage >= 70 ? "#10b981" : result.percentage >= 40 ? "#f59e0b" : "#0f6b5c"}
                     strokeWidth="10"
                     strokeLinecap="round"
                     strokeDasharray={`${(result.percentage / 100) * 327} 327`}
@@ -438,7 +438,7 @@ export function PlacementTestClient() {
               <div className="mt-4 flex flex-wrap gap-3">
                 <ApplyButton
                   courseKey={registrationKeyForCatalogName(result.recommendedCourse)}
-                  className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-7 font-display text-[0.82rem] font-bold text-white transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-14px_rgb(110_90_224/0.85)]"
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-brand-deep to-brand-magenta px-7 font-display text-[0.82rem] font-bold text-white transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-14px_rgb(10_78_67/0.85)]"
                 >
                   <BookOpen className="h-4 w-4" /> Apply now
                 </ApplyButton>
@@ -468,14 +468,14 @@ export function PlacementTestClient() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your name"
-                  className="mb-3 w-full rounded-xl border border-ink/10 bg-[#faf8f4] px-4 py-3 text-[0.88rem] text-ink outline-none focus:border-brand focus:ring-4 focus:ring-brand/[0.08]"
+                  className="mb-3 w-full rounded-xl border border-ink/10 bg-[#f6fbf9] px-4 py-3 text-[0.88rem] text-ink outline-none focus:border-brand focus:ring-4 focus:ring-brand/[0.08]"
                 />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="mb-3 w-full rounded-xl border border-ink/10 bg-[#faf8f4] px-4 py-3 text-[0.88rem] text-ink outline-none focus:border-brand focus:ring-4 focus:ring-brand/[0.08]"
+                  className="mb-3 w-full rounded-xl border border-ink/10 bg-[#f6fbf9] px-4 py-3 text-[0.88rem] text-ink outline-none focus:border-brand focus:ring-4 focus:ring-brand/[0.08]"
                 />
                 <button
                   type="button"
@@ -499,7 +499,7 @@ export function PlacementTestClient() {
                 <button
                   type="button"
                   onClick={() => void runAiAnalysis()}
-                  className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-brand/25 bg-gradient-to-r from-brand/10 via-brand/[0.06] to-brand-magenta/10 px-6 font-display text-[0.86rem] font-bold text-brand-deep transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-[0_18px_44px_-16px_rgb(110_90_224/0.5)]"
+                  className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-brand/25 bg-gradient-to-r from-brand/10 via-brand/[0.06] to-brand-magenta/10 px-6 font-display text-[0.86rem] font-bold text-brand-deep transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/50 hover:shadow-[0_18px_44px_-16px_rgb(10_78_67/0.5)]"
                 >
                   <Sparkles className="h-4.5 w-4.5 transition-transform group-hover:rotate-12" />
                   Analyze my result with AI
@@ -532,7 +532,7 @@ export function PlacementTestClient() {
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, ease }}
-                  className="overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_20px_60px_-20px_rgb(15_23_42/0.14)]"
+                  className="overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_20px_60px_-20px_rgb(6_46_40/0.14)]"
                 >
                   <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-brand-deep to-brand-magenta px-6 py-5 text-white">
                     <div>
@@ -624,7 +624,7 @@ export function PlacementTestClient() {
                     </div>
 
                     {/* Study plan */}
-                    <div className="rounded-xl border border-ink/10 bg-[#faf8f4] p-4">
+                    <div className="rounded-xl border border-ink/10 bg-[#f6fbf9] p-4">
                       <div className="flex items-center justify-between">
                         <h4 className="font-display text-[0.68rem] font-bold uppercase tracking-[0.2em] text-ink-3">
                           Your weekly rhythm

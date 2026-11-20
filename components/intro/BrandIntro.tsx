@@ -52,14 +52,14 @@ export function BrandIntro({ onComplete }: { onComplete: () => void }) {
   return (
     <div
       ref={rootRef}
-      className="fixed inset-0 z-[120] flex flex-col items-center justify-center gap-6 bg-[#0c0a14] opacity-0"
+      className="bg-deep-teal fixed inset-0 z-[120] flex flex-col items-center justify-center gap-6 opacity-0"
       aria-label="Language Hub loading"
     >
       <span className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-[0_20px_50px_-20px_rgb(0_0_0/0.6)] ring-1 ring-white/10">
-        <Logo size="sm" eager />
+        <Logo mode="chip" size="sm" eager className="h-16 w-16" />
       </span>
       <p className="font-display text-2xl font-extrabold tracking-[0.14em] text-white">
-        LANGUAGE<span className="gold-text"> HUB</span>
+        LANGUAGE<span className="text-[#7ef0c9]"> HUB</span>
       </p>
       <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-white/50">
         Hub of Language Excellence

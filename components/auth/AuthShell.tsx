@@ -1,13 +1,21 @@
 "use client";
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { BookOpen, CheckCircle2, GraduationCap, Mic } from "lucide-react";
-import { Logo } from "@/components/ui/Logo";
+import Image from "next/image";
+import { AnimatePresence, motion } from "framer-motion";
+import { Check, Star } from "lucide-react";
+import { Navbar } from "@/components/navigation/Navbar";
 import { cn } from "@/lib/utils";
 
+type AuthTab = "signin" | "signup";
+
 interface AuthShellProps {
-  kicker: string;
+  /** Which tab is highlighted in the form panel. */
+  mode?: AuthTab | "plain";
+  /** Swap between the two tabs in place — no navigation, no refresh. */
+  onModeChange?: (mode: AuthTab) => void;
+  /** Changing this key animates the panel content (title, form, footer). */
+  animateKey?: string;
+  kicker?: string;
   title: React.ReactNode;
   subtitle?: string;
   children: React.ReactNode;
@@ -17,176 +25,202 @@ interface AuthShellProps {
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
-const FEATURES = [
-  { icon: Mic, text: "Live spoken English classes with real conversation practice" },
-  { icon: BookOpen, text: "IELTS, PTE & Duolingo preparation with assigned books" },
-  { icon: GraduationCap, text: "Track your application and enrollment in real time" },
-];
+const PERKS = ["Expert Instructors", "Flexible Learning", "Personalized Experience"];
 
-const FLOATERS = [
-  { icon: Mic, label: "Spoken English", cls: "left-[8%] top-[16%] delay-0", delay: "0s" },
-  { icon: BookOpen, label: "IELTS Prep", cls: "right-[6%] top-[30%]", delay: "-2.2s" },
-  { icon: GraduationCap, label: "PTE Ready", cls: "left-[14%] bottom-[20%]", delay: "-4s" },
-];
-
+/**
+ * The shared sign-in / sign-up surface: the real site navbar on a mint field,
+ * one white card split into the story panel and the form panel.
+ */
 export function AuthShell({
+  mode = "plain",
+  onModeChange,
+  animateKey,
   kicker,
   title,
   subtitle,
   children,
   footer,
-  maxWidth = "max-w-md",
+  maxWidth = "max-w-[30rem]",
 }: AuthShellProps) {
+  const tabs: { id: AuthTab; label: string }[] = [
+    { id: "signin", label: "Sign In" },
+    { id: "signup", label: "Sign Up" },
+  ];
+
   return (
-    <div className="grid min-h-screen bg-[#f4f6fb] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-      {/* Brand panel — desktop only */}
-      <aside className="mesh-auth relative hidden overflow-hidden p-12 text-white lg:flex lg:flex-col lg:justify-between xl:p-16">
-        <div className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-ink/20 blur-3xl" />
-
-        {/* floating feature chips */}
-        {FLOATERS.map((f) => (
-          <div
-            key={f.label}
-            aria-hidden
-            className={cn("absolute hidden animate-bob rounded-2xl bg-white/12 py-2.5 pr-4 pl-2.5 backdrop-blur-md xl:flex xl:items-center xl:gap-2.5", f.cls)}
-            style={{ animationDelay: f.delay }}
-          >
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-white/20">
-              <f.icon className="h-4 w-4" strokeWidth={2} />
-            </span>
-            <span className="font-display text-[0.72rem] font-bold tracking-wide">{f.label}</span>
-          </div>
-        ))}
-
-        {/* wordmark */}
-        <div className="relative flex items-center gap-3">
-          <Link
-            href="/"
-            className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg transition-transform duration-300 hover:scale-105"
-            aria-label="Back to Language Hub"
-          >
-            <Logo size="xs" eager />
-          </Link>
-          <span className="font-display text-[0.95rem] font-extrabold tracking-wide">
-            Language Hub
-          </span>
-        </div>
-
-        {/* headline + features */}
-        <div className="relative max-w-lg">
-          <motion.h2
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease, delay: 0.05 }}
-            className="font-display text-[clamp(2.1rem,3.4vw,3.1rem)] font-extrabold leading-[1.08] tracking-[-0.025em]"
-          >
-            Learn English with confidence, book by book.
-          </motion.h2>
-          <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease, delay: 0.15 }}
-            className="mt-7 flex flex-col gap-3.5"
-          >
-            {FEATURES.map((f) => (
-              <div key={f.text} className="flex items-start gap-3">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-white/85" strokeWidth={2} />
-                <p className="font-sans text-[0.95rem] leading-relaxed text-white/85">{f.text}</p>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-
-        {/* footer */}
-        <div className="relative flex items-center justify-between">
-          <p className="font-mono text-[0.68rem] tracking-widest text-white/55">
-            HUB OF LANGUAGE EXCELLENCE
-          </p>
-          <div className="flex items-end gap-1" aria-hidden>
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <span
-                key={i}
-                className="w-1 animate-wavebar rounded-full bg-white/60"
-                style={{ height: `${10 + ((i * 7) % 16)}px`, animationDelay: `${i * 0.12}s` }}
-              />
-            ))}
-          </div>
-        </div>
-      </aside>
-
-      {/* Form panel */}
-      <div className="relative flex items-center justify-center px-5 py-12 sm:px-10">
-        <div
-          aria-hidden="true"
-          className="bg-grid pointer-events-none absolute inset-0 opacity-70"
+    <div className="relative min-h-screen overflow-hidden bg-[#eaf7f1]">
+      {/* organic background */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        <span className="absolute -left-40 -top-56 h-[38rem] w-[38rem] rounded-full bg-[#dcf4e8]" />
+        <span className="absolute -left-24 top-[42%] h-[18rem] w-[18rem] rounded-full bg-[#dff5ea]" />
+        <span className="absolute -right-48 -top-40 h-[42rem] w-[42rem] rounded-full bg-[#cdeee0]" />
+        <span className="absolute -bottom-56 -left-24 h-[34rem] w-[34rem] rounded-full bg-[#d4f0e3]" />
+        <span className="absolute bottom-[-12rem] right-[-10rem] h-[30rem] w-[30rem] rounded-full bg-[#dff5ea]" />
+        <span
+          className="absolute right-[8%] top-[30%] hidden h-32 w-40 rounded-[1.5rem] opacity-70 lg:block"
           style={{
-            maskImage: "radial-gradient(ellipse at center, black 20%, transparent 72%)",
-            WebkitMaskImage: "radial-gradient(ellipse at center, black 20%, transparent 72%)",
+            backgroundImage: "radial-gradient(#8cc9b4 2px, transparent 2px)",
+            backgroundSize: "20px 20px",
           }}
         />
-
-        <motion.div
-          initial={{ opacity: 0, y: 28, scale: 0.985 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.7, ease }}
-          className={cn("relative z-10 w-full", maxWidth)}
-        >
-          {/* mobile wordmark */}
-          <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
-            <Link
-              href="/"
-              className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-white shadow-lg ring-1 ring-ink/8 transition-transform hover:scale-105"
-              aria-label="Back to Language Hub"
-            >
-              <Logo size="xs" eager />
-            </Link>
-            <span className="font-display text-[0.85rem] font-extrabold tracking-wide text-ink">
-              Language Hub
-            </span>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease, delay: 0.12 }}
-            className="mb-7 text-center lg:text-start"
-          >
-            <p className="font-display text-[0.72rem] font-bold uppercase tracking-[0.22em] text-brand-deep">
-              {kicker}
-            </p>
-            <h1 className="mt-2 font-display text-[clamp(1.9rem,4.5vw,2.5rem)] font-extrabold leading-tight tracking-[-0.03em] text-ink">
-              {title}
-            </h1>
-            {subtitle ? (
-              <p className="mt-2 font-sans text-[0.97rem] leading-relaxed text-ink-2">
-                {subtitle}
-              </p>
-            ) : null}
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease, delay: 0.2 }}
-            className="rounded-3xl border border-ink/10 bg-white p-6 shadow-[0_30px_70px_-32px_rgb(15_23_42/0.35)] sm:p-8"
-          >
-            {children}
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, ease, delay: 0.28 }}
-            className="mt-6 text-center font-sans text-[0.88rem] text-ink-2"
-          >
-            {footer}
-          </motion.div>
-        </motion.div>
       </div>
+
+      {/* ── the real site navbar ─────────────────────────────────────── */}
+      <Navbar />
+
+      {/* ── card ─────────────────────────────────────────────────────── */}
+      <main className="relative z-10 mx-auto max-w-[1200px] px-4 pb-14 pt-[6.4rem] sm:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 22 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease }}
+          className="grid overflow-hidden rounded-[1.9rem] border border-white/70 bg-white shadow-[0_40px_90px_-50px_rgba(13,71,60,0.55)] lg:grid-cols-[minmax(0,1.04fr)_minmax(0,1fr)]"
+        >
+          {/* ── story panel ─────────────────────────────────────────────── */}
+          <aside className="relative hidden min-h-[40rem] overflow-hidden bg-[linear-gradient(150deg,#f3fdf8_0%,#e8f9f0_45%,#d8f2e5_100%)] px-9 pb-6 pt-10 lg:flex lg:flex-col xl:px-11 xl:pt-11">
+            <span className="relative inline-flex w-fit items-center gap-2 rounded-full bg-[#fde9e1] px-3.5 py-1.5 font-sans text-[0.78rem] font-semibold text-[#e8603c]">
+              <span aria-hidden className="h-2 w-2 rounded-full bg-[#f26a4a]" />
+              Welcome to Language Hub
+            </span>
+
+            <h2 className="relative mt-5 font-display text-[clamp(2.1rem,3.2vw,2.85rem)] font-extrabold leading-[1.08] tracking-[-0.042em] text-[#0b1f1b]">
+              Learn English
+              <br />
+              With{" "}
+              <span className="relative inline-block text-[#0d6a58]">
+                Confidence.
+                <svg aria-hidden viewBox="0 0 260 12" preserveAspectRatio="none" className="absolute -bottom-1.5 left-0 h-2.5 w-full">
+                  <path d="M3 8c50-5 160-6 254-3" fill="none" stroke="#f26a4a" strokeWidth="4" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h2>
+
+            <p className="relative mt-4 max-w-[21rem] font-sans text-[0.9rem] leading-[1.75] text-[#48625b]">
+              Join our community of learners and take the first step towards a brighter
+              future.
+            </p>
+
+            <ul className="relative mt-4 space-y-2.5">
+              {PERKS.map((perk) => (
+                <li key={perk} className="flex items-center gap-2.5 font-sans text-[0.85rem] text-[#315a50]">
+                  <span className="grid h-5 w-5 place-items-center rounded-full bg-[#c6eedb] text-[#0d6a58]">
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  </span>
+                  {perk}
+                </li>
+              ))}
+            </ul>
+
+            {/* illustration bleeds into the panel edges, like the mock */}
+            <div aria-hidden className="relative mt-3 flex flex-1 items-end justify-end">
+              <Image
+                src="/brand/auth-illustration.png"
+                alt=""
+                width={1149}
+                height={812}
+                priority
+                sizes="(min-width: 1024px) 560px, 0px"
+                className="pointer-events-none -mb-6 -mr-9 w-[112%] max-w-[30rem] select-none xl:-mr-11"
+              />
+            </div>
+
+            <div className="relative z-10 mt-3 flex items-center gap-4 rounded-2xl bg-[#e6f8ef] px-4 py-3">
+              <div className="flex -space-x-2.5">
+                {["/hero-student.webp", "/founder-2026.jpg", "/brand/hero-student-teal.png"].map((src, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={src}
+                    src={src}
+                    alt=""
+                    className="h-9 w-9 rounded-full border-2 border-white object-cover"
+                    style={{ zIndex: 3 - i }}
+                  />
+                ))}
+              </div>
+              <div className="min-w-0">
+                <p className="font-display text-[1.02rem] font-extrabold leading-none text-[#10231f]">
+                  1,000+
+                </p>
+                <p className="mt-0.5 font-sans text-[0.7rem] text-[#5c706a]">Happy Learners</p>
+              </div>
+              <span aria-hidden className="h-9 w-px bg-[#c4ddd1]" />
+              <div className="min-w-0">
+                <p className="flex items-center gap-1.5 font-display text-[1.02rem] font-extrabold leading-none text-[#10231f]">
+                  <Star className="h-4 w-4 fill-[#f5c542] text-[#f5c542]" />
+                  4.9/5
+                </p>
+                <p className="mt-0.5 font-sans text-[0.7rem] text-[#5c706a]">Student Rating</p>
+              </div>
+            </div>
+          </aside>
+
+          {/* ── form panel ──────────────────────────────────────────────── */}
+          <section className="flex items-center px-6 py-9 sm:px-10 sm:py-11 xl:px-12">
+            <div className={cn("mx-auto w-full", maxWidth)}>
+              {mode !== "plain" ? (
+                <div
+                  className="mx-auto mb-7 flex max-w-[19.5rem] rounded-full bg-[#edf9f3] p-1.5"
+                  role="tablist"
+                  aria-label="Account"
+                >
+                  {tabs.map((tab) => {
+                    const selected = mode === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={selected}
+                        onClick={() => onModeChange?.(tab.id)}
+                        className={cn(
+                          "h-11 flex-1 rounded-full font-display text-[0.9rem] font-bold transition-colors duration-300",
+                          selected
+                            ? "bg-[#0d5c4d] text-white shadow-[0_10px_20px_-14px_rgba(13,92,77,0.9)]"
+                            : "text-[#44615a] hover:text-[#0d6a58]"
+                        )}
+                      >
+                        {tab.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : kicker ? (
+                <p className="mb-3 text-center font-display text-[0.68rem] font-bold uppercase tracking-[0.24em] text-[#0d6a58]">
+                  {kicker}
+                </p>
+              ) : null}
+
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={animateKey ?? "static"}
+                  initial={{ opacity: 0, x: 18 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -18 }}
+                  transition={{ duration: 0.26, ease }}
+                >
+                  <div className="text-center">
+                    <h1 className="font-display text-[clamp(1.7rem,3vw,2rem)] font-extrabold leading-tight tracking-[-0.035em] text-[#0b1f1b]">
+                      {title}
+                    </h1>
+                    {subtitle ? (
+                      <p className="mt-2 font-sans text-[0.9rem] leading-relaxed text-[#5c706a]">{subtitle}</p>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-7">{children}</div>
+
+                  <div className="mt-6 text-center font-sans text-[0.86rem] text-[#5c706a]">{footer}</div>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </section>
+        </motion.div>
+      </main>
     </div>
   );
 }
+
+/* ───────────────────────────── shared field ────────────────────────────── */
 
 export function Field({
   label,
@@ -217,15 +251,15 @@ export function Field({
 }) {
   return (
     <div>
-      <label
-        htmlFor={id}
-        className="mb-1.5 block font-sans text-[0.82rem] font-semibold text-ink"
-      >
+      <label htmlFor={id} className="sr-only">
         {label}
       </label>
       <div className="relative">
         {icon ? (
-          <span aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-3">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#7d948e]"
+          >
             {icon}
           </span>
         ) : null}
@@ -235,30 +269,26 @@ export function Field({
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
+          placeholder={placeholder ?? label}
           autoComplete={autoComplete}
           required={required}
           className={cn(
-            "h-12 w-full rounded-xl border bg-white px-4 font-sans text-[0.95rem] text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] outline-none transition-all duration-300 placeholder:text-ink-3",
+            "h-[3.4rem] w-full rounded-xl border bg-white px-4 font-sans text-[0.88rem] text-[#10231f] outline-none transition-all duration-300 placeholder:text-[#9aada7]",
             icon ? "pl-11" : undefined,
-            trailing ? "pr-11" : undefined,
+            trailing ? "pr-12" : undefined,
             error
               ? "border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10"
-              : "border-ink/12 hover:border-slate-300 focus:border-brand/80 focus:ring-4 focus:ring-brand-deep/12"
+              : "border-[#e3ede9] hover:border-[#cfe3da] focus:border-[#0d6a58] focus:ring-4 focus:ring-[#0d6a58]/10"
           )}
         />
         {trailing ? (
-          <span className="absolute right-2 top-1/2 -translate-y-1/2">{trailing}</span>
+          <span className="absolute right-2.5 top-1/2 -translate-y-1/2">{trailing}</span>
         ) : null}
       </div>
       {error ? (
-        <p className="mt-1.5 flex items-center gap-1 font-sans text-[0.78rem] font-medium text-rose-600">
-          {error}
-        </p>
+        <p className="mt-1.5 font-sans text-[0.76rem] font-medium text-rose-600">{error}</p>
       ) : hint ? (
-        <p className="mt-1.5 font-sans text-[0.78rem] font-medium text-ink-2">
-          {hint}
-        </p>
+        <p className="mt-1.5 font-sans text-[0.76rem] font-medium text-[#5c706a]">{hint}</p>
       ) : null}
     </div>
   );

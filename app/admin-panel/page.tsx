@@ -1,31 +1,40 @@
-export const dynamic = "force-dynamic";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 
+import { getAdminSession } from "@/lib/admin-session";
 import { requireAdmin } from "@/lib/admin-guard";
-import { AdminGate } from "@/components/admin-panel/AdminGate";
-import { AdminPanel } from "@/components/admin-panel/AdminPanel";
-import type { AdminCounts } from "@/components/admin-panel/types";
+import { AdminLogin } from "@/components/admin/AdminLogin";
+import { AdminConsole } from "@/components/admin/AdminConsole";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 /**
- * The admin panel shell is deliberately free of database work — it only checks
- * the admin token and streams the UI instantly. Every tab (registrations,
- * students, team, testimonials, …) fetches its own data client-side, so a slow
- * or cold database can never stall the first paint.
+ * The control suite entry point.
+ *
+ * With a valid signed `hub_admin_token` cookie and a live ADMIN row in
+ * PostgreSQL, renders the console. Otherwise renders the standalone sign-in
+ * screen — no learner session is ever required to reach admin login.
  */
-const EMPTY_COUNTS: AdminCounts = {
-  users: 0,
-  courses: 0,
-  notifications: 0,
-  regTotal: 0,
-  regNew: 0,
-  regContacted: 0,
-  regEnrolled: 0,
-};
-
 export default async function AdminPanelPage() {
-  const admin = await requireAdmin();
-  if (!admin) {
-    return <AdminGate />;
+  const token = await getAdminSession();
+
+  if (!token?.email) {
+    // Peek at whether ADMIN_ACCESS_CODE is configured so the client can show
+    // the second-factor field conditionally (no secret value leaks).
+    const requiresCode = Boolean(
+      (process.env.ADMIN_ACCESS_CODE ?? "").trim()
+    );
+    return <AdminLogin accessCodeRequired={requiresCode} />;
   }
 
-  return <AdminPanel adminEmail={admin.email ?? ""} counts={EMPTY_COUNTS} registrations={[]} users={[]} />;
+  const admin = await requireAdmin();
+  if (!admin) {
+    // Token was valid but the account is gone/demoted — invalidate the cookie.
+    const cookieStore = await cookies();
+    cookieStore.delete("hub_admin_token");
+    redirect("/admin-panel");
+  }
+
+  return <AdminConsole admin={{ id: admin.id, email: admin.email ?? null, name: admin.name, role: "ADMIN" }} />;
 }

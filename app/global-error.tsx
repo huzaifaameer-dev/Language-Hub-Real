@@ -36,7 +36,7 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body className="m-0 antialiased" style={{ background: "#f6f8fc", color: "#0f172a" }}>
+      <body className="m-0 antialiased" style={{ background: "#f6fbf9", color: "#102b25" }}>
         <main
           role="alert"
           className="grid min-h-[100dvh] place-items-center px-6"
@@ -62,7 +62,7 @@ export default function GlobalError({
               autoFocus
               type="button"
               onClick={reset}
-              className="mt-7 inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-8 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:brightness-110"
+              className="mt-7 inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-[#0f6b5c] to-[#14a08c] px-8 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:brightness-110"
             >
               Reload
             </button>

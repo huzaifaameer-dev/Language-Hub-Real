@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 import bcrypt from "bcryptjs";
 import { unlink } from "node:fs/promises";
 import path from "node:path";
 
 import { auth } from "@/auth";
-import { getDb } from "@/lib/db";
-import {
-  ProfileUpdateSchema,
-  AccountDeleteSchema,
-  fieldErrors,
-} from "@/lib/validate";
+import { findUserById, updateProfile } from "@/lib/server/users";
+import { q } from "@/lib/server/pg";
+import { ProfileUpdateSchema, AccountDeleteSchema, fieldErrors } from "@/lib/validate";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
+
+export const dynamic = "force-dynamic";
 
 function uploadsDir(): string {
   return path.join(process.cwd(), "public", "uploads", "avatars");
@@ -22,27 +20,22 @@ export async function GET() {
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
-  if (!ObjectId.isValid(session.user.id)) {
-    return NextResponse.json({ message: "Invalid session." }, { status: 400 });
-  }
 
-  const db = await getDb();
-  const user = await db.collection("users").findOne({ _id: new ObjectId(session.user.id) });
+  const user = await findUserById(session.user.id);
   if (!user) {
-    return NextResponse.json(
-      { message: "Session expired. Sign in again." },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Session expired. Sign in again." }, { status: 401 });
   }
 
   return NextResponse.json({
     user: {
       name: user.name,
       email: user.email,
-      whatsapp: user.whatsapp ?? "",
-      role: user.role ?? "USER",
-      image: user.image ?? null,
-      createdAt: user.createdAt?.toISOString?.() ?? null,
+      phone: user.phone ?? "",
+      whatsapp: user.phone ?? "",
+      role: user.role,
+      image: user.image,
+      bio: user.bio ?? "",
+      createdAt: new Date(user.created_at).toISOString(),
     },
   });
 }
@@ -52,11 +45,12 @@ export async function PATCH(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
-  if (!ObjectId.isValid(session.user.id)) {
-    return NextResponse.json({ message: "Invalid session." }, { status: 400 });
-  }
 
-  const rl = await rateLimitDb(await clientKey(request, `profile:${session.user.id}`), 20, 60 * 60 * 1000);
+  const rl = await rateLimitDb(
+    await clientKey(request, `profile:${session.user.id}`),
+    20,
+    60 * 60 * 1000
+  );
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many updates. Please try again later." },
@@ -80,27 +74,15 @@ export async function PATCH(request: Request) {
   }
 
   const { name, whatsapp } = parsed.data;
-  const db = await getDb();
-  const users = db.collection("users");
 
-  const update: { name?: string; whatsapp?: string; updatedAt: Date } = {
+  const user = await updateProfile(session.user.id, {
     name: name.trim(),
-    updatedAt: new Date(),
-  };
-  // whatsapp is optional so "leave blank" clears it; omitting keeps the value.
-  if (whatsapp !== undefined) update.whatsapp = whatsapp.trim();
-
-  const result = await users.updateOne({ _id: new ObjectId(session.user.id) }, { $set: update });
-  if (result.matchedCount === 0) {
-    return NextResponse.json(
-      { message: "Session expired. Sign in again." },
-      { status: 401 }
-    );
-  }
+    ...(whatsapp === undefined ? {} : { phone: whatsapp.trim() || null }),
+  });
 
   return NextResponse.json({
     ok: true,
-    user: { name: update.name, whatsapp: update.whatsapp ?? "" },
+    user: { name: user.name, whatsapp: user.phone ?? "" },
   });
 }
 
@@ -109,11 +91,12 @@ export async function DELETE(request: Request) {
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
-  if (!ObjectId.isValid(session.user.id)) {
-    return NextResponse.json({ message: "Invalid session." }, { status: 400 });
-  }
 
-  const rl = await rateLimitDb(await clientKey(request, `delete:${session.user.id}`), 3, 60 * 60 * 1000);
+  const rl = await rateLimitDb(
+    await clientKey(request, `delete:${session.user.id}`),
+    3,
+    60 * 60 * 1000
+  );
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many attempts. Please try again later." },
@@ -136,26 +119,20 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const db = await getDb();
-  const users = db.collection("users");
-  const id = new ObjectId(session.user.id);
-  const user = await users.findOne({ _id: id });
+  const user = await findUserById(session.user.id);
   if (!user) {
-    return NextResponse.json(
-      { message: "Session expired. Sign in again." },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Session expired. Sign in again." }, { status: 401 });
   }
 
   if (user.role === "ADMIN") {
-    // Admins are only ever removed via the database — never through the app.
+    // Admin accounts are never deleted from the learner UI.
     return NextResponse.json(
       { message: "Admin accounts cannot be deleted here." },
       { status: 403 }
     );
   }
 
-  const valid = await bcrypt.compare(parsed.data.password, user.password ?? "");
+  const valid = await bcrypt.compare(parsed.data.password, user.password_hash ?? "");
   if (!valid) {
     return NextResponse.json(
       { message: "Incorrect password. Account not deleted." },
@@ -163,25 +140,15 @@ export async function DELETE(request: Request) {
     );
   }
 
-  // Remove the stored avatar from disk (best-effort), then cascade deletes.
+  // Best-effort disk cleanup, then a single delete (every dependent row is
+  // removed by ON DELETE CASCADE / SET NULL in the schema).
   await Promise.all([
-    unlink(path.join(uploadsDir(), `${session.user.id}.webp`)).catch(() => {}),
-    unlink(path.join(uploadsDir(), `${session.user.id}.jpg`)).catch(() => {}),
-    unlink(path.join(uploadsDir(), `${session.user.id}.png`)).catch(() => {}),
+    unlink(path.join(uploadsDir(), `${user.id}.webp`)).catch(() => {}),
+    unlink(path.join(uploadsDir(), `${user.id}.jpg`)).catch(() => {}),
+    unlink(path.join(uploadsDir(), `${user.id}.png`)).catch(() => {}),
   ]);
 
-  const userId = session.user.id;
-  await Promise.all([
-    db.collection("applications").deleteMany({ userId }),
-    db.collection("enrollments").deleteMany({ userId }),
-    db.collection("notifications").deleteMany({ userId }),
-    db.collection("auth_tokens").deleteMany({ userId }),
-    // NextAuth adapter tables (orphan cleanup, sessions are validated against
-    // the users row by /api/me and the dashboard page).
-    db.collection("sessions").deleteMany({ userId }),
-    db.collection("accounts").deleteMany({ userId }),
-  ]);
-  await users.deleteOne({ _id: id });
+  await q("DELETE FROM users WHERE id = $1", [user.id]);
 
   return NextResponse.json({ ok: true });
 }

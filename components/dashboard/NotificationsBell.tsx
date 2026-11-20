@@ -42,7 +42,7 @@ function KindIcon({ kind }: { kind: string }) {
     );
   }
   return (
-    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-100 text-emerald-600">
+    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#eaf7f3] text-[#0f6b5c]">
       <GraduationCap className="h-4 w-4" strokeWidth={2} />
     </span>
   );
@@ -115,11 +115,11 @@ export function NotificationsBell({ userId }: { userId?: string }) {
           initial={{ opacity: 0, y: 10, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.35, ease }}
-          className="absolute right-0 top-[calc(100%+10px)] z-50 w-[19rem] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-2xl border border-white/70 bg-white/95 shadow-[0_30px_70px_-20px_rgb(15_23_42/0.45)] backdrop-blur-2xl sm:w-[22rem]"
+          className="absolute right-0 top-[calc(100%+10px)] z-50 w-[19rem] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-2xl border border-white/70 bg-white/95 shadow-[0_30px_70px_-20px_rgb(6_46_40/0.45)] backdrop-blur-2xl sm:w-[22rem]"
           role="dialog"
           aria-label="Notifications"
         >
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+          <div className="flex items-center justify-between border-b border-[#eef5f2] px-4 py-3">
             <p className="font-display text-[0.66rem] font-bold uppercase tracking-[0.24em] text-brand-deep">
               Notifications
             </p>
@@ -137,7 +137,7 @@ export function NotificationsBell({ userId }: { userId?: string }) {
           <div className="max-h-[22rem] overflow-y-auto">
             {list.length === 0 ? (
               <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
-                <Inbox className="h-8 w-8 text-slate-300" strokeWidth={1.5} />
+                <Inbox className="h-8 w-8 text-[#b9cfc9]" strokeWidth={1.5} />
                 <p className="text-[0.85rem] font-semibold text-ink-2">All caught up</p>
                 <p className="text-[0.75rem] text-ink-3">
                   Application and enrollment updates will appear here.
@@ -150,8 +150,8 @@ export function NotificationsBell({ userId }: { userId?: string }) {
                   type="button"
                   onClick={() => markRead(n.id)}
                   className={cn(
-                    "flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-start transition-colors duration-150 last:border-b-0",
-                    n.read ? "bg-white hover:bg-slate-50" : "bg-brand/8/50 hover:bg-brand/8"
+                    "flex w-full items-start gap-3 border-b border-[#eef5f2] px-4 py-3 text-start transition-colors duration-150 last:border-b-0",
+                    n.read ? "bg-white hover:bg-[#f6fbf9]" : "bg-[#f3fbf8] hover:bg-[#eaf7f3]"
                   )}
                 >
                   <KindIcon kind={n.kind} />

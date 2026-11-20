@@ -1,6 +1,6 @@
 import { FALLBACK_COURSES, formatPKR } from "@/lib/course-data";
 
-/** Registration lifecycle statuses tracked by the admin panel. */
+/** Registration lifecycle statuses tracked by the dashboard. */
 export const REGISTRATION_STATUSES = ["NEW", "CONTACTED", "ENROLLED"] as const;
 export type RegistrationStatus = (typeof REGISTRATION_STATUSES)[number];
 
@@ -14,7 +14,7 @@ export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 /**
  * Institute accounts a student must pay into. Kept here (single source of
- * truth) so the wizard, the PDF and the admin panel always show the same,
+ * truth) so the wizard, the PDF and the dashboard always show the same,
  * correct numbers.
  */
 export const PAYMENT_ACCOUNTS = {
@@ -113,7 +113,7 @@ export const REGISTRATION_COURSES: RegistrationCourseConfig[] = [
       "Structured prep for IELTS Academic and General Training across Listening, Reading, Writing and Speaking — with weekly mocks and examiner-style feedback.",
     fee: feeFor("IELTS General & Academic", 42000),
     duration: "2 months",
-    accent: { from: "#2563EB", to: "#6D4AFF" },
+    accent: { from: "#0a4e43", to: "#14a08c" },
     focusQuestion: "Which IELTS module do you want to enhance the most?",
     focusOptions: [
       { value: "listening", label: "Listening" },
@@ -143,7 +143,7 @@ export const REGISTRATION_COURSES: RegistrationCourseConfig[] = [
       "Computer-first training across PTE Academic, GRE and Duolingo: question-type mastery, time management and AI-scored practice for a confident test day.",
     fee: feeFor("PTE · GRE · Duolingo", 37000),
     duration: "1 month",
-    accent: { from: "#0891B2", to: "#2563EB" },
+    accent: { from: "#d9532f", to: "#fb6a47" },
     focusQuestion: "Which section do you want to enhance the most?",
     focusOptions: [
       { value: "speaking", label: "Speaking" },
@@ -174,7 +174,7 @@ export const REGISTRATION_COURSES: RegistrationCourseConfig[] = [
       "Guided conversation, pronunciation drills and roleplay that take you from hesitant first words to confident, flowing speech in real situations.",
     fee: feeFor("Spoken English", 22000),
     duration: "2 months",
-    accent: { from: "#0EA5E9", to: "#14B8A6" },
+    accent: { from: "#0d5f52", to: "#1aa88f" },
     focusQuestion: "Which skill do you want to enhance the most?",
     focusOptions: [
       { value: "pronunciation", label: "Pronunciation" },
@@ -207,7 +207,7 @@ export const REGISTRATION_COURSES: RegistrationCourseConfig[] = [
       "Creative writing, professional writing and communication skills in one programme — featuring stories, poetry, business writing and a portfolio you can share.",
     fee: feeFor("Writing & Communication", 27000),
     duration: "1 month",
-    accent: { from: "#D63A8C", to: "#7C3AED" },
+    accent: { from: "#a87400", to: "#d99a1a" },
     focusQuestion: "Which form do you want to enhance the most?",
     focusOptions: [
       { value: "stories", label: "Short Stories" },

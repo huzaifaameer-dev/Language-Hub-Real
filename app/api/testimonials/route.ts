@@ -1,32 +1,25 @@
-import { unstable_cache } from "next/cache";
 import { NextResponse } from "next/server";
-import { ensureIndexesAndAdmin, getTestimonialsCollection } from "@/lib/db";
+
+import { listTestimonials } from "@/lib/server/catalog";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-/** Public testimonials, cached briefly. Returns only active, ordered reviews. */
-const getPublicTestimonials = unstable_cache(
-  async () => {
-    await ensureIndexesAndAdmin();
-    const col = await getTestimonialsCollection();
-    const docs = await col.find({ active: true }).sort({ order: 1 }).limit(50).toArray();
-    return docs.map((d) => ({
-      id: String(d._id),
-      name: d.name,
-      role: d.role,
-      quote: d.quote,
-      outcome: d.outcome,
-      course: d.course,
-      featured: !!d.featured,
-      image: d.image ?? null,
-    }));
-  },
-  ["public-testimonials"],
-  { revalidate: 60, tags: ["catalog"] }
-);
-
+/** Public testimonials — active rows only, featured first. */
 export async function GET() {
-  const testimonials = await getPublicTestimonials();
+  const rows = await listTestimonials(true);
+  const testimonials = rows.map((t) => ({
+    id: t.id,
+    name: t.name,
+    role: t.role,
+    quote: t.quote,
+    outcome: t.outcome,
+    course: t.course,
+    rating: t.rating,
+    featured: t.featured,
+    image: t.image,
+  }));
+
   return NextResponse.json(
     { testimonials },
     {

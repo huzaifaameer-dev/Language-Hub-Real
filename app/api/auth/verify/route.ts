@@ -1,15 +1,14 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 import { z } from "zod";
 
-import { getDb, getAuthTokensCollection, ensureIndexesAndAdmin } from "@/lib/db";
-import { hashToken } from "@/lib/tokens";
+import { consumeToken, markEmailVerified } from "@/lib/server/users";
+import { q } from "@/lib/server/pg";
 import { notify } from "@/lib/notifications";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 
-const VerifySchema = z.object({
-  token: z.string().min(1),
-});
+export const dynamic = "force-dynamic";
+
+const VerifySchema = z.object({ token: z.string().min(1) });
 
 export async function POST(request: Request) {
   const rl = await rateLimitDb(await clientKey(request, "verify"), 10, 60 * 60 * 1000);
@@ -29,46 +28,23 @@ export async function POST(request: Request) {
 
   const parsed = VerifySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { message: "Invalid verification link." },
-      { status: 400 }
-    );
+    return NextResponse.json({ message: "Invalid verification link." }, { status: 400 });
   }
 
-  await ensureIndexesAndAdmin();
-  const db = await getDb();
-  const tokens = await getAuthTokensCollection();
-
-  const doc = await tokens.findOne({
-    token: hashToken(parsed.data.token),
-    purpose: "email-verify",
-    usedAt: null,
-    expiresAt: { $gt: new Date() },
-  });
-
-  if (!doc || !ObjectId.isValid(doc.userId)) {
+  const userId = await consumeToken(parsed.data.token, "VERIFY_EMAIL");
+  if (!userId) {
     return NextResponse.json(
       { message: "This verification link is invalid or has expired." },
       { status: 400 }
     );
   }
 
-  const users = db.collection("users");
-  const result = await users.updateOne(
-    { _id: new ObjectId(doc.userId) },
-    { $set: { emailVerified: new Date(), updatedAt: new Date() } }
-  );
+  await markEmailVerified(userId);
+  await q("DELETE FROM auth_tokens WHERE user_id = $1 AND kind = 'VERIFY_EMAIL'", [
+    userId,
+  ]);
 
-  if (result.matchedCount === 0) {
-    return NextResponse.json(
-      { message: "This verification link is invalid or has expired." },
-      { status: 400 }
-    );
-  }
-
-  await tokens.deleteMany({ userId: doc.userId, purpose: "email-verify" });
-
-  await notify(doc.userId, {
+  await notify(userId, {
     kind: "system",
     title: "Email verified",
     message: "Your email address is now verified.",

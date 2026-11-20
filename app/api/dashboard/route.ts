@@ -1,168 +1,105 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 
-import { auth } from "@/auth";
-import { CONTACT } from "@/lib/content";
+import { currentUser } from "@/lib/server/session";
 import {
-  getApplicationsCollection,
-  getEnrollmentsCollection,
-  getUsersCollection,
-  getStudentProgressCollection,
-  getLiveClassesCollection,
-  getCertificatesCollection,
-  getAssignmentsCollection,
-} from "@/lib/db";
-import { getPublicCatalog } from "@/lib/course-stats";
-import { stripeConfigured } from "@/lib/stripe";
-import { konnectConfigured } from "@/lib/konnect";
+  getProgressForUser,
+  listCertificates,
+  listEnrollments,
+  listNotifications,
+  listRegistrationsForUser,
+  listUpcomingClasses,
+  unreadNotificationCount,
+} from "@/lib/server/learner";
 
 export const dynamic = "force-dynamic";
 
 /**
- * One-shot payload for the student dashboard: replaces four round-trips
- * (/api/me, /api/applications, /api/enrollments, /api/courses) with one.
+ * Single round-trip payload for the learner dashboard: profile, enrolments,
+ * chapter progress, upcoming live classes, certificates, registrations and
+ * notifications. The UI renders from one fetch (no request waterfall).
  */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await currentUser();
+  if (!user) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
-  if (!ObjectId.isValid(session.user.id)) {
-    return NextResponse.json({ message: "Invalid session." }, { status: 400 });
-  }
 
-  const user = await getUsersCollection().then((users) =>
-    users.findOne({ _id: new ObjectId(session.user.id) })
+  const [enrollments, progress, classes, certificates, registrations, notifications, unread] =
+    await Promise.all([
+      listEnrollments(user.id),
+      getProgressForUser(user.id),
+      listUpcomingClasses(user.id),
+      listCertificates(user.id),
+      listRegistrationsForUser(user.id),
+      listNotifications(user.id, 12),
+      unreadNotificationCount(user.id),
+    ]);
+
+  const chaptersTotal = progress.reduce((n, p) => n + p.chapters.length, 0);
+  const chaptersDone = progress.reduce(
+    (n, p) => n + p.chapters.filter((c) => c.completed).length,
+    0
   );
-  if (!user) {
-    return NextResponse.json({ message: "Session expired. Sign in again." }, { status: 401 });
-  }
 
-  const [applications, enrollments, catalog, progressRecords, liveClasses, certificates, assignments] = await Promise.all([
-    (async () => {
-      const col = await getApplicationsCollection();
-      const docs = await col
-        .find({ userId: session.user.id }, { projection: { userId: 0 } })
-        .sort({ createdAt: -1 })
-        .toArray();
-      return docs.map((d) => ({
-        id: String(d._id),
-        name: d.name,
-        email: d.email,
-        place: d.place,
-        bio: d.bio,
-        course: d.course,
-        message: d.message,
-        status: d.status,
-        adminMessage: d.adminMessage,
-        createdAt: d.createdAt.toISOString(),
-      }));
-    })(),
-    (async () => {
-      const col = await getEnrollmentsCollection();
-      const docs = await col
-        .find({ userId: session.user.id }, { projection: { userId: 0 } })
-        .sort({ createdAt: -1 })
-        .toArray();
-      return docs.map((d) => ({
-        id: String(d._id),
-        applicationId: d.applicationId,
-        name: d.name,
-        email: d.email,
-        subjects: d.subjects,
-        batch: d.batch,
-        plan: d.plan,
-        paymentMethod: d.paymentMethod,
-        paymentInstructions: d.paymentInstructions,
-        paymentProof: d.paymentProof,
-        status: d.status,
-        adminMessage: d.adminMessage,
-        createdAt: d.createdAt.toISOString(),
-      }));
-    })(),
-    getPublicCatalog(),
-    (async () => {
-      const col = await getStudentProgressCollection();
-      return col.find({ userId: session.user.id }).toArray();
-    })(),
-    (async () => {
-      const col = await getLiveClassesCollection();
-      const now = new Date().toISOString();
-      return col.find({ userId: session.user.id, scheduledAt: { $gte: now } }).sort({ scheduledAt: 1 }).limit(10).toArray();
-    })(),
-    (async () => {
-      const col = await getCertificatesCollection();
-      return col.find({ userId: session.user.id }).sort({ createdAt: -1 }).toArray();
-    })(),
-    (async () => {
-      const col = await getAssignmentsCollection();
-      return col.find({ userId: session.user.id }).sort({ updatedAt: -1 }).limit(20).toArray();
-    })(),
-  ]);
-
-  // Support contact tile: only the env-provided studio WhatsApp is surfaced.
-  // The admin's private email is never exposed to regular users.
   return NextResponse.json({
-    onlinePayment: stripeConfigured(),
-    konnectPayment: konnectConfigured(),
     user: {
+      id: user.id,
       name: user.name,
       email: user.email,
-      whatsapp: user.whatsapp ?? "",
-      role: user.role ?? "USER",
-      image: user.image ?? null,
-      createdAt: user.createdAt?.toISOString?.() ?? null,
+      phone: user.phone ?? "",
+      role: user.role,
+      image: user.image,
+      referralCode: user.referral_code,
+      createdAt: new Date(user.created_at).toISOString(),
     },
-    support: {
-      whatsapp:
-        (process.env.ACADEMY_WHATSAPP || process.env.NEXT_PUBLIC_ACADEMY_WHATSAPP || CONTACT.whatsapp)?.replace(/[^\d]/g, "") || null,
-      email:
-        process.env.ACADEMY_EMAIL || process.env.NEXT_PUBLIC_ACADEMY_EMAIL || (CONTACT.email || null),
+    stats: {
+      courses: enrollments.filter((e) => e.status === "ACTIVE").length,
+      chaptersDone,
+      chaptersTotal,
+      percent: chaptersTotal ? Math.round((chaptersDone / chaptersTotal) * 100) : 0,
+      certificates: certificates.length,
+      unread,
     },
-    applications,
-    enrollments,
-    courses: catalog.courses,
-    progress: progressRecords.map((r) => ({
-      id: String(r._id),
-      enrollmentId: r.enrollmentId,
-      course: r.course,
-      chapters: r.chapters,
-      attendance: r.attendance,
-      lastChapter: r.lastChapter,
-      updatedAt: r.updatedAt.toISOString(),
+    enrollments: enrollments.map((e) => ({
+      id: e.id,
+      course: e.course_name,
+      courseSlug: e.course_slug,
+      batch: e.batch,
+      instructor: e.instructor,
+      status: e.status,
+      enrolledAt: new Date(e.enrolled_at).toISOString(),
+      percent: progress.find((p) => p.courseSlug === e.course_slug)?.percent ?? 0,
     })),
-    upcomingClasses: liveClasses.map((c) => ({
-      id: String(c._id),
-      title: c.title,
-      scheduledAt: c.scheduledAt,
-      durationMinutes: c.durationMinutes,
-      meetingLink: c.meetingLink,
-      platform: c.platform,
-      instructor: c.instructor,
-      course: c.course,
-      batch: c.batch,
-    })),
+    progress,
+    upcomingClasses: classes,
     certificates: certificates.map((c) => ({
-      id: String(c._id),
-      certificateId: c.certificateId,
-      studentName: c.studentName,
+      id: c.id,
+      certificateId: c.certificate_id,
+      studentName: c.student_name,
       course: c.course,
       batch: c.batch,
-      issuedAt: c.issuedAt,
-      completionPercent: c.completionPercent,
-      signedBy: c.signedBy,
+      issuedAt: new Date(c.issued_at).toISOString(),
+      completionPercent: c.completion_percent,
+      signedBy: c.signed_by,
     })),
-    assignments: assignments.map((a) => ({
-      id: String(a._id),
-      course: a.course,
-      title: a.title,
-      description: a.description,
-      studentAnswer: a.studentAnswer,
-      status: a.status,
-      grade: a.grade,
-      feedbackCount: a.feedbackThread.length,
-      createdAt: a.createdAt.toISOString(),
-      updatedAt: a.updatedAt.toISOString(),
+    registrations: registrations.map((r) => ({
+      id: r.id,
+      ref: r.ref,
+      courseKey: r.course_key,
+      courseSlug: r.course_slug,
+      fullName: r.full_name,
+      phone: r.phone,
+      status: r.status,
+      createdAt: new Date(r.created_at).toISOString(),
+    })),
+    notifications: notifications.map((n) => ({
+      id: n.id,
+      title: n.title,
+      body: n.body,
+      kind: n.kind,
+      link: n.link,
+      read: Boolean(n.read),
+      createdAt: new Date(n.created_at).toISOString(),
     })),
   });
 }

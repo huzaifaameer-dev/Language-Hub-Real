@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { getPublicCatalog } from "@/lib/course-stats";
+
+import { publicCourses } from "@/lib/server/catalog";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const { courses } = await getPublicCatalog();
+  const courses = await publicCourses();
 
   return NextResponse.json(
     { courses },

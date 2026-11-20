@@ -27,11 +27,11 @@ export function Field({
         <input
           id={id} name={id} type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required={required}
           className={cn(
-            "w-full rounded-xl border bg-white px-4 py-3 text-[0.95rem] text-ink shadow-[0_1px_2px_rgb(15_23_42/0.04)] outline-none transition-all duration-300 placeholder:text-ink-3",
+            "w-full rounded-xl border bg-white px-4 py-3 text-[0.95rem] text-ink shadow-[0_1px_2px_rgb(6_46_40/0.04)] outline-none transition-all duration-300 placeholder:text-ink-3",
             icon ? "pl-11" : undefined,
             error
               ? "border-rose-300 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10"
-              : "border-ink/12 hover:border-slate-300 focus:border-brand/80 focus:ring-4 focus:ring-brand-deep/12"
+              : "border-ink/12 hover:border-[#d9ece6] focus:border-brand/80 focus:ring-4 focus:ring-brand-deep/12"
           )}
         />
       </div>

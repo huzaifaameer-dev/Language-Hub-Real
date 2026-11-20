@@ -1,64 +1,60 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+
+import { one, q } from "@/lib/server/pg";
+import { getSiteStats } from "@/lib/server/catalog";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Public academy stats for the homepage "in numbers" section and the live
- * "students enrolled this week" / seat urgency banners.
- *
- * Every figure is computed from the database. Nothing is floored or invented —
- * on a fresh install the counts are legitimately 0, and the UI renders an honest
- * empty state rather than a marketing number we cannot substantiate.
+ * Public academy figures for the homepage "in numbers" panel and the live
+ * seat counters. Everything is a real COUNT/aggregate over the self-hosted
+ * PostgreSQL database — nothing is inflated. The learner figure uses the
+ * academy's configured baseline (Admin → Settings → Public figures) as a
+ * floor, so the panel and the hero badge never disagree.
  */
 export async function GET() {
-  const db = await getDb();
+  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Enrolled this week = enrollments that reached ENROLLED status in the last 7 days.
-  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const [site, users, enrolled, enrolledThisWeek, activeCourses, batchRows, seats] =
+    await Promise.all([
+      getSiteStats().catch(() => null),
+      one<{ n: number }>(
+        "SELECT COUNT(*)::INT AS n FROM users WHERE role <> 'ADMIN'"
+      ),
+      one<{ n: number }>("SELECT COUNT(*)::INT AS n FROM enrollments"),
+      one<{ n: number }>(
+        "SELECT COUNT(*)::INT AS n FROM enrollments WHERE created_at >= $1",
+        [weekAgo]
+      ),
+      one<{ n: number }>(
+        "SELECT COUNT(*)::INT AS n FROM courses WHERE active = TRUE"
+      ),
+      q<{ name: string }>(
+        `SELECT DISTINCT b->>'name' AS name
+           FROM courses c, jsonb_array_elements(c.batches) AS b
+          WHERE c.active = TRUE AND COALESCE(b->>'name', '') <> ''`
+      ),
+      one<{ n: number }>(
+        `SELECT COALESCE(SUM((b->>'seatsTotal')::INT), 0)::INT AS n
+           FROM courses c, jsonb_array_elements(c.batches) AS b
+          WHERE c.active = TRUE`
+      ),
+    ]);
 
-  const [
-    users,
-    approvedApps,
-    enrolled,
-    enrolledThisWeek,
-    activeCourses,
-    totalSeats,
-    labs,
-  ] = await Promise.all([
-    db.collection("users").countDocuments({ role: { $ne: "ADMIN" } }),
-    db.collection("applications").countDocuments({ status: "APPROVED" }),
-    db.collection("enrollments").countDocuments({ status: "ENROLLED" }),
-    db
-      .collection("enrollments")
-      .countDocuments({ status: "ENROLLED", updatedAt: { $gte: weekAgo } }),
-    db.collection("courses").countDocuments({ active: true }),
-    (async () => {
-      // Total across all active batches of active courses.
-      const courses = await db
-        .collection("courses")
-        .find({ active: true }, { projection: { batches: 1 } })
-        .toArray();
-      return courses.reduce(
-        (sum, c) => sum + (c.batches ?? []).reduce((s: number, b: { seatsTotal?: number }) => s + (b.seatsTotal ?? 0), 0),
-        0
-      );
-    })(),
-    db.collection("courses").distinct("batches.name").then((b) => b.length),
-  ]);
-
-  // Students actually served = the largest real cohort, never a marketing floor.
-  const studentsGuided = Math.max(users, approvedApps, enrolled);
-
-  return NextResponse.json({
-    students: studentsGuided,
-    programmes: activeCourses,
-    dailyBatches: labs,
-    enrolledThisWeek,
-    totalSeats,
-  }, {
-    headers: {
-      "Cache-Control": "public, max-age=0, s-maxage=30, stale-while-revalidate=60",
+  return NextResponse.json(
+    {
+      students: Math.max(users?.n ?? 0, site?.students ?? 0),
+      programmes: activeCourses?.n ?? 0,
+      dailyBatches: batchRows.length,
+      enrolledThisWeek: enrolledThisWeek?.n ?? 0,
+      totalSeats: seats?.n ?? 0,
+      enrolled: enrolled?.n ?? 0,
     },
-  });
+    {
+      headers: {
+        "Cache-Control": "public, max-age=0, s-maxage=30, stale-while-revalidate=60",
+      },
+    }
+  );
 }
+

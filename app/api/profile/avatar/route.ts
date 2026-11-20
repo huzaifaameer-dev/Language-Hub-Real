@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 import sharp, { type Metadata } from "sharp";
+import { z } from "zod";
 
 import { auth } from "@/auth";
-import { getDb } from "@/lib/db";
+import { q } from "@/lib/server/pg";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
-import { z } from "zod";
 
 const AvatarSchema = z.object({
   dataUrl: z
@@ -14,28 +13,32 @@ const AvatarSchema = z.object({
     .max(3_500_000, "Image is too large (max 2.5 MB encoded)."),
 });
 
-const ALLOWED_PREFIXES = ["data:image/jpeg;base64,", "data:image/png;base64,", "data:image/webp;base64,"];
+const ALLOWED_PREFIXES = [
+  "data:image/jpeg;base64,",
+  "data:image/png;base64,",
+  "data:image/webp;base64,",
+];
 
-const AVATAR_SIZE = 196; // px (largest square used in the UI is ~96px; @2x covers it)
+const AVATAR_SIZE = 196;
 const AVATAR_QUALITY = 82;
 
-function publicUrl(userId: string): string {
-  return `/api/profile/avatar/${userId}`;
-}
+const publicUrl = (userId: string) => `/api/profile/avatar/${userId}`;
 
-// Client posts a base64 data-URI (≤2.5MB image → ~3.5MB encoded).
-export const bodySizeLimit = "8mb";
+export const dynamic = "force-dynamic";
 
+/** Accepts a base64 data-URI, verifies the real format with sharp, re-encodes
+ *  to a square WebP and stores it inline (serverless-safe: no disk writes). */
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
-  if (!ObjectId.isValid(session.user.id)) {
-    return NextResponse.json({ message: "Invalid session." }, { status: 400 });
-  }
 
-  const rl = await rateLimitDb(await clientKey(request, `avatar:${session.user.id}`), 10, 60 * 60 * 1000);
+  const rl = await rateLimitDb(
+    await clientKey(request, `avatar:${session.user.id}`),
+    10,
+    60 * 60 * 1000
+  );
   if (!rl.ok) {
     return NextResponse.json({ message: "Too many uploads. Wait a bit." }, { status: 429 });
   }
@@ -64,14 +67,9 @@ export async function POST(request: Request) {
     );
   }
 
-  let input: Buffer;
-  try {
-    input = Buffer.from(dataUrl.slice(prefix.length), "base64");
-  } catch {
-    return NextResponse.json({ message: "Invalid image data." }, { status: 400 });
-  }
+  const input = Buffer.from(dataUrl.slice(prefix.length), "base64");
 
-  // Decode with sharp so the format is actually verified, not just claimed.
+  // Decode with sharp so the format is genuinely verified, not just claimed.
   let meta: Metadata;
   try {
     meta = await sharp(input).metadata();
@@ -94,10 +92,9 @@ export async function POST(request: Request) {
   }
 
   const url = publicUrl(session.user.id);
-  const db = await getDb();
-  await db.collection("users").updateOne(
-    { _id: new ObjectId(session.user.id) },
-    { $set: { image: url, avatarData: output.toString("base64"), updatedAt: new Date() } }
+  await q(
+    "UPDATE users SET image = $1, avatar_data = $2, updated_at = NOW() WHERE id = $3",
+    [url, output.toString("base64"), session.user.id]
   );
 
   return NextResponse.json({ ok: true, image: url });

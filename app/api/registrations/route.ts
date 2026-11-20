@@ -1,10 +1,6 @@
 import { NextResponse, after } from "next/server";
-import { ObjectId } from "mongodb";
 
-import { auth } from "@/auth";
 import { botGuardError } from "@/lib/bot-check";
-import { getRegistrationsCollection, getUsersCollection, ensureIndexesAndAdmin } from "@/lib/db";
-import type { RegistrationDoc } from "@/lib/db";
 import { RegistrationSchema, fieldErrors } from "@/lib/validate";
 import { rateLimitDb } from "@/lib/rate-limit";
 import { notify } from "@/lib/notifications";
@@ -18,41 +14,41 @@ import {
   registrationFeeNote,
   makeRegistrationRef,
 } from "@/lib/registration-config";
-import { saveDataUriUpload, savePdf, readPrivateFile, dataUriParts, type StoredFile } from "@/lib/registration-storage";
+import {
+  saveDataUriUpload,
+  savePdf,
+  readPrivateFile,
+  dataUriParts,
+  type StoredFile,
+} from "@/lib/registration-storage";
 import { buildRegistrationPdf } from "@/lib/registration-pdf";
+import { courseSlug } from "@/lib/course-data";
+import { currentUser } from "@/lib/server/session";
+import { createRegistration, listRegistrationsForUser } from "@/lib/server/learner";
 
 export const dynamic = "force-dynamic";
-// Photo (≤3MB) + receipt (≤10MB) travel as base64 data-URIs in one request.
-export const bodySizeLimit = "20mb";
 
 /**
- * Course registration intake.
+ * Course registration intake for a signed-in learner.
  *
- * Security posture:
- *  - authenticated only (session user is the identity; email is never taken
- *    from the request body),
- *  - per-user rate limiting + honeypot anti-bot guard,
- *  - strict zod validation with hard caps on every field and on the uploaded
- *    receipt (PNG/JPEG/WebP/PDF only, ≤ 10 MB) and photo (PNG/JPEG/WebP ≤ 3 MB),
- *  - uploads and the generated PDF live under `private/` and are served only
- *    through the auth-guarded media route,
- *  - the full summary is emailed to the admin inbox (PDF attachment) and —
- *    when requested — a personal copy is emailed back to the student.
+ * Security: session identity (email never comes from the body), per-user rate
+ * limit, honeypot guard, strict zod caps on every field and upload (PNG/JPEG/
+ * WebP/PDF only), and uploads stored under `private/` — served only through
+ * the auth-guarded media route. A signed PDF summary is emailed to the admin
+ * inbox and, when requested, to the student.
  */
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await currentUser();
+  if (!user) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
 
-  const userId = session.user.id;
-  if (!ObjectId.isValid(userId)) {
-    return NextResponse.json({ message: "Invalid session." }, { status: 401 });
-  }
-  const rl = await rateLimitDb(`reg-${userId}`, 5, 60 * 60 * 1000);
+  const rl = await rateLimitDb(`reg-${user.id}`, 5, 60 * 60 * 1000);
   if (!rl.ok) {
     return NextResponse.json(
-      { message: `You've submitted too many registrations recently. Try again in ${rl.retryAfter}s.` },
+      {
+        message: `You've submitted too many registrations recently. Try again in ${rl.retryAfter}s.`,
+      },
       { status: 429 }
     );
   }
@@ -83,16 +79,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Unknown course." }, { status: 400 });
   }
 
-  const user = await getUsersCollection().then((col) =>
-    col.findOne({ _id: new ObjectId(userId) }, { projection: { name: 1, email: 1 } })
-  );
-  if (!user) {
-    return NextResponse.json({ message: "Session expired. Sign in again." }, { status: 401 });
-  }
-  const studentName = String(user.name ?? "Learner");
-  const studentEmail = String(user.email ?? "");
+  const studentName = user.name || "Learner";
+  const studentEmail = user.email;
 
-  // Human labels derived from the canonical values (for the PDF and admin view).
   const preferredTimeLabel = optionLabel(course.preferredTimeOptions, u.study.preferredTime);
   const focusModuleLabels = optionLabels(course.focusOptions, u.study.focusModules);
   const levelLabel = optionLabel(course.levelOptions, u.study.level);
@@ -108,14 +97,16 @@ export async function POST(request: Request) {
   let pdfStored: StoredFile | null = null;
   let pdfBuffer: Buffer | null = null;
   let receiptBuffer: { buffer: Buffer; mime: string } | null = null;
-  // The portrait is decoded here so the PDF builder gets clean bytes.
   const photoParts = u.photo ? dataUriParts(u.photo) : null;
 
   try {
     photoStored = await saveDataUriUpload(ref, "photo", u.photo);
   } catch (err) {
     console.error("[registrations] photo save failed:", (err as Error).message);
-    return NextResponse.json({ message: "Could not store your photo. Please try again." }, { status: 500 });
+    return NextResponse.json(
+      { message: "Could not store your photo. Please try again." },
+      { status: 500 }
+    );
   }
 
   if (u.payment.receipt) {
@@ -124,14 +115,16 @@ export async function POST(request: Request) {
       receiptBuffer = await readPrivateFile(receiptStored.ref);
     } catch (err) {
       console.error("[registrations] receipt save failed:", (err as Error).message);
-      return NextResponse.json({ message: "Could not store your payment receipt. Please try again." }, { status: 500 });
+      return NextResponse.json(
+        { message: "Could not store your payment receipt. Please try again." },
+        { status: 500 }
+      );
     }
   }
 
-  // A png/jpeg receipt is embedded directly in the PDF (scaled), so it does
-  // not also travel as a separate — and often very large — email attachment.
   const proofEmbeddable =
-    !!receiptBuffer && (receiptBuffer.mime === "image/png" || receiptBuffer.mime === "image/jpeg");
+    !!receiptBuffer &&
+    (receiptBuffer.mime === "image/png" || receiptBuffer.mime === "image/jpeg");
 
   try {
     pdfBuffer = await buildRegistrationPdf({
@@ -166,31 +159,26 @@ export async function POST(request: Request) {
     pdfStored = await savePdf(ref, pdfBuffer);
   } catch (err) {
     console.error("[registrations] pdf build failed:", (err as Error).message);
-    return NextResponse.json({ message: "Could not prepare your registration. Please try again." }, { status: 500 });
+    return NextResponse.json(
+      { message: "Could not prepare your registration. Please try again." },
+      { status: 500 }
+    );
   }
 
-  await ensureIndexesAndAdmin();
-  const registrations = await getRegistrationsCollection();
-
-  // Retry on the rare unique-index collision on `ref`.
-  let inserted: import("mongodb").InsertOneResult<RegistrationDoc> | null = null;
-  for (let attempt = 0; attempt < 4 && !inserted; attempt += 1) {
-    try {
-      inserted = await registrations.insertOne({
-        ref,
-        userId,
-        name: studentName,
-        email: studentEmail,
-        courseKey: u.courseKey,
-        course: course.name,
-        dob: u.dob,
-        phone: u.phone,
-        address: u.address,
+  let row;
+  try {
+    row = await createRegistration({
+      userId: user.id,
+      courseKey: u.courseKey,
+      courseSlug: courseSlug(course.catalogName),
+      fullName: studentName,
+      email: studentEmail,
+      phone: u.phone,
+      dob: u.dob,
+      address: u.address,
+      details: {
         education: u.education,
-        study: {
-          ...u.study,
-          extras: extrasLabel,
-        },
+        study: { ...u.study, extras: extrasLabel },
         payment: {
           method: u.payment.method,
           note: u.payment.note ?? null,
@@ -199,43 +187,36 @@ export async function POST(request: Request) {
         },
         photo: photoStored?.ref ?? null,
         agreed: u.agreed,
-        sendCopy: u.sendCopy,
-        status: "NEW",
         pdfPath: pdfStored?.ref ?? null,
         pdfAttached: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
-    } catch (err) {
-      const code = (err as { code?: number })?.code;
-      if (code === 11000) {
-        ref = makeRegistrationRef();
-        continue;
-      }
-      throw err;
-    }
-  }
-  if (!inserted) {
-    return NextResponse.json({ message: "Could not save your registration. Please try again." }, { status: 500 });
+      },
+      sendCopy: u.sendCopy,
+      photoPath: photoStored?.ref ?? null,
+      receiptPath: receiptStored?.ref ?? null,
+    });
+  } catch (err) {
+    console.error("[registrations] insert failed:", (err as Error).message);
+    return NextResponse.json(
+      { message: "Could not save your registration. Please try again." },
+      { status: 500 }
+    );
   }
 
-  const registrationId = String(inserted.insertedId);
+  ref = row.ref;
 
-  // Receipt attachment for the admin digest — only when it could not be
-  // embedded in the PDF (e.g. WebP or PDF receipts).
-  const extraAttachments = receiptStored && receiptBuffer && !proofEmbeddable
-    ? [
-        {
-          filename: u.payment.receiptName ?? `receipt-${ref}.${receiptBuffer.mime.split("/")[1] ?? "file"}`,
-          content: receiptBuffer.buffer,
-          contentType: receiptBuffer.mime,
-        },
-      ]
-    : null;
+  const extraAttachments =
+    receiptStored && receiptBuffer && !proofEmbeddable
+      ? [
+          {
+            filename:
+              u.payment.receiptName ??
+              `receipt-${ref}.${receiptBuffer.mime.split("/")[1] ?? "file"}`,
+            content: receiptBuffer.buffer,
+            contentType: receiptBuffer.mime,
+          },
+        ]
+      : null;
 
-  // Notify the admin inbox — this carries the source-of-truth PDF. Wrapped in
-  // after() so the serverless function stays alive until SMTP finishes; a bare
-  // `void` promise is frozen mid-flight on Vercel once the response is sent.
   after(async () => {
     await sendRegistrationEmail({
       to: REGISTRATION_NOTIFY_EMAIL,
@@ -247,7 +228,6 @@ export async function POST(request: Request) {
       adminCopy: true,
     });
 
-    // Student confirmation + their responses when "send me a copy" was ticked.
     if (u.sendCopy && studentEmail) {
       await sendRegistrationEmail({
         to: studentEmail,
@@ -260,37 +240,33 @@ export async function POST(request: Request) {
     }
   });
 
-  await notify(userId, {
+  await notify(user.id, {
     kind: "registration",
     title: "Registration received",
     message: `Your ${course.name} registration (${ref}) was received. We'll reply within 24 hours.`,
-    href: "/dashboard",
+    href: "/dashboard?tab=registrations",
   });
 
-  return NextResponse.json({ ok: true, ref, id: registrationId }, { status: 201 });
+  return NextResponse.json({ ok: true, ref, id: row.id }, { status: 201 });
 }
 
-/** List the signed-in student's registrations (newest first). */
+/** The signed-in learner's registrations, newest first. */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await currentUser();
+  if (!user) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
-  const registrations = await getRegistrationsCollection();
-  const docs = await registrations
-    .find({ userId: session.user.id })
-    .sort({ createdAt: -1 })
-    .limit(50)
-    .toArray();
+
+  const rows = await listRegistrationsForUser(user.id);
   return NextResponse.json({
-    registrations: docs.map((d) => ({
-      id: String(d._id),
-      ref: d.ref,
-      course: d.course,
-      courseKey: d.courseKey,
-      status: d.status,
-      pdfAttached: d.pdfAttached,
-      createdAt: d.createdAt.toISOString(),
+    registrations: rows.slice(0, 50).map((r) => ({
+      id: r.id,
+      ref: r.ref,
+      course: r.course_slug.replace(/-/g, " "),
+      courseKey: r.course_key,
+      status: r.status,
+      pdfAttached: Boolean(r.pdf_path),
+      createdAt: new Date(r.created_at).toISOString(),
     })),
   });
 }

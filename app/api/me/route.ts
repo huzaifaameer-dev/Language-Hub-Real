@@ -1,45 +1,46 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 
 import { auth } from "@/auth";
-import { getUsersCollection } from "@/lib/db";
+import { findUserById } from "@/lib/server/users";
 
+export const dynamic = "force-dynamic";
+
+/** The signed-in learner's own profile (freshest data, never from the JWT). */
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
-    // Signed-out visitors get a 200 + null (like /api/auth/session), so the
-    // navbar never logs 401 noise for its optional profile-avatar fetch.
+    // 200 + null keeps optional navbar/avatar fetches free of 401 noise.
     return NextResponse.json({ user: null });
   }
 
-  if (!ObjectId.isValid(session.user.id)) {
+  const user = await findUserById(session.user.id);
+  if (!user || user.disabled) {
+    // Valid JWT, missing or disabled account: render the guest UI.
     return NextResponse.json({ user: null });
   }
 
-  const users = await getUsersCollection();
-  const user = await users.findOne({ _id: new ObjectId(session.user.id) });
-  if (!user) {
-    // The session JWT is valid but the account no longer exists (e.g. after a
-    // database reset). Treat as signed-out so clients can render the guest
-    // UI instead of surfacing a 401 error noise.
-    return NextResponse.json({ user: null });
-  }
-
-  // Support contact for the dashboard "get in touch" tile. The admin's private
-  // email is intentionally NOT exposed to regular users; only the env-provided
-  // studio WhatsApp is surfaced.
+  // The admin's private email is never exposed to learners; only the public
+  // studio WhatsApp number is surfaced for the dashboard support tile.
   return NextResponse.json({
     user: {
+      id: user.id,
       name: user.name,
       email: user.email,
-      whatsapp: user.whatsapp ?? "",
-      role: user.role ?? "USER",
-      image: user.image ?? null,
-      createdAt: user.createdAt?.toISOString?.() ?? null,
+      phone: user.phone ?? "",
+      whatsapp: user.phone ?? "",
+      role: user.role,
+      image: user.image,
+      bio: user.bio ?? "",
+      referralCode: user.referral_code,
+      emailVerified: Boolean(user.email_verified),
+      createdAt: new Date(user.created_at).toISOString(),
     },
     support: {
       whatsapp:
-        (process.env.ACADEMY_WHATSAPP || process.env.NEXT_PUBLIC_ACADEMY_WHATSAPP)?.replace(/[^\d]/g, "") || null,
+        (process.env.ACADEMY_WHATSAPP || process.env.NEXT_PUBLIC_ACADEMY_WHATSAPP)?.replace(
+          /[^\d]/g,
+          ""
+        ) || null,
     },
   });
 }

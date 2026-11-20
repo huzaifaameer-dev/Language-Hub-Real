@@ -55,7 +55,7 @@ export default function Error({
           autoFocus
           type="button"
           onClick={retry}
-          className="mt-7 inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(99_102_241/0.75)] transition-all hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-indigo-500/40"
+          className="mt-7 inline-flex h-12 items-center justify-center rounded-full bg-gradient-to-r from-[#0f6b5c] to-[#14a08c] px-8 font-display text-[0.9rem] font-bold text-white shadow-[0_14px_30px_-12px_rgb(10_78_67/0.75)] transition-all hover:-translate-y-0.5 hover:brightness-110 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#14a08c]/40"
         >
           Try again
         </button>

@@ -22,15 +22,25 @@ export interface ReportErrorInput {
   detail?: string | null;
 }
 
-/** Persist a captured client/server error to the `errors` collection. */
+/** Persist a captured client/server error, then alert (best-effort). */
 export async function reportError(input: ReportErrorInput): Promise<void> {
   try {
-    const { getDb } = await import("@/lib/db");
-    const db = await getDb();
-    await db.collection("errors").insertOne({
-      ...input,
-      createdAt: new Date(),
-    });
+    const { q } = await import("@/lib/server/pg");
+    const { newId } = await import("@/lib/server/id");
+    await q(
+      `INSERT INTO error_logs (id, level, scope, message, stack, url, tag, detail)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+      [
+        newId(),
+        input.level,
+        input.scope,
+        input.message,
+        input.stack ?? null,
+        input.url ?? null,
+        input.tag ?? null,
+        input.detail ?? null,
+      ]
+    );
   } catch {
     // observational only
   }

@@ -13,8 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     scope: "/",
     display: "standalone",
     orientation: "portrait",
-    background_color: "#faf8f4",
-    theme_color: "#faf8f4",
+    background_color: "#f6fbf9",
+    theme_color: "#f6fbf9",
     categories: ["education", "lifestyle"],
     shortcuts: [
       {
@@ -28,7 +28,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: "Blog",
         short_name: "Blog",
         description: "Learning tips and guides",
-        url: "/news",
+        url: "/blog",
         icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" }],
       },
       {

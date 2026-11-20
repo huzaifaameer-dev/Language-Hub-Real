@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
-import { getDb, getAuthTokensCollection, ensureIndexesAndAdmin } from "@/lib/db";
 import { PasswordSchema } from "@/lib/validate";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
-import { hashToken } from "@/lib/tokens";
+import { consumeToken, findUserById, updatePassword } from "@/lib/server/users";
+import { q } from "@/lib/server/pg";
 
 const BCRYPT_COST = 12;
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   const rl = await rateLimitDb(await clientKey(request, "reset"), 10, 60 * 60 * 1000);
@@ -30,7 +31,10 @@ export async function POST(request: Request) {
   const bodyParsed = bodySchema.safeParse(body);
   if (!bodyParsed.success) {
     return NextResponse.json(
-      { message: "Validation failed.", errors: { password: ["Reset link is missing."] } },
+      {
+        message: "Validation failed.",
+        errors: { password: ["Reset link is missing."] },
+      },
       { status: 400 }
     );
   }
@@ -45,28 +49,16 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  const { token } = bodyParsed.data;
 
-  const db = await getDb();
-  await ensureIndexesAndAdmin();
-
-  const tokens = await getAuthTokensCollection();
-  const doc = await tokens.findOne({
-    token: hashToken(token),
-    purpose: "password-reset",
-    usedAt: null,
-    expiresAt: { $gt: new Date() },
-  });
-
-  if (!doc || !ObjectId.isValid(doc.userId)) {
+  const userId = await consumeToken(bodyParsed.data.token, "RESET_PASSWORD");
+  if (!userId) {
     return NextResponse.json(
       { message: "This reset link is invalid or has expired. Request a new one." },
       { status: 400 }
     );
   }
 
-  const users = db.collection("users");
-  const user = await users.findOne({ _id: new ObjectId(doc.userId) });
+  const user = await findUserById(userId);
   if (!user) {
     return NextResponse.json(
       { message: "This reset link is invalid or has expired. Request a new one." },
@@ -74,7 +66,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (await bcrypt.compare(parsed.data, user.password ?? "")) {
+  if (user.password_hash && (await bcrypt.compare(parsed.data, user.password_hash))) {
     return NextResponse.json(
       { message: "New password must be different from the current one." },
       { status: 400 }
@@ -82,20 +74,12 @@ export async function POST(request: Request) {
   }
 
   const hash = await bcrypt.hash(parsed.data, BCRYPT_COST);
-  await users.updateOne(
-    { _id: user._id },
-    {
-      $set: {
-        password: hash,
-        updatedAt: new Date(),
-        failedAttempts: 0,
-        lockUntil: null,
-      },
-    }
-  );
+  await updatePassword(user.id, hash);
 
-  // Consume this token and invalidate any other outstanding reset links.
-  await tokens.deleteMany({ userId: doc.userId, purpose: "password-reset" });
+  // Consume the token and invalidate any other outstanding reset links.
+  await q("DELETE FROM auth_tokens WHERE user_id = $1 AND kind = 'RESET_PASSWORD'", [
+    user.id,
+  ]);
 
   return NextResponse.json({ ok: true });
 }

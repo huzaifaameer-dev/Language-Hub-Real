@@ -1,54 +1,46 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
+import { z } from "zod";
 
 import { auth } from "@/auth";
-import { getNotificationsCollection } from "@/lib/db";
-import { z } from "zod";
+import {
+  listNotifications,
+  markNotificationsRead,
+} from "@/lib/server/learner";
+import { isValidId } from "@/lib/admin-guard";
+import { q } from "@/lib/server/pg";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
-  if (!ObjectId.isValid(session.user.id)) {
-    return NextResponse.json({ message: "Invalid session." }, { status: 400 });
-  }
 
-  const notifications = await getNotificationsCollection();
-  const docs = await notifications
-    .find({ userId: session.user.id })
-    .sort({ createdAt: -1 })
-    .limit(60)
-    .toArray();
-
-  const list = docs.map((n) => ({
-    id: String(n._id),
+  const rows = await listNotifications(session.user.id, 60);
+  const notifications = rows.map((n) => ({
+    id: n.id,
     kind: n.kind,
     title: n.title,
-    message: n.message,
-    href: n.href,
-    read: n.read,
-    createdAt: n.createdAt.toISOString(),
+    message: n.body,
+    href: n.link,
+    read: Boolean(n.read),
+    createdAt: new Date(n.created_at).toISOString(),
   }));
 
   return NextResponse.json({
-    notifications: list,
-    unread: docs.filter((n) => !n.read).length,
+    notifications,
+    unread: notifications.filter((n) => !n.read).length,
   });
 }
 
-const ReadSchema = z.object({
-  id: z.string().optional(),
-});
+const ReadSchema = z.object({ id: z.string().optional() });
 
-/** Marks one notification read ({id}) or all read when no id is given. */
+/** Marks one notification read ({id}) or everything read when no id is sent. */
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
-  }
-  if (!ObjectId.isValid(session.user.id)) {
-    return NextResponse.json({ message: "Invalid session." }, { status: 400 });
   }
 
   let body: unknown = {};
@@ -63,22 +55,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid request body." }, { status: 400 });
   }
 
-  const notifications = await getNotificationsCollection();
   const { id } = parsed.data;
-
   if (id) {
-    if (!ObjectId.isValid(id)) {
+    if (!isValidId(id)) {
       return NextResponse.json({ message: "Invalid id." }, { status: 400 });
     }
-    await notifications.updateOne(
-      { _id: new ObjectId(id), userId: session.user.id },
-      { $set: { read: true } }
+    await q(
+      "UPDATE notifications SET read = TRUE WHERE id = $1 AND user_id = $2",
+      [id, session.user.id]
     );
   } else {
-    await notifications.updateMany(
-      { userId: session.user.id, read: false },
-      { $set: { read: true } }
-    );
+    await markNotificationsRead(session.user.id);
   }
 
   return NextResponse.json({ ok: true });

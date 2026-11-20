@@ -21,9 +21,11 @@ test.describe("public smoke", () => {
     }
   });
 
-  test("admin panel is gated", async ({ page }) => {
-    await page.goto("/admin-panel");
-    await expect(page.locator("#ag-email")).toBeVisible();
+  test("retired management routes are gone", async ({ request }) => {
+    for (const path of ["/admin-panel", "/management", "/manage"]) {
+      const res = await request.get(path);
+      expect(res.status()).toBe(404);
+    }
   });
 
   test("health endpoint reports ok", async ({ request }) => {
