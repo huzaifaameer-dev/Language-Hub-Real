@@ -111,6 +111,22 @@ export const DemoBookingSchema = z.object({
   message: z.string().max(600, "Message too long.").trim().optional().default(""),
 });
 
+/**
+ * Blog cover image: an inline PNG/JPEG/WebP/AVIF data-URI, a site-relative
+ * path, or an https URL. Anything else (javascript:, data:text/html, …) is
+ * rejected before it can reach the database and be rendered as a src.
+ */
+export const BlogCoverImageSchema = z
+  .string()
+  .max(8_000_000, "Cover image is too large.")
+  .refine(
+    (v) =>
+      /^data:image\/(?:png|jpe?g|webp|avif|gif);base64,[A-Za-z0-9+/=]+$/.test(v) ||
+      /^\/[A-Za-z0-9._~\-/]+$/.test(v) ||
+      /^https:\/\/[^\s"'<>]+$/.test(v),
+    "Cover must be a PNG/JPEG/WebP/AVIF image, a site path, or an https URL."
+  );
+
 export const TestimonialSchema = z.object({
   name: z.string().min(2, "Name is required.").max(80).trim(),
   role: z.string().max(120, "Role is too long.").trim().default("Student"),
@@ -264,6 +280,49 @@ export function fieldErrors(result: { success: boolean; error?: z.ZodError }): R
   }
   return null;
 }
+
+/* ───────────────────────────── student reviews ──────────────────────────── */
+
+/** Photo submitted with a student review (JPEG/PNG/WebP data-URI, ≤ 3 MB decoded). */
+export const StudentReviewSchema = z.object({
+  name: z.string().min(2, "Please tell us your name.").max(80, "Name is too long.").trim(),
+  email: z
+    .string()
+    .max(120)
+    .trim()
+    .optional()
+    .nullable()
+    .default(null)
+    .refine((v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v), "Enter a valid email."),
+  phone: z
+    .string()
+    .max(24)
+    .trim()
+    .optional()
+    .nullable()
+    .default(null)
+    .refine(
+      (v) => !v || /^\+?[0-9][0-9\s\-()]{4,22}[0-9]$/.test(v),
+      "Enter a valid phone number."
+    ),
+  course: z.string().min(1, "Choose your course.").max(80, "Course is too long.").trim(),
+  batch: z.string().max(40, "Batch is too long.").trim().optional().nullable().default(null),
+  teacher: z.string().max(80, "Teacher name is too long.").trim().optional().nullable().default(null),
+  rating: z.number().int().min(1, "Pick a star rating.").max(5, "Rating must be 1–5."),
+  headline: z
+    .string()
+    .min(8, "Add a short headline (at least 8 characters).")
+    .max(120, "Keep the headline under 120 characters.")
+    .trim(),
+  body: z
+    .string()
+    .min(40, "Tell us a little more — at least 40 characters.")
+    .max(2000, "Keep your review under 2000 characters.")
+    .trim(),
+  outcome: z.string().max(120, "Outcome is too long.").trim().optional().nullable().default(null),
+  photo: PhotoDataUriSchema,
+  consent: z.literal(true, { error: "Please confirm we may publish your review." }),
+});
 
 /* ────────────────────────── Management & Communication ──────────────────── */
 

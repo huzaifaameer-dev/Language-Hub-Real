@@ -25,16 +25,19 @@ const b64url = (data: Uint8Array) => Buffer.from(data).toString("base64url");
 interface AdminTokenPayload {
   email: string;
   role: "ADMIN";
+  /** Session epoch copied from users.token_version (see requireAdmin). */
+  tv?: number;
   iat: number;
   exp: number;
 }
 
-export function signAdminToken(email: string): string {
+export function signAdminToken(email: string, tokenVersion = 0): string {
   const payload = b64url(
     Buffer.from(
       JSON.stringify({
         email,
         role: "ADMIN",
+        tv: tokenVersion,
         iat: Date.now(),
         exp: Date.now() + MAX_AGE * 1000,
       } satisfies AdminTokenPayload)
@@ -48,7 +51,7 @@ export function signAdminToken(email: string): string {
 
 export function verifyAdminToken(
   token: string | undefined
-): { email: string } | null {
+): { email: string; tv: number } | null {
   if (!token) return null;
   const [payload, signature] = token.split(".");
   if (!payload || !signature) return null;
@@ -64,7 +67,7 @@ export function verifyAdminToken(
       Buffer.from(payload, "base64url").toString("utf8")
     ) as AdminTokenPayload;
     if (data.role === "ADMIN" && data.exp > Date.now() && data.email) {
-      return { email: data.email };
+      return { email: data.email, tv: Number(data.tv ?? 0) };
     }
   } catch {
     // invalid payload
@@ -72,13 +75,20 @@ export function verifyAdminToken(
   return null;
 }
 
-export async function getAdminSession(): Promise<{ email: string } | null> {
+export async function getAdminSession(): Promise<{
+  email: string;
+  tv: number;
+} | null> {
   const store = await cookies();
   return verifyAdminToken(store.get(ADMIN_COOKIE)?.value);
 }
 
-export function setAdminCookie(res: NextResponse, email: string): NextResponse {
-  res.cookies.set(ADMIN_COOKIE, signAdminToken(email), {
+export function setAdminCookie(
+  res: NextResponse,
+  email: string,
+  tokenVersion = 0
+): NextResponse {
+  res.cookies.set(ADMIN_COOKIE, signAdminToken(email, tokenVersion), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -102,7 +112,7 @@ export function clearAdminCookie(res: NextResponse): NextResponse {
 /* ─────────────────── Staff (management portal) token ─────────────────── */
 // This is separate from both the public NextAuth session AND the admin-panel
 // cookie, so logging into /management never leaks an admin identity onto the
-// public site (the navbar stays clean, exactly like the admin panel).
+// public site (the navbar stays clean, exactly like the dashboard).
 
 interface StaffTokenPayload {
   email: string;

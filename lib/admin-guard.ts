@@ -1,37 +1,35 @@
-import { ObjectId } from "mongodb";
-
 import { getAdminSession } from "@/lib/admin-session";
-import { getDb } from "@/lib/db";
+import { findUserByEmail } from "@/lib/server/users";
 
 export interface AdminSession {
   id: string;
   email?: string | null;
+  name: string;
 }
 
 /**
  * Verifies the request carries a valid standalone admin token (separate from
- * the client NextAuth session) AND that the admin still exists in the DB.
- * Returns null when unauthorized.
+ * the public NextAuth session) AND that the account still exists in
+ * PostgreSQL with the ADMIN role and is not disabled.
+ *
+ * Called by every admin API route and by the admin panel's server components,
+ * so a revoked or demoted operator loses access on their very next request.
  */
 export async function requireAdmin(): Promise<AdminSession | null> {
   const token = await getAdminSession();
   if (!token?.email) return null;
 
-  const db = await getDb();
-  const user = await db
-    .collection("users")
-    .findOne(
-      { email: token.email },
-      { projection: { role: 1, email: 1, disabled: 1 } }
-    );
+  const user = await findUserByEmail(token.email);
+  if (!user || user.role !== "ADMIN" || user.disabled) return null;
 
-  if (!user || (user.role as string) !== "ADMIN") return null;
-  // Disabled staff accounts are rejected even with a valid token.
-  if ((user as unknown as { disabled?: boolean }).disabled === true) return null;
+  // Session epoch: changing the admin password (or disabling the account)
+  // bumps users.token_version, which invalidates every cookie minted earlier.
+  if (Number(user.token_version ?? 0) !== Number(token.tv ?? 0)) return null;
 
-  return { id: String(user._id), email: user.email as string | null };
+  return { id: user.id, email: user.email, name: user.name };
 }
 
-export function isValidObjectId(id: string): boolean {
-  return ObjectId.isValid(id);
+/** UUID-shaped id check (ids are application-generated v4 UUIDs). */
+export function isValidId(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 }

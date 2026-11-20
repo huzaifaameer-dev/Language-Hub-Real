@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Caveat, Inter, Manrope, Montserrat, Playfair_Display, Poppins } from "next/font/google";
+import { Caveat, Inter, Manrope, Montserrat, Playfair_Display, Plus_Jakarta_Sans, Poppins } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
@@ -9,6 +9,7 @@ import { PwaInit } from "@/components/PwaInit";
 import { SiteAnalytics } from "@/components/analytics/SiteAnalytics";
 import { CONTACT, COURSE_CARDS, FAQS, OPENING_HOURS } from "@/lib/content";
 import { appBaseUrl } from "@/lib/base-url";
+import { jsonLdScript } from "@/lib/seo";
 
 const analyticsUrl =
   (process.env.ANALYTICS_SCRIPT_URL ?? "").trim() ||
@@ -48,11 +49,19 @@ const montserrat = Montserrat({
   display: "swap",
 });
 
-/** Main hero headline only — lighter and rounder than Montserrat, at 700. */
+/** Interface body face from the reference build. */
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
+  subsets: ["latin"],
+  weight: "variable",
+  display: "swap",
+});
+
+/** Display + headline face from the reference build. */
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
@@ -163,6 +172,9 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: "/",
+    types: {
+      "application/rss+xml": [{ title: "The Language Hub Journal", url: "/blog/rss.xml" }],
+    },
     languages: {
       en: "/",
       "en-US": "/",
@@ -188,7 +200,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#faf8f4",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
 };
@@ -199,25 +211,25 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${manrope.variable} ${playfair.variable} ${caveat.variable} ${montserrat.variable} ${poppins.variable}`}
+      className={`${inter.variable} ${manrope.variable} ${playfair.variable} ${caveat.variable} ${montserrat.variable} ${poppins.variable} ${plusJakarta.variable}`}
     >
       <body className="min-h-screen bg-ivory font-sans text-ink antialiased">
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){function silent(t){try{var e=new Error(t);if(/reportAllChanges|startTime/.test(t))return true}catch(_){}return false}var d=window.addEventListener||function(){};d.call(window,"error",function(e){var m=e&&e.message?String(e.message):"";if(/reportAllChanges/.test(m)||(m.indexOf("startTime")>-1)){try{e.preventDefault()}catch(_){}}},true)})();`,
+            __html: `(function(){var d=window.addEventListener?window.addEventListener.bind(window):function(){};d("error",function(e){var m=e&&e.message?String(e.message):"";if(/reportAllChanges/.test(m)||m.indexOf("startTime")>-1){try{e.preventDefault()}catch(_){}}},true);})();`,
           }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationJsonLd) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(coursesJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(coursesJsonLd) }}
         />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(faqJsonLd) }}
         />
         <Providers>
           <LanguageProvider>{children}</LanguageProvider>

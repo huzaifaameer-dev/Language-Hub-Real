@@ -5,24 +5,20 @@ import {
   Award as AwardIcon,
   BookOpen,
   CalendarDays,
-  Clock,
   GraduationCap,
-  Languages,
-  Laptop,
-  MessageCircle,
   Send,
   ShieldCheck,
   Sparkles,
   Users,
-  Wallet,
 } from "lucide-react";
-import { getCoursesCollection } from "@/lib/db";
-import { FALLBACK_COURSES, courseSlug, formatPKR, type CourseInfo } from "@/lib/course-data";
-import { registrationKeyForCatalogName } from "@/lib/registration-config";
-import { ApplyButton } from "@/components/courses/ApplyButton";
+
+import { FALLBACK_COURSES, type CourseInfo } from "@/lib/course-data";
+import { listCourses, toCourseInfo } from "@/lib/server/catalog";
+import { CourseCatalogue } from "@/components/courses/CourseCatalogue";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/footer/Footer";
 import { Reveal } from "@/components/ui/Reveal";
+import { jsonLdScript } from "@/lib/seo";
 
 /** ISR: courses cached at the edge, revalidated every 30s (admin changes publish fast). */
 export const revalidate = 30;
@@ -33,29 +29,53 @@ export const metadata: Metadata = {
     "Spoken English, IELTS General & Academic, PTE · GRE · Duolingo and Writing & Communication — live small-batch classes, transparent fees and flexible timings.",
 };
 
-const ACCENTS = ["#1D4ED8", "#2563EB", "#0EA5E9", "#38BDF8"];
-const ICONS = [MessageCircle, GraduationCap, Laptop, Languages];
-
 async function getCourses(): Promise<CourseInfo[]> {
   try {
-    const col = await getCoursesCollection();
-    const docs = await col.find({ active: true }).sort({ order: 1 }).limit(40).toArray();
-    if (docs.length > 0) return docs as unknown as CourseInfo[];
+    const rows = await listCourses(true);
+    if (rows.length > 0) return rows.map(toCourseInfo);
   } catch {
-    // fall through to seed
+    // fall through to the static seed
   }
   return FALLBACK_COURSES;
 }
 
+const STEPS = [
+  {
+    step: "01",
+    title: "Choose your programme",
+    text: "Pick the path that matches your goal — fluency, an exam score or sharper writing.",
+    icon: BookOpen,
+  },
+  {
+    step: "02",
+    title: "Apply in two minutes",
+    text: "Tell us your target and current level. Applications are reviewed the moment you submit.",
+    icon: Send,
+  },
+  {
+    step: "03",
+    title: "Pay one clear fee",
+    text: "EasyPaisa, JazzCash, card or bank — a single monthly fee, no hidden charges.",
+    icon: ShieldCheck,
+  },
+  {
+    step: "04",
+    title: "Start speaking",
+    text: "Join a live small batch with a personal syllabus and a teacher who knows your name.",
+    icon: AwardIcon,
+  },
+];
+
 export default async function CoursesPage() {
   const courses = await getCourses();
+  const totalModules = courses.reduce((sum, c) => sum + (c.modules?.length ?? 0), 0);
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: jsonLdScript({
             "@context": "https://schema.org",
             "@type": "ItemList",
             name: "Language Hub Programmes",
@@ -68,278 +88,155 @@ export default async function CoursesPage() {
         }}
       />
       <Navbar />
-      <main className="min-h-screen bg-site pt-24">
-        {/* Hero */}
-        <section className="relative overflow-hidden px-6 pb-10 sm:px-12">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 opacity-60"
-            style={{
-              background:
-                "radial-gradient(900px 520px at 85% -10%, rgb(99 102 241 / 0.12), transparent 60%), radial-gradient(700px 480px at -5% 30%, rgb(139 92 246 / 0.1), transparent 60%)",
-            }}
-          />
-          <div className="relative mx-auto max-w-6xl pt-8">
-            <Reveal>
-            <p className="flex items-center gap-3 font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-brand-deep">
-              <span aria-hidden className="h-px w-7 bg-gradient-to-r from-brand/80 to-transparent" />
-              {courses.length} programmes · live small-batch classes
-            </p>
-          </Reveal>
-          <Reveal delay={0.08} y={22}>
-            <h1 className="mt-4 font-display text-[clamp(2.2rem,6vw,4rem)] font-extrabold leading-[1.04] tracking-[-0.03em] text-ink">
-              Every course,{" "}
-              <span
-                style={{
-                  backgroundImage: "linear-gradient(100deg,#1D4ED8,#2563EB,#38BDF8)",
-                  WebkitBackgroundClip: "text",
-                  backgroundClip: "text",
-                  color: "transparent",
-                }}
-              >
-                fully detailed.
-              </span>
-            </h1>
-          </Reveal>
-          <Reveal delay={0.16} y={18}>
-            <p className="mt-4 max-w-2xl text-[1.05rem] leading-relaxed text-ink-2">
-              Spoken English, IELTS General & Academic, PTE · GRE · Duolingo and
-              Writing & Communication — with transparent fees, schedules, batches
-              and the exact syllabus you will cover. Choose a path and start today.
-            </p>
-          </Reveal>
-          </div>
-        </section>
 
-        {/* Big detailed cards */}
-        <section className="px-6 pb-24 sm:px-12">
-          <div className="mx-auto flex max-w-6xl flex-col gap-10">
-            {courses.map((c, i) => {
-              const accent = ACCENTS[i % ACCENTS.length];
-              const Icon = ICONS[i % ICONS.length];
-              const years = c.modules ?? [];
-              return (
-                <Reveal key={c.name} delay={i * 0.06} y={40} blur>
-                <article
-                  className="group relative overflow-hidden rounded-[2rem] border border-[#DCE7FF] bg-white shadow-[0_34px_90px_-40px_rgb(15_23_42/0.22)] transition-all duration-500 hover:-translate-y-1.5 hover:shadow-[0_50px_120px_-46px_rgb(15_23_42/0.42)]"
-                  id={courseSlug(c.name)}
-                >
-                  {/* accent ribbon */}
-                  <div className="relative h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${accent}, ${accent}25)` }} />
-                  {/* soft accent glow + ghost number */}
-                  <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full opacity-[0.08] blur-3xl transition-opacity duration-700 group-hover:opacity-[0.16]" style={{ background: accent }} />
-                  <span aria-hidden className="pointer-events-none absolute right-6 top-8 select-none font-display text-[6.5rem] font-extrabold leading-none text-ink/[0.04] transition-colors duration-700 group-hover:text-ink/[0.06]">
-                    {String(i + 1).padStart(2, "0")}
+      <main className="min-h-screen bg-site pt-[6.4rem]">
+        {/* ── hero ─────────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden border-b border-[#edf5f2] bg-[linear-gradient(180deg,#f2fbf7_0%,#f9fdfc_70%,#ffffff_100%)] px-5 pb-14 pt-12 sm:px-8 sm:pb-16 sm:pt-16">
+          <span aria-hidden className="pointer-events-none absolute -left-28 -top-20 h-[26rem] w-[26rem] rounded-full bg-[#14a08c]/10 blur-[120px]" />
+          <span aria-hidden className="pointer-events-none absolute -right-24 top-24 h-[22rem] w-[22rem] rounded-full bg-[#f5b93c]/12 blur-[120px]" />
+
+          <div className="relative mx-auto max-w-7xl">
+            <div className="flex flex-col gap-9 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <Reveal>
+                  <span className="eyebrow-ref">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    {courses.length} programmes · live small-batch classes
                   </span>
-
-                  <div className="grid gap-0 lg:grid-cols-[1.1fr_1fr]">
-                    {/* Left: identity + outcomes */}
-                    <div className="p-7 sm:p-10">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          <span
-                            className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-white transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-105"
-                            style={{ background: `linear-gradient(145deg, ${accent}, ${accent}b3)`, boxShadow: `0 16px 34px -16px ${accent}` }}
-                          >
-                            <Icon className="h-7 w-7" strokeWidth={1.8} />
-                          </span>
-                          <div>
-                            <p className="font-mono text-[0.6rem] font-bold uppercase tracking-[0.2em] text-ink-3">
-                              Programme {String(i + 1).padStart(2, "0")}
-                            </p>
-                            <h2 className="font-display text-[1.7rem] font-extrabold tracking-[-0.02em] text-ink sm:text-2xl">
-                              {c.name}
-                            </h2>
-                          </div>
-                        </div>
-                        <span
-                          className="shrink-0 rounded-full px-3 py-1 font-display text-[0.62rem] font-bold uppercase tracking-[0.14em]"
-                          style={{ backgroundColor: `${accent}15`, color: accent }}
-                        >
-                          {c.duration}
-                        </span>
-                      </div>
-
-                      <p className="mt-4 max-w-xl font-serif text-[1.02rem] italic leading-relaxed text-ink-2">
-                        {c.description}
-                      </p>
-
-                      {/* Meta strip */}
-                      <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[0.84rem] text-ink-2">
-                        <span className="inline-flex items-center gap-1.5">
-                          <Clock className="h-4 w-4" style={{ color: accent }} /> {c.schedule}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <Users className="h-4 w-4" style={{ color: accent }} /> Small batches 10–20
-                        </span>
-                        <span className="inline-flex items-center gap-1.5">
-                          <BookOpen className="h-4 w-4" style={{ color: accent }} /> {c.modules?.length ?? 0} syllabus modules
-                        </span>
-                      </div>
-
-                      {/* Outcomes */}
-                      <div className="mt-6">
-                        <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.24em] text-ink-3">
-                          What you&apos;ll achieve
-                        </p>
-                        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-                          {(c.outcomes ?? []).map((o) => (
-                            <li key={o} className="flex items-start gap-2 text-[0.88rem] leading-snug text-ink-2">
-                              <svg aria-hidden viewBox="0 0 12 12" fill="none" className="mt-1 h-3.5 w-3.5 shrink-0">
-                                <path d="M2.2 6.4 4.8 9l4.9-6" stroke={accent} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                              </svg>
-                              {o}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* Right: price, batches, syllabus, CTAs */}
-                    <div className="border-t border-[#E3EBFA] bg-[#fbfdff] p-7 sm:p-10 lg:border-l lg:border-t-0">
-                      <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div>
-                          <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.2em] text-ink-3">
-                            Programme fee <span className="normal-case">(incl. registration)</span>
-                          </p>
-                          <p className="font-display text-[2rem] font-extrabold leading-none text-ink">
-                            {formatPKR(c.fee)}
-                          </p>
-                        </div>
-                        <div className="rounded-2xl border border-[#DCE7FF] bg-white px-4 py-3">
-                          <p className="flex items-center gap-1.5 font-display text-[0.6rem] font-bold uppercase tracking-[0.16em] text-ink-3">
-                            <Wallet className="h-3.5 w-3.5" style={{ color: accent }} /> Fee in PKR
-                          </p>
-                          <p className="mt-0.5 font-mono text-[0.8rem] font-semibold text-ink-2">Clear · no hidden charges</p>
-                        </div>
-                      </div>
-
-                      {/* Batches */}
-                      <div className="mt-6">
-                        <p className="flex items-center gap-1.5 font-display text-[0.6rem] font-bold uppercase tracking-[0.24em] text-ink-3">
-                          <CalendarDays className="h-3.5 w-3.5" style={{ color: accent }} /> Batches & timings
-                        </p>
-                        <div className="mt-3 flex flex-col gap-2">
-                          {(c.batches ?? []).map((b) => (
-                            <div key={b.name} className="flex items-center justify-between gap-3 rounded-xl border border-[#DCE7FF] bg-white px-4 py-3">
-                              <span className="font-display text-[0.9rem] font-bold text-ink">{b.name}</span>
-                              <span className="font-mono text-[0.78rem] font-semibold text-ink-2">{b.time}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Syllabus preview */}
-                      {years.length > 0 && (
-                        <div className="mt-6">
-                          <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.24em] text-ink-3">
-                            Syllabus preview
-                          </p>
-                          <ol className="mt-3 space-y-2">
-                            {years.slice(0, 4).map((m) => (
-                              <li key={m.title} className="flex items-baseline gap-2 text-[0.88rem]">
-                                <span className="h-1.5 w-1.5 shrink-0 translate-y-[-1px] rounded-full" style={{ backgroundColor: accent }} />
-                                <span className="font-semibold text-ink">{m.title}</span>
-                                <span className="ml-auto shrink-0 font-mono text-[0.62rem] text-ink-3">{m.weeks}</span>
-                              </li>
-                            ))}
-                          </ol>
-                        </div>
-                      )}
-
-                      {/* CTAs */}
-                      <div className="mt-7 flex flex-col gap-2.5">
-                        <ApplyButton
-                          courseKey={registrationKeyForCatalogName(c.name)}
-                          className="group/apply relative inline-flex h-12 w-full items-center justify-center gap-2 overflow-hidden rounded-xl px-6 font-display text-[0.78rem] font-bold uppercase tracking-[0.18em] text-white transition-transform duration-300 hover:-translate-y-0.5 active:scale-[0.99]"
-                          style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)`, boxShadow: `0 18px 40px -16px ${accent}` }}
-                        >
-                          <span aria-hidden className="absolute inset-0 -translate-x-[150%] bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover/apply:translate-x-[150%]" />
-                          <Sparkles className="h-4 w-4" /> Apply now
-                          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/apply:translate-x-1" />
-                        </ApplyButton>
-                        <Link
-                          href={`/courses/${courseSlug(c.name)}`}
-                          className="group/sec inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-[#C7D8F5] font-display text-[0.74rem] font-bold uppercase tracking-[0.18em] text-ink transition-all duration-300 hover:-translate-y-0.5 hover:border-ink hover:bg-ink hover:text-white hover:shadow-[0_16px_36px_-18px_rgb(15_23_42/0.5)]"
-                        >
-                          Explore this course
-                          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover/sec:translate-x-1" />
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </article>
                 </Reveal>
-              );
-            })}
+
+                <Reveal delay={0.06} y={22}>
+                  <h1 className="section-title-ref mt-4">
+                    Find the course that{" "}
+                    <span className="relative inline-block text-[#0f6b5c]">
+                      fits your goal.
+                      <svg
+                        aria-hidden
+                        viewBox="0 0 240 12"
+                        fill="none"
+                        className="absolute -bottom-1 left-0 h-2 w-full"
+                        preserveAspectRatio="none"
+                      >
+                        <path
+                          d="M2 8.5C58 4.5 160 4 238 7"
+                          stroke="#fb6a47"
+                          strokeWidth="2.6"
+                          strokeLinecap="round"
+                          opacity="0.65"
+                        />
+                      </svg>
+                    </span>
+                  </h1>
+                </Reveal>
+
+                <Reveal delay={0.12} y={18}>
+                  <p className="mt-5 max-w-xl font-sans text-[0.98rem] leading-[1.8] text-ink-2">
+                    Spoken English, IELTS, PTE and Writing — transparent fees, clear
+                    schedules and the exact syllabus you will cover. Choose a path and
+                    start this month.
+                  </p>
+                </Reveal>
+              </div>
+
+              <Reveal delay={0.16} y={18}>
+                <div className="grid gap-2.5 sm:grid-cols-2 lg:w-[24rem]">
+                  {[
+                    { icon: GraduationCap, value: `${courses.length}`, label: "Focused programmes" },
+                    { icon: Users, value: "12", label: "Learners per batch" },
+                    { icon: BookOpen, value: `${totalModules}`, label: "Syllabus modules" },
+                    { icon: CalendarDays, value: "Monthly", label: "Fresh intakes" },
+                  ].map((s) => (
+                    <div
+                      key={s.label}
+                      className="flex items-center gap-3 rounded-2xl border border-line bg-white px-4 py-3 shadow-[0_18px_40px_-36px_rgba(10,78,67,0.5)]"
+                    >
+                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#eaf7f3] text-[#0f6b5c]">
+                        <s.icon className="h-4 w-4" strokeWidth={2} />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block font-display text-[0.92rem] font-extrabold leading-none text-ink">
+                          {s.value}
+                        </span>
+                        <span className="mt-1 block font-sans text-[0.64rem] leading-tight text-ink-3">
+                          {s.label}
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
+            </div>
           </div>
         </section>
 
-        {/* How it works */}
-        <section className="px-6 pb-16 sm:px-12">
-          <div className="mx-auto max-w-6xl">
+        {/* ── catalogue ────────────────────────────────────────────────── */}
+        <section className="px-5 pb-20 pt-12 sm:px-8 sm:pb-24 sm:pt-14">
+          <div className="mx-auto max-w-7xl">
             <Reveal>
-              <div className="text-center">
-                <p className="font-display text-[0.62rem] font-bold uppercase tracking-[0.4em] text-[#2563EB]">
-                  Simple &amp; transparent
-                </p>
-                <h2 className="mt-3 font-display text-[clamp(1.6rem,4vw,2.5rem)] font-extrabold tracking-[-0.02em] text-ink">
+              <CourseCatalogue courses={courses} />
+            </Reveal>
+          </div>
+        </section>
+
+        {/* ── how it works ─────────────────────────────────────────────── */}
+        <section className="border-y border-[#edf5f2] bg-[#f9fdfc] px-5 py-16 sm:px-8 sm:py-20">
+          <div className="mx-auto max-w-7xl">
+            <Reveal>
+              <div className="max-w-2xl">
+                <span className="eyebrow-ref">
+                  <Sparkles className="h-3.5 w-3.5" /> Simple &amp; transparent
+                </span>
+                <h2 className="section-title-ref mt-4">
                   From here to{" "}
-                  <span
-                    style={{
-                      backgroundImage: "linear-gradient(100deg,#1D4ED8,#2563EB,#38BDF8)",
-                      WebkitBackgroundClip: "text",
-                      backgroundClip: "text",
-                      color: "transparent",
-                    }}
-                  >
-                    fluent
+                  <span className="relative inline-block text-[#0f6b5c]">
+                    fluent.
+                    <svg
+                      aria-hidden
+                      viewBox="0 0 240 12"
+                      fill="none"
+                      className="absolute -bottom-1 left-0 h-2 w-full"
+                      preserveAspectRatio="none"
+                    >
+                      <path
+                        d="M2 8.5C58 4.5 160 4 238 7"
+                        stroke="#fb6a47"
+                        strokeWidth="2.6"
+                        strokeLinecap="round"
+                        opacity="0.65"
+                      />
+                    </svg>
                   </span>
                 </h2>
-                <p className="mx-auto mt-3 max-w-2xl text-[1rem] leading-relaxed text-ink-2">
-                  Four steps, no surprises — pick a course, tell us your goal, pay
-                  the one clear fee, and start speaking in a small live class.
+                <p className="mt-4 max-w-xl font-sans text-[0.95rem] leading-[1.8] text-ink-2">
+                  Four steps, no surprises — pick a course, tell us your goal, pay the one
+                  clear fee, and start speaking in a small live class.
                 </p>
               </div>
             </Reveal>
 
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                {
-                  step: "01",
-                  title: "Choose your course",
-                  text: "Spoken English, IELTS, PTE or Duolingo — matched to your goal.",
-                  icon: BookOpen,
-                },
-                {
-                  step: "02",
-                  title: "Apply & get reviewed",
-                  text: "Your application is reviewed instantly — you hear back the moment you submit.",
-                  icon: Send,
-                },
-                {
-                  step: "03",
-                  title: "Pay securely",
-                  text: "EasyPaisa, JazzCash, debit/credit card or bank — one clear monthly fee.",
-                  icon: ShieldCheck,
-                },
-                {
-                  step: "04",
-                  title: "Start learning",
-                  text: "Live small batches, a personal syllabus and a completion certificate.",
-                  icon: AwardIcon,
-                },
-              ].map((s, i) => (
+            <div className="relative mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <span
+                aria-hidden
+                className="pointer-events-none absolute left-[6%] right-[6%] top-[3.2rem] hidden h-px bg-[linear-gradient(90deg,transparent,#cfe3da_12%,#cfe3da_88%,transparent)] lg:block"
+              />
+              {STEPS.map((s, i) => (
                 <Reveal key={s.step} delay={i * 0.08} y={26}>
-                  <div className="group relative h-full overflow-hidden rounded-2xl border border-[#DCE7FF] bg-white p-6 transition-all duration-500 hover:-translate-y-1 hover:border-[#2563EB]/30 hover:shadow-[0_24px_54px_-26px_rgb(37_99_235/0.45)]">
-                    <span aria-hidden className="pointer-events-none absolute -right-3 -top-4 select-none font-display text-[4.5rem] font-extrabold text-ink/[0.04]">
+                  <div className="group relative h-full overflow-hidden rounded-2xl border border-[#e3ede9] bg-white p-6 transition-all duration-500 hover:-translate-y-1 hover:border-[#0f6b5c]/30 hover:shadow-[0_24px_54px_-26px_rgba(10,78,67,0.45)]">
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute -right-3 -top-4 select-none font-display text-[4.5rem] font-extrabold text-ink/[0.04]"
+                    >
                       {s.step}
                     </span>
-                    <span className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-[#2563EB] to-[#38BDF8] text-white shadow-[0_12px_26px_-12px_rgb(37_99_235/0.7)] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-105">
+                    <span className="relative grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-[#0f6b5c] to-[#14a08c] text-white shadow-[0_12px_26px_-12px_rgba(10,78,67,0.7)] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-105">
                       <s.icon className="h-5 w-5" strokeWidth={1.9} />
                     </span>
-                    <h3 className="mt-4 font-display text-[1.05rem] font-extrabold text-ink">{s.title}</h3>
-                    <p className="mt-1.5 text-[0.86rem] leading-relaxed text-ink-2">{s.text}</p>
+                    <h3 className="relative mt-4 font-display text-[1.02rem] font-extrabold text-ink">
+                      {s.title}
+                    </h3>
+                    <p className="relative mt-1.5 font-sans text-[0.84rem] leading-relaxed text-ink-2">
+                      {s.text}
+                    </p>
                   </div>
                 </Reveal>
               ))}
@@ -347,30 +244,45 @@ export default async function CoursesPage() {
           </div>
         </section>
 
-        {/* Trust bar */}
-        <section className="px-6 pb-24 sm:px-12">
+        {/* ── CTA band ─────────────────────────────────────────────────── */}
+        <section className="px-5 py-16 sm:px-8 sm:py-20">
           <Reveal>
-            <div className="mx-auto grid max-w-6xl gap-4 rounded-2xl border border-[#DCE7FF] bg-white p-6 sm:grid-cols-2 lg:grid-cols-4 lg:p-8">
-              {[
-                { icon: Users, label: "Small batches 10–20", sub: "Everyone speaks every session" },
-                { icon: MessageCircle, label: "Real conversation", sub: "Practice from day one" },
-                { icon: Wallet, label: "One transparent fee", sub: "No hidden charges" },
-                { icon: AwardIcon, label: "Certificate on completion", sub: "Share your result card" },
-              ].map((t) => (
-                <div key={t.label} className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#2563EB]/[0.08] text-[#1647C7]">
-                    <t.icon className="h-5 w-5" strokeWidth={1.9} />
-                  </span>
-                  <span>
-                    <span className="block font-display text-[0.88rem] font-extrabold text-ink">{t.label}</span>
-                    <span className="block text-[0.72rem] text-ink-3">{t.sub}</span>
-                  </span>
-                </div>
-              ))}
+            <div className="relative mx-auto flex max-w-7xl flex-col items-start gap-6 overflow-hidden rounded-[1.75rem] bg-[linear-gradient(135deg,#0f6b5c_0%,#0a4e43_55%,#063a33_100%)] px-7 py-9 text-white sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:py-11">
+              <span aria-hidden className="pointer-events-none absolute -right-10 -top-16 h-52 w-52 rounded-full bg-[#7ef0c9]/20 blur-3xl" />
+              <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[2px] bg-[linear-gradient(90deg,#7ef0c9,#f5b93c,#fb6a47)]" />
+
+              <div className="relative max-w-xl">
+                <p className="font-display text-[0.6rem] font-bold uppercase tracking-[0.3em] text-[#9be8d3]">
+                  Not sure where to start?
+                </p>
+                <h2 className="mt-2 font-display text-[clamp(1.4rem,3vw,2rem)] font-extrabold leading-tight tracking-[-0.02em]">
+                  Take the free placement test — we&apos;ll point you to the right batch.
+                </h2>
+                <p className="mt-2 font-sans text-[0.9rem] leading-relaxed text-white/70">
+                  Ten minutes, instant level, no obligation. Then a teacher helps you choose.
+                </p>
+              </div>
+
+              <div className="relative flex flex-wrap gap-3">
+                <Link
+                  href="/placement-test"
+                  className="inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 font-display text-[0.8rem] font-bold text-[#0a4e43] transition hover:-translate-y-0.5 hover:bg-[#eaf7f3]"
+                >
+                  Free placement test
+                  <ArrowRight className="h-4 w-4" strokeWidth={2.2} />
+                </Link>
+                <Link
+                  href="/contact"
+                  className="inline-flex h-12 items-center gap-2 rounded-full border border-white/25 px-6 font-display text-[0.8rem] font-bold text-white transition hover:-translate-y-0.5 hover:border-[#7ef0c9]/60 hover:text-[#7ef0c9]"
+                >
+                  Talk to us
+                </Link>
+              </div>
             </div>
           </Reveal>
         </section>
       </main>
+
       <Footer />
     </>
   );

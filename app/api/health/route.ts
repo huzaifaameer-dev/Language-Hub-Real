@@ -1,31 +1,30 @@
 import { NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+
+import { one } from "@/lib/server/pg";
 
 export const dynamic = "force-dynamic";
 
-async function pingDb(): Promise<boolean> {
-  const timeout = new Promise<"TIMEOUT">((resolve) => setTimeout(() => resolve("TIMEOUT"), 1500));
-  const ping = getDb().then((db) =>
-    db.command({ ping: 1 }).then(
-      () => "OK" as const,
-      () => "DOWN" as const
-    )
-  );
-  const result = await Promise.race([ping, timeout]);
-  return result === "OK";
-}
-
+/** Liveness + database probe for uptime monitors and Vercel checks. */
 export async function GET() {
-  const dbUp = await pingDb();
+  let dbUp = false;
+  try {
+    // Cold starts (schema bootstrap on a fresh database, Neon compute resume)
+    // can take a few seconds; a 2s cutoff reported a false "down" on the very
+    // first request, so allow the driver's own 8s connect timeout to win.
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 10_000)
+    );
+    const ping = one<{ ok: number }>("SELECT 1::INT AS ok");
+    const row = await Promise.race([ping, timeout]);
+    dbUp = row?.ok === 1;
+  } catch {
+    dbUp = false;
+  }
 
   return NextResponse.json(
-    {
-      status: dbUp ? "ok" : "degraded",
-      db: dbUp ? "up" : "down",
-      service: "language-hub",
-      uptimeSeconds: Math.round(process.uptime()),
-      timestamp: new Date().toISOString(),
-    },
+    // Deliberately minimal: a public probe only needs liveness, not build,
+    // host or uptime fingerprinting detail.
+    { status: dbUp ? "ok" : "degraded", db: dbUp ? "up" : "down" },
     { status: dbUp ? 200 : 503 }
   );
 }

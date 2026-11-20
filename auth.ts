@@ -4,12 +4,17 @@ import Google from "next-auth/providers/google";
 import GitHub from "next-auth/providers/github";
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import Credentials from "next-auth/providers/credentials";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import bcrypt from "bcryptjs";
-import { ObjectId } from "mongodb";
 
-import { clientPromise, getUsersCollection } from "@/lib/db";
 import authConfig from "./auth.config";
+import {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  touchLogin,
+  updateProfile,
+} from "@/lib/server/users";
+import { getDb, q } from "@/lib/server/pg";
 
 const hasKeys = (id: string | undefined, secret: string | undefined) =>
   !!id && !!secret;
@@ -20,11 +25,12 @@ const hasKeys = (id: string | undefined, secret: string | undefined) =>
 const DUMMY_PASSWORD_HASH =
   "$2b$12$E/ImNZ3EGaUXzeLfM/jW8e3xTtchnWHhDKHYxkDfaGphYKHeg92My";
 
-// Admins authenticate through the standalone /admin-panel (hub_admin_token)
-// and per-IP throttled /api/admin/login. They must never obtain a web JWT, nor
-// should repeated web-login attempts against an admin email be able to trigger
-// a lockout (a denial-of-service vector). We reject admin accounts here before
-// any failure accounting.
+/**
+ * Email + password sign-in, verified against the self-hosted PostgreSQL
+ * database (bcrypt, cost 12). Admin accounts are rejected here on purpose:
+ * the control suite at /admin-panel has its own password + access-code gate,
+ * so a web session can never be escalated into admin access.
+ */
 const credentialsProvider: Provider = Credentials({
   id: "credentials",
   name: "Email & Password",
@@ -34,31 +40,36 @@ const credentialsProvider: Provider = Credentials({
     const password = credentials?.password as string | undefined;
     if (!email || !password) return null;
 
-    const client = await clientPromise;
-    const db = client.db(process.env.MONGODB_DB ?? "languagehub");
-    const users = db.collection("users");
-    const user = await users.findOne({ email: email.toLowerCase() });
+    // Make sure the schema/seed is up before the very first sign-in.
+    await getDb();
 
-    // Always run a bcrypt comparison on a fixed valuable hash even when the
-    // account is unknown or has no password, so the timing of this function
-    // does not leak whether the email is registered.
-    const passwordHash = (user?.password as string | undefined) ?? DUMMY_PASSWORD_HASH;
+    const user = await findUserByEmail(email);
+
+    // Always run a bcrypt comparison on a fixed valid hash even when the
+    // account is unknown or has no password (OAuth-only accounts), so the
+    // timing of this function does not leak whether an email is registered.
+    const passwordHash = user?.password_hash ?? DUMMY_PASSWORD_HASH;
     const valid = await bcrypt.compare(password, passwordHash);
-    if (!user || !user.password || !valid) return null;
+    if (!user || !user.password_hash || !valid) return null;
 
-    // Disabled staff accounts (admins/teachers) can never obtain a web session.
-    if ((user as { disabled?: boolean }).disabled === true) return null;
+    // Disabled accounts and admins can never obtain a learner web session.
+    if (user.disabled || user.role === "ADMIN") return null;
 
-    return {
-      id: String(user._id),
-      name: (user.name as string) ?? null,
-      email: (user.email as string) ?? null,
-      // Do NOT put the profile photo in the JWT: avatars are resized to disk
-      // (see /api/profile/avatar) and the cookie must stay small. UIs read the
-      // freshest image from /api/me or the dashboard server component.
-      image: null,
-      role: (user.role as string) === "ADMIN" ? "ADMIN" : (user.role as string) === "TEACHER" ? "TEACHER" : "USER",
-    };
+    await touchLogin(user.id);
+
+    return Object.assign(
+      {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        // Never put the avatar in the JWT — the cookie must stay small. UIs read
+        // the freshest image from /api/me.
+        image: null,
+        role: user.role,
+      },
+      // Session epoch carried into the JWT and compared on every request.
+      { tokenVersion: Number(user.token_version ?? 0) }
+    );
   },
 });
 
@@ -69,10 +80,6 @@ if (hasKeys(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET)) {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      // Google emails are verified, so linking a Google sign-in to an existing
-      // same-email password account is safe (and stops `OAuthAccountNotLinked`
-      // for the owner/admin account).
-      allowDangerousEmailAccountLinking: true,
     })
   );
 }
@@ -97,63 +104,137 @@ if (
   );
 }
 
+/**
+ * OAuth sign-in: there is no adapter, so the account is provisioned in
+ * PostgreSQL from the provider profile (verified email). The local row id is
+ * written back onto `user` so the JWT carries our own stable identifier.
+ */
+async function provisionOAuthUser(profile: {
+  email: string;
+  name?: string | null;
+  image?: string | null;
+}): Promise<{
+  id: string;
+  role: string;
+  disabled: boolean;
+  tokenVersion: number;
+} | null> {
+  const email = profile.email.trim().toLowerCase();
+  if (!email) return null;
+
+  const existing = await findUserByEmail(email);
+  if (existing) {
+    const tokenVersion = Number(existing.token_version ?? 0);
+    if (existing.disabled || existing.role === "ADMIN") {
+      return {
+        id: existing.id,
+        role: existing.role,
+        disabled: existing.disabled,
+        tokenVersion,
+      };
+    }
+    if (!existing.image && profile.image) {
+      await updateProfile(existing.id, { image: profile.image });
+    }
+    return { id: existing.id, role: existing.role, disabled: false, tokenVersion };
+  }
+
+  const created = await createUser({
+    name: profile.name?.trim() || email.split("@")[0],
+    email,
+    // No password: this account signs in through the provider only.
+    passwordHash: "",
+    role: "USER",
+  });
+  await q(
+    "UPDATE users SET image = $1, email_verified = TRUE WHERE id = $2",
+    [profile.image ?? null, created.id]
+  );
+  return {
+    id: created.id,
+    role: created.role,
+    disabled: false,
+    tokenVersion: Number(created.token_version ?? 0),
+  };
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   trustHost: true,
-  adapter: MongoDBAdapter(clientPromise, {
-    databaseName: process.env.MONGODB_DB ?? "languagehub",
-  }),
   providers,
   callbacks: {
     ...authConfig.callbacks,
-    // Google sign-in is for the site owner/learners. Teachers and disabled
-    // accounts never get a public web session — they use /management.
-    // (Admin is allowed so the owner can sign in with Google; the admin
-    // control suite at /admin-panel remains password + access-code only.)
     signIn: async ({ user, account }) => {
       if (account?.provider && account.provider !== "credentials") {
         const email = user.email?.toLowerCase();
-        if (email) {
-          try {
-            const users = await getUsersCollection();
-            const row = await users.findOne(
-              { email },
-              { projection: { role: 1, disabled: 1 } }
-            );
-            if (!row || row.role === "TEACHER" || row.disabled) {
-              return false;
-            }
-          } catch {
-            return false;
-          }
+        if (!email) return false;
+        try {
+          const row = await provisionOAuthUser({
+            email,
+            name: user.name,
+            image: user.image,
+          });
+          // Unknown provisioning failure, disabled or admin account: refuse.
+          if (!row || row.disabled || row.role === "ADMIN") return false;
+          // Carry our local identity into the JWT callback.
+          user.id = row.id;
+          (user as { role?: string }).role = row.role;
+          (user as { tokenVersion?: number }).tokenVersion = row.tokenVersion;
+          return true;
+        } catch {
+          return false;
         }
       }
       return true;
     },
-    // Roles are re-read on every token refresh so a stale snapshot from the DB
-    // (e.g. a demotion/ban or a later promotion) cannot linger in the JWT.
-    // Admins + teachers sign in through the management portal; admins also use
-    // the standalone /admin-panel (hub_admin_token) for the control suite.
+    // Roles are re-read from PostgreSQL on every token refresh so a stale
+    // snapshot (demotion, promotion or ban) cannot linger in the JWT.
     jwt: async ({ token, user }) => {
       const next = authConfig.callbacks?.jwt?.({ token, user }) ?? token;
-      const id = (next?.id as string | undefined) ?? (user?.id as string | undefined);
+
+      // A fresh sign-in stamps the current session epoch onto the token.
+      if (user) {
+        (next as { tv?: number }).tv = Number(
+          (user as { tokenVersion?: number }).tokenVersion ?? 0
+        );
+      }
+
+      const id =
+        (next?.id as string | undefined) ?? (user?.id as string | undefined);
+
       if (id) {
         try {
-          const users = await getUsersCollection();
-          const row = await users.findOne(
-            { _id: new ObjectId(id) },
-            { projection: { role: 1 } }
-          );
-          // Missing accounts keep the safe USER default (their data endpoints
-          // still 401); staff role rows keep their real role.
-          next.role =
-            row && (row.role as string) === "ADMIN"
-              ? "ADMIN"
-              : row && (row.role as string) === "TEACHER"
-                ? "TEACHER"
-                : "USER";
+          const row = await findUserById(id);
+          if (row) {
+            const stamped = Number((next as { tv?: number }).tv ?? 0);
+            const current = Number(row.token_version ?? 0);
+
+            if (current !== stamped) {
+              // Password changed / account disabled after this token was
+              // issued. Blank the identity so every API and page that trusts
+              // session.user.id treats the visitor as signed out.
+              next.id = "";
+              next.role = "USER";
+              next.disabled = true;
+              (next as { revoked?: boolean }).revoked = true;
+            } else if (row.disabled) {
+              next.id = "";
+              next.role = "USER";
+              next.disabled = true;
+            } else {
+              next.role = row.role === "TEACHER" ? "TEACHER" : "USER";
+              next.disabled = false;
+              (next as { revoked?: boolean }).revoked = false;
+            }
+          } else {
+            // Account removed: the token is worthless.
+            next.id = "";
+            next.role = "USER";
+            next.disabled = true;
+            (next as { revoked?: boolean }).revoked = true;
+          }
         } catch {
-          // DB hiccup: keep the existing token rather than fail the request.
+          // Database hiccup: keep the existing snapshot rather than 500.
         }
       }
       return next;

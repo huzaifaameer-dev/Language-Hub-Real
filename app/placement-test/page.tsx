@@ -3,6 +3,7 @@ import { appBaseUrl } from "@/lib/base-url";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/footer/Footer";
 import { PlacementTestClient } from "./PlacementTestClient";
+import { jsonLdScript } from "@/lib/seo";
 
 const baseUrl = appBaseUrl();
 
@@ -46,7 +47,7 @@ export default function PlacementTestPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(placementTestJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(placementTestJsonLd) }}
       />
       <Navbar />
       <div className="min-h-screen bg-site pt-[4.25rem]">

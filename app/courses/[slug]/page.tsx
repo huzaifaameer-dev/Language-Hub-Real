@@ -22,6 +22,7 @@ import { registrationKeyForCatalogName } from "@/lib/registration-config";
 import { ApplyButton } from "@/components/courses/ApplyButton";
 import { BookDemoButton } from "@/components/contact/BookDemoButton";
 import { appBaseUrl } from "@/lib/base-url";
+import { jsonLdScript } from "@/lib/seo";
 import { Navbar } from "@/components/navigation/Navbar";
 import { Footer } from "@/components/footer/Footer";
 
@@ -124,10 +125,10 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(courseJsonLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webpageJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(courseJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(webpageJsonLd) }} />
       {courseFaqJsonLd ? (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(courseFaqJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(courseFaqJsonLd) }} />
       ) : null}
 
       <Navbar />
@@ -144,7 +145,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
           {/* ─── Hero ─── */}
           <header className="mt-7">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#2563EB]/10 px-3.5 py-1.5 font-mono text-[0.6rem] font-bold uppercase tracking-[0.22em] text-[#1647C7]">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#0f6b5c]/10 px-3.5 py-1.5 font-mono text-[0.6rem] font-bold uppercase tracking-[0.22em] text-[#0a4e43]">
                 <Sparkles className="h-3.5 w-3.5" /> {course.teacher}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-emerald-700">
@@ -158,7 +159,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             <h1 className="mt-4 font-display text-[clamp(2.3rem,6.5vw,4rem)] font-black leading-[1.02] tracking-[-0.03em] text-ink">
               {course.name}
             </h1>
-            <p className="mt-3 max-w-2xl font-display text-[1.2rem] font-semibold leading-snug text-[#1647C7]">
+            <p className="mt-3 max-w-2xl font-display text-[1.2rem] font-semibold leading-snug text-[#0a4e43]">
               {course.tagline}
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
@@ -201,9 +202,9 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                     {course.outcomes.map((o) => (
                       <div
                         key={o}
-                        className="flex items-start gap-3 rounded-2xl border border-ink/[0.08] bg-white px-4 py-3.5 shadow-[0_14px_34px_-24px_rgb(15_23_42/0.35)]"
+                        className="flex items-start gap-3 rounded-2xl border border-ink/[0.08] bg-white px-4 py-3.5 shadow-[0_14px_34px_-24px_rgb(6_46_40/0.35)]"
                       >
-                        <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#2563EB]/10 text-[#2563EB]">
+                        <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#0f6b5c]/10 text-[#0f6b5c]">
                           <CheckCircle className="h-3.5 w-3.5" />
                         </span>
                         <span className="text-[0.9rem] font-medium leading-snug text-ink">{o}</span>
@@ -224,9 +225,9 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                     {features.map((f) => (
                       <li
                         key={f}
-                        className="flex items-center gap-3 rounded-2xl border border-ink/[0.08] bg-white px-4 py-3.5 text-[0.9rem] font-medium text-ink shadow-[0_14px_34px_-24px_rgb(15_23_42/0.35)]"
+                        className="flex items-center gap-3 rounded-2xl border border-ink/[0.08] bg-white px-4 py-3.5 text-[0.9rem] font-medium text-ink shadow-[0_14px_34px_-24px_rgb(6_46_40/0.35)]"
                       >
-                        <span aria-hidden className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#2563EB]/10 text-[0.7rem] text-[#2563EB]">
+                        <span aria-hidden className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#0f6b5c]/10 text-[0.7rem] text-[#0f6b5c]">
                           ✓
                         </span>
                         {f}
@@ -250,7 +251,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                     {/* rail */}
                     <span
                       aria-hidden
-                      className="absolute left-[1.15rem] top-2 bottom-2 w-px bg-gradient-to-b from-[#2563EB]/40 via-[#6D4AFF]/25 to-transparent sm:left-[1.3rem]"
+                      className="absolute left-[1.15rem] top-2 bottom-2 w-px bg-gradient-to-b from-[#0f6b5c]/40 via-[#14a08c]/25 to-transparent sm:left-[1.3rem]"
                     />
                     <div className="flex flex-col gap-6">
                       {course.modules.map((m, i) => (
@@ -272,10 +273,10 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                     {course.batches.map((b) => (
                       <div
                         key={b.name}
-                        className="flex items-center justify-between rounded-2xl border border-ink/[0.08] bg-white px-5 py-4 shadow-[0_14px_34px_-24px_rgb(15_23_42/0.35)]"
+                        className="flex items-center justify-between rounded-2xl border border-ink/[0.08] bg-white px-5 py-4 shadow-[0_14px_34px_-24px_rgb(6_46_40/0.35)]"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#2563EB]/10 text-[#2563EB]">
+                          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#0f6b5c]/10 text-[#0f6b5c]">
                             <Users className="h-4 w-4" />
                           </span>
                           <div>
@@ -296,7 +297,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 <h2 className="mt-3 font-display text-[clamp(1.35rem,3vw,1.8rem)] font-extrabold tracking-[-0.01em] text-ink">
                   See the method <span className="brand-text">in action.</span>
                 </h2>
-                <div className="mt-6 rounded-2xl border border-[#BFD6FF] bg-white p-6 shadow-[0_24px_60px_-32px_rgb(37_99_235/0.4)] sm:p-7">
+                <div className="mt-6 rounded-2xl border border-[#cdebe3] bg-white p-6 shadow-[0_24px_60px_-32px_rgb(10_78_67/0.4)] sm:p-7">
                   <div className="grid gap-4 sm:grid-cols-2">
                     {[
                       { icon: <Mic className="h-4 w-4" />, text: "Conversation-first sessions — you speak from day one" },
@@ -304,8 +305,8 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                       { icon: <Award className="h-4 w-4" />, text: "Mock tests, personal reviews and honest feedback" },
                       { icon: <BookOpen className="h-4 w-4" />, text: "Structured syllabus with trackable weekly progress" },
                     ].map((row) => (
-                      <div key={row.text} className="flex items-center gap-3 rounded-xl border border-brand/10 bg-[#F7F9FF] px-4 py-3">
-                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#2563EB]/10 text-[#2563EB]">
+                      <div key={row.text} className="flex items-center gap-3 rounded-xl border border-brand/10 bg-[#f3fbf8] px-4 py-3">
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#0f6b5c]/10 text-[#0f6b5c]">
                           {row.icon}
                         </span>
                         <span className="text-[0.86rem] font-medium leading-snug text-ink">{row.text}</span>
@@ -348,8 +349,8 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
             <aside className="lg:sticky lg:top-24 lg:h-fit">
               <div className="space-y-5">
                 {/* Enrollment card */}
-                <div className="overflow-hidden rounded-3xl border border-ink/[0.07] bg-white shadow-[0_30px_70px_-36px_rgb(15_23_42/0.45)]">
-                  <div className="rounded-t-3xl bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] px-6 py-4 text-white">
+                <div className="overflow-hidden rounded-3xl border border-ink/[0.07] bg-white shadow-[0_30px_70px_-36px_rgb(6_46_40/0.45)]">
+                  <div className="rounded-t-3xl bg-gradient-to-r from-[#0f6b5c] to-[#14a08c] px-6 py-4 text-white">
                     <p className="font-mono text-[0.56rem] font-bold uppercase tracking-[0.3em] text-white/70">
                       Enrolment
                     </p>
@@ -369,7 +370,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                       ].map((row) => (
                         <li key={row.label} className="flex items-center justify-between gap-3 py-3">
                           <span className="flex items-center gap-2 font-display text-[0.7rem] font-bold uppercase tracking-[0.14em] text-ink-3">
-                            <span className="text-[#2563EB]">{row.icon}</span> {row.label}
+                            <span className="text-[#0f6b5c]">{row.icon}</span> {row.label}
                           </span>
                           <span className="text-[0.82rem] font-semibold text-ink">{row.value}</span>
                         </li>
@@ -379,7 +380,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                     <div className="mt-4 flex flex-col gap-2.5">
                       <ApplyButton
                         courseKey={registrationKeyForCatalogName(course.name)}
-                        className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#2563EB] to-[#6D4AFF] font-display text-[0.8rem] font-bold uppercase tracking-[0.12em] text-white shadow-[0_18px_40px_-18px_rgb(79_70_229/0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110"
+                        className="group inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0f6b5c] to-[#14a08c] font-display text-[0.8rem] font-bold uppercase tracking-[0.12em] text-white shadow-[0_18px_40px_-18px_rgb(10_78_67/0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110"
                       >
                         Apply now <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" strokeWidth={2.4} />
                       </ApplyButton>
@@ -402,7 +403,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                 </div>
 
                 {/* Help card */}
-                <div className="rounded-3xl border border-[#BFD6FF] bg-[linear-gradient(135deg,#F4F7FF,#EAF1FF)] p-5">
+                <div className="rounded-3xl border border-[#cdebe3] bg-[linear-gradient(135deg,#f3fbf8,#eaf7f3)] p-5">
                   <p className="font-display text-[0.95rem] font-extrabold text-ink">Prefer to see it live?</p>
                   <p className="mt-1.5 text-[0.82rem] leading-relaxed text-ink-2">
                     Book a free demo class and try the method before you commit.
@@ -412,9 +413,9 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
                     {CONTACT.phone ? (
                       <a
                         href={`tel:${CONTACT.phone.replace(/[^+\d]/g, "")}`}
-                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-ink/12 bg-white font-display text-[0.78rem] font-bold text-ink transition-all duration-300 hover:-translate-y-0.5 hover:border-[#2563EB]/50"
+                        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-ink/12 bg-white font-display text-[0.78rem] font-bold text-ink transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0f6b5c]/50"
                       >
-                        <Phone className="h-4 w-4 text-[#2563EB]" /> {CONTACT.phone}
+                        <Phone className="h-4 w-4 text-[#0f6b5c]" /> {CONTACT.phone}
                       </a>
                     ) : null}
                   </div>
@@ -424,7 +425,7 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
           </div>
 
           {/* Bottom reassurance */}
-          <div className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 rounded-2xl border border-[#E0E9FF] bg-white px-6 py-5">
+          <div className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 rounded-2xl border border-[#cdebe3] bg-white px-6 py-5">
             {[
               "Free placement test",
               "Certificate on completion",
@@ -445,15 +446,15 @@ export default async function CoursePage({ params }: { params: Promise<{ slug: s
 
 function SectionNumber({ n }: { n: string }) {
   return (
-    <p className="flex items-center gap-3 font-mono text-[0.6rem] font-bold uppercase tracking-[0.3em] text-[#2563EB]">
-      <span aria-hidden className="h-px w-8 bg-[#2563EB]/40" />
+    <p className="flex items-center gap-3 font-mono text-[0.6rem] font-bold uppercase tracking-[0.3em] text-[#0f6b5c]">
+      <span aria-hidden className="h-px w-8 bg-[#0f6b5c]/40" />
       {n}
     </p>
   );
 }
 
 function ModuleTimeline({ module: m, index }: { module: CourseModule; index: number }) {
-  const colors = ["#2563EB", "#0EA5E9", "#7C3AED", "#059669"];
+  const colors = ["#0f6b5c", "#14a08c", "#0f6b5c", "#059669"];
   const color = colors[index % colors.length];
 
   return (
@@ -461,14 +462,14 @@ function ModuleTimeline({ module: m, index }: { module: CourseModule; index: num
       {/* node */}
       <div className="relative z-10 shrink-0">
         <span
-          className="grid h-10 w-10 place-items-center rounded-full font-display text-[0.9rem] font-extrabold text-white ring-4 ring-[#F4F7FF]"
+          className="grid h-10 w-10 place-items-center rounded-full font-display text-[0.9rem] font-extrabold text-white ring-4 ring-[#f3fbf8]"
           style={{ backgroundColor: color }}
         >
           {index + 1}
         </span>
       </div>
       {/* body */}
-      <div className="min-w-0 flex-1 rounded-2xl border border-ink/[0.08] bg-white p-5 shadow-[0_14px_40px_-28px_rgb(15_23_42/0.4)] transition-all hover:shadow-[0_20px_50px_-30px_rgb(37_99_235/0.35)]">
+      <div className="min-w-0 flex-1 rounded-2xl border border-ink/[0.08] bg-white p-5 shadow-[0_14px_40px_-28px_rgb(6_46_40/0.4)] transition-all hover:shadow-[0_20px_50px_-30px_rgb(10_78_67/0.35)]">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-display text-[1.05rem] font-extrabold text-ink">{m.title}</h3>
           <span className="rounded-full px-2.5 py-1 font-mono text-[0.6rem] font-bold uppercase tracking-[0.14em]" style={{ color, backgroundColor: `${color}12` }}>
@@ -477,7 +478,7 @@ function ModuleTimeline({ module: m, index }: { module: CourseModule; index: num
         </div>
         <ul className="mt-3 flex flex-wrap gap-2">
           {m.topics.map((t) => (
-            <li key={t} className="rounded-full border border-ink/[0.08] bg-[#F7F9FF] px-3 py-1 text-[0.78rem] text-ink-2">
+            <li key={t} className="rounded-full border border-ink/[0.08] bg-[#f3fbf8] px-3 py-1 text-[0.78rem] text-ink-2">
               {t}
             </li>
           ))}

@@ -1,24 +1,26 @@
 import { NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
 import bcrypt from "bcryptjs";
 
 import { auth } from "@/auth";
-import { getDb } from "@/lib/db";
+import { findUserById, updatePassword } from "@/lib/server/users";
 import { PasswordChangeSchema, fieldErrors } from "@/lib/validate";
 import { rateLimitDb, clientKey } from "@/lib/rate-limit";
 
 const BCRYPT_COST = 12;
+
+export const dynamic = "force-dynamic";
 
 export async function PATCH(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ message: "Sign in required." }, { status: 401 });
   }
-  if (!ObjectId.isValid(session.user.id)) {
-    return NextResponse.json({ message: "Invalid session." }, { status: 400 });
-  }
 
-  const rl = await rateLimitDb(await clientKey(request, `password:${session.user.id}`), 10, 60 * 60 * 1000);
+  const rl = await rateLimitDb(
+    await clientKey(request, `password:${session.user.id}`),
+    10,
+    60 * 60 * 1000
+  );
   if (!rl.ok) {
     return NextResponse.json(
       { message: "Too many attempts. Please try again later." },
@@ -41,24 +43,14 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const db = await getDb();
-  const users = db.collection("users");
-  const id = new ObjectId(session.user.id);
-
-  const user = await users.findOne({ _id: id });
+  const user = await findUserById(session.user.id);
   if (!user) {
-    return NextResponse.json(
-      { message: "Session expired. Sign in again." },
-      { status: 401 }
-    );
+    return NextResponse.json({ message: "Session expired. Sign in again." }, { status: 401 });
   }
 
-  const valid = await bcrypt.compare(parsed.data.current, user.password ?? "");
+  const valid = await bcrypt.compare(parsed.data.current, user.password_hash ?? "");
   if (!valid) {
-    return NextResponse.json(
-      { message: "Current password is incorrect." },
-      { status: 403 }
-    );
+    return NextResponse.json({ message: "Current password is incorrect." }, { status: 403 });
   }
 
   if (parsed.data.current === parsed.data.next) {
@@ -69,18 +61,9 @@ export async function PATCH(request: Request) {
   }
 
   const hash = await bcrypt.hash(parsed.data.next, BCRYPT_COST);
-  await users.updateOne(
-    { _id: id },
-    {
-      $set: {
-        password: hash,
-        updatedAt: new Date(),
-        // A password change is a natural brute-force reset point.
-        failedAttempts: 0,
-        lockUntil: null,
-      },
-    }
-  );
+  // Bumps token_version: every session minted with the old password stops
+  // working, so the client signs out and asks for the new password once.
+  await updatePassword(user.id, hash);
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, reauth: true });
 }

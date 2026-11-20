@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { getAdminSession } from "@/lib/admin-session";
+import { requireAdmin } from "@/lib/admin-guard";
 import { subscribe, type LiveEvent } from "@/lib/realtime";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ const encoder = new TextEncoder();
 export async function GET(request: Request) {
   // Gate the stream: open it only for an authenticated learner (NextAuth
   // session) or an authenticated admin (standalone admin cookie).
-  const [session, admin] = await Promise.all([auth(), getAdminSession()]);
+  const [session, admin] = await Promise.all([auth(), requireAdmin()]);
   if (!session?.user?.id && !admin?.email) {
     return new Response("Unauthorized", { status: 401 });
   }
